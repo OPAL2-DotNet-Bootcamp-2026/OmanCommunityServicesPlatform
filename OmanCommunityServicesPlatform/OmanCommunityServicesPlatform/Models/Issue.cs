@@ -26,6 +26,7 @@ namespace OmanCommunityServicesPlatform.Models
 
         [Required]
         [MaxLength(10)]
+        [RegularExpression("^(Low|Medium|High)$", ErrorMessage = "Priority must be Low, Medium, or High.")]
         public string priority { get; set; }              // selected by user (Low | Medium | High)
 
         [Required]
@@ -60,5 +61,20 @@ namespace OmanCommunityServicesPlatform.Models
         [ForeignKey(nameof(assignedDepartment))]
         public int? assignedDepartmentId { get; set; }    // assigned automatically by system
         public virtual Department? assignedDepartment { get; set; }
+
+        // reverse navigation — one issue has many status updates
+        public virtual ICollection<StatusUpdate> statusUpdates { get; set; } = new List<StatusUpdate>();
+
+        // reverse navigation — one issue has many comments
+        public virtual ICollection<Comment> comments { get; set; } = new List<Comment>();
+
+        // reverse navigation — one issue has many attachments
+        public virtual ICollection<Attachment> attachments { get; set; } = new List<Attachment>();
+
+        // reverse navigation — one issue has many ratings
+        public virtual ICollection<Rating> ratings { get; set; } = new List<Rating>();
+
+        // reverse navigation — one issue has many notifications
+        public virtual ICollection<Notification> notifications { get; set; } = new List<Notification>();
     }
 }
