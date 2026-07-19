@@ -21,8 +21,8 @@ namespace OmanCommunityServicesPlatform.Models
         [EmailAddress]
         public string contactEmail { get; set; }                 // user input
         [ForeignKey("region")]
-        public int? regionId { get; set; }                       // from list 
-        public virtual Region? region { get; set; }              // navigation property
+        public int? regionId { get; set; }                       // foreign key
+        public  Region? region { get; set; }                     // navigation property
         public ICollection<Category> Categories { get; set; }   // navigation property
         public ICollection<Issue> Issues { get; set; }          // navigation property
         public ICollection<User> Users { get; set; }           // navigation property
