@@ -1,6 +1,9 @@
 ﻿namespace OmanCommunityServicesPlatform.Enums
 {
-    public class IssuePriority
+    public enum IssuePriority
     {
+        Low,
+        Medium,
+        High
     }
 }

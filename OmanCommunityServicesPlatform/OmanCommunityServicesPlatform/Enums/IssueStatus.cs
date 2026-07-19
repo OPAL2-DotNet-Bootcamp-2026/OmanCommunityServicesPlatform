@@ -1,6 +1,10 @@
 ﻿namespace OmanCommunityServicesPlatform.Enums
 {
-    public class IssueStatus
+    public enum IssueStatus
     {
+        Open,
+        InProgress,
+        Resolved,
+        Closed
     }
 }
