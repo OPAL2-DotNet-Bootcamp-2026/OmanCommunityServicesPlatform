@@ -16,13 +16,13 @@ namespace OmanCommunityServicesPlatform.Models
         [Required]
         [ForeignKey(nameof(issue))]
         public int issueId { get; set; }     // related issue
-        public virtual Issue? issue { get; set; }
+        public Issue? issue { get; set; }
 
         // foreign key — updated by a staff user
         [Required]
         [ForeignKey(nameof(updatedBy))]
         public int updatedById { get; set; }    // staff who updated the status
-        public virtual User? updatedBy { get; set; }
+        public User? updatedBy { get; set; }
 
         /////////////////////////////////////////////////////////
 
