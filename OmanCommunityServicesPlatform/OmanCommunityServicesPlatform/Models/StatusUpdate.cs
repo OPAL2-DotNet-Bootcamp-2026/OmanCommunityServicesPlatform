@@ -28,11 +28,9 @@ namespace OmanCommunityServicesPlatform.Models
         /////////////////////////////////////////////////////////
 
         [Required]
-        [MaxLength(20)]
         public IssueStatus previousStatus { get; set; }    // Calculated
 
         [Required]
-        [MaxLength(20)]
         public IssueStatus newStatus { get; set; }       // From List
         [MaxLength(500)]
         public string? notes { get; set; }           // optional user input
