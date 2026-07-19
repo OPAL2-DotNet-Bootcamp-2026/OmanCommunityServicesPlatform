@@ -14,11 +14,15 @@ namespace OmanCommunityServicesPlatform.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // This will make the ratingId auto-increment
         public int ratingId { get; set; } //System generated - Primary key for the Rating entity
 
-        [Required]
+        [ForeignKey(nameof(Issue))] // Specifies that the issueId property is a foreign key referencing the Issue entity
         public int issueId { get; set; } // Foreign Key from Issue - referencing the Issue entity
+        public Issue Issue { get; set; } // Navigation property to access the related Issue entity
 
-        [Required]
+
+        [ForeignKey(nameof(User))] // Specifies that the userId property is a foreign key referencing the User entity
         public int userId { get; set; } // Foreign Key from User - referencing the User entity
+        public User User { get; set; } // Navigation property to access the related User entity
+
 
         [Required]
         [Range(1, 5)] // Validation to ensure the score is between 1 and 5
@@ -29,16 +33,7 @@ namespace OmanCommunityServicesPlatform.Models
 
 
         [Required]
-        public DateTime ratedAt { get; set; } // System generated - The date and time when the rating was created
-            = DateTime.UtcNow; // Default value set to the current UTC date and time when a new rating is created
+        public DateTime ratedAt { get; set; } = DateTime.UtcNow; // Default value set to the current UTC date and time when a new rating is created
 
-
-        // Navigation Properties
-
-        [ForeignKey(nameof(issueId))] // Specifies that the issueId property is a foreign key referencing the Issue entity
-        public Issue Issue { get; set; } // Navigation property to access the related Issue entity
-
-        [ForeignKey(nameof(userId))] // Specifies that the userId property is a foreign key referencing the User entity
-        public User User { get; set; } // Navigation property to access the related User entity
     }
 }
