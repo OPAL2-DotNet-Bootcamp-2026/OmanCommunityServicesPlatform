@@ -29,7 +29,6 @@ namespace OmanCommunityServicesPlatform.Models
         public string? phoneNumber { get; set; }        // User Input
 
         [Required]
-        [MaxLength(20)]
         public UserRole role { get; set; }      // From List
 
         [ForeignKey(nameof(Region))]
