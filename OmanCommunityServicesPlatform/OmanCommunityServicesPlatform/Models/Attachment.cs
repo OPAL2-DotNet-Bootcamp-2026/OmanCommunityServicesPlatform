@@ -8,23 +8,23 @@ namespace OmanCommunityServicesPlatform.Models
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Auto-incrementing primary key
-        public int attachmentId { get; set; }   // Primary key for the Attachment entity
+        public int attachmentId { get; set; }   // system generated - Primary key for the Attachment entity
 
         [Required]
-        public int issueId { get; set; } // Foreign key referencing the associated Issue entity
+        public int issueId { get; set; } // Foreign key - referencing the associated Issue entity
 
         [Required]
-        public int uploadedById { get; set; }  // Foreign key referencing the User who uploaded the attachment
+        public int uploadedById { get; set; }  // Foreign key - referencing the User who uploaded the attachment
 
         [Required]
         [StringLength(300)] // Maximum length constraint for the file URL
-        public string fileUrl { get; set; } // URL or path to the uploaded file
+        public string fileUrl { get; set; } // user input - URL or path to the uploaded file
 
         [Required]
-        public string fileType { get; set; } // Type of the uploaded file
+        public string fileType { get; set; } // user input - Type of the uploaded file
 
         [Required]
-        public DateTime uploadedAt { get; set; } = DateTime.UtcNow; // Timestamp indicating when the attachment was uploaded, defaulting to the current UTC time
+        public DateTime uploadedAt { get; set; } = DateTime.UtcNow; // system generated - Timestamp indicating when the attachment was uploaded, defaulting to the current UTC time
 
 
         // Navigation Properties
