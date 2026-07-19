@@ -7,33 +7,33 @@ namespace OmanCommunityServicesPlatform.Models
     {
 
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int ratingId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // This will make the ratingId auto-increment
+        public int ratingId { get; set; } // Primary key for the Rating entity
 
         [Required]
-        public int issueId { get; set; }
+        public int issueId { get; set; } // Foreign key referencing the Issue entity
 
         [Required]
-        public int userId { get; set; }
+        public int userId { get; set; } // Foreign key referencing the User entity
 
         [Required]
-        [Range(1, 5)]
-        public int score { get; set; }
+        [Range(1, 5)] // Validation to ensure the score is between 1 and 5
+        public int score { get; set; } // The rating score given by the user
 
-        [StringLength(500)]
-        public string? feedback { get; set; }
+        [StringLength(500)] // Validation to limit the feedback length to 500 characters
+        public string? feedback { get; set; } // Optional feedback provided by the user about the issue     
 
         [Required]
-        public DateTime ratedAt { get; set; }
-            = DateTime.UtcNow;
+        public DateTime ratedAt { get; set; } // The date and time when the rating was created
+            = DateTime.UtcNow; // Default value set to the current UTC date and time when a new rating is created
 
 
         // Navigation Properties
 
-        [ForeignKey(nameof(issueId))]
-        public Issue Issue { get; set; } 
+        [ForeignKey(nameof(issueId))] // Specifies that the issueId property is a foreign key referencing the Issue entity
+        public Issue Issue { get; set; } // Navigation property to access the related Issue entity
 
-        [ForeignKey(nameof(userId))]
-        public User User { get; set; }
+        [ForeignKey(nameof(userId))] // Specifies that the userId property is a foreign key referencing the User entity
+        public User User { get; set; } // Navigation property to access the related User entity
     }
 }
