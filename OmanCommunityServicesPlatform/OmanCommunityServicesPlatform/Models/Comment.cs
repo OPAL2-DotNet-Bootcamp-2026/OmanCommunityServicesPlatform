@@ -16,13 +16,13 @@ namespace OmanCommunityServicesPlatform.Models
         [Required]
         [ForeignKey(nameof(issue))]
         public int issueId { get; set; }        // related issue
-        public virtual Issue? issue { get; set; }
+        public Issue? issue { get; set; }
 
         // foreign key — comment created by a user
         [Required]
         [ForeignKey(nameof(user))]
         public int userId { get; set; }         // comment author
-        public virtual User? user { get; set; }
+        public User? user { get; set; }
 
         /////////////////////////////////////////////////////////
 
