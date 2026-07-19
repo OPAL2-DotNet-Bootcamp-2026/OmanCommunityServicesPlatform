@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using OmanCommunityServicesPlatform.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OmanCommunityServicesPlatform.Models
@@ -15,30 +16,29 @@ namespace OmanCommunityServicesPlatform.Models
         // foreign key — status update belongs to an issue
         [Required]
         [ForeignKey(nameof(issue))]
-        public int issueId { get; set; }     // related issue
+        public int issueId { get; set; }     // Foreign Key
         public Issue? issue { get; set; }
 
         // foreign key — updated by a staff user
         [Required]
         [ForeignKey(nameof(updatedBy))]
-        public int updatedById { get; set; }    // staff who updated the status
+        public int updatedById { get; set; }    // Foreign Key
         public User? updatedBy { get; set; }
 
         /////////////////////////////////////////////////////////
 
         [Required]
         [MaxLength(20)]
-        public string previousStatus { get; set; }   // previous issue status
+        public IssueStatus previousStatus { get; set; }    // Calculated
 
         [Required]
         [MaxLength(20)]
-        public string newStatus { get; set; }        // new issue status
-
+        public IssueStatus newStatus { get; set; }       // From List
         [MaxLength(500)]
         public string? notes { get; set; }           // optional user input
 
         [Required]
-        public DateTime updatedAt { get; set; } = DateTime.Now; // system generated
+        public DateTime updatedAt { get; set; } = DateTime.UtcNow; // Default Value
     }
 }
 
