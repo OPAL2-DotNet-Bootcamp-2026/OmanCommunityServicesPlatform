@@ -1,6 +1,9 @@
 ﻿namespace OmanCommunityServicesPlatform.Enums
 {
-    public class UserRole
+    public enum UserRole
     {
+        Citizen,
+        Staff,
+        Admin
     }
 }
