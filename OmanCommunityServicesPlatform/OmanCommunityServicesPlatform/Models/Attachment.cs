@@ -19,7 +19,7 @@ namespace OmanCommunityServicesPlatform.Models
 
         [ForeignKey(nameof(uploadedBy))] // Establishes a relationship with the user entity based on the uploadedById foreign key 
         public int uploadedById { get; set; }  // Foreign key - referencing the User who uploaded the attachment
-        public User uploadedBy { get; set; } = null!; // Navigation property to access the User entity who uploaded the attachment
+        public User uploadedBy { get; set; }  // Navigation property to access the User entity who uploaded the attachment
 
 
         [Required]
