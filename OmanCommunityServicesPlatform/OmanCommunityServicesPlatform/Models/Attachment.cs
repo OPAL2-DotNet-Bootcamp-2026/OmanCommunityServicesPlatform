@@ -1,8 +1,7 @@
-﻿using OmanCommunityServicesPlatform.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OmanCommunityServices.Models
+namespace OmanCommunityServicesPlatform.Models
 {
     public class Attachment
     {
@@ -30,7 +29,7 @@ namespace OmanCommunityServices.Models
 
         // Navigation Properties
 
-        [ForeignKey(nameof(issueId))]
+        [ForeignKey(nameof(ssueId))]
         public Issue Issue { get; set; } = null!;
 
         [ForeignKey(nameof(uploadedById))]
