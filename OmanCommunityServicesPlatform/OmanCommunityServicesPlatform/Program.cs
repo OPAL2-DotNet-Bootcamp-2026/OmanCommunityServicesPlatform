@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace OmanCommunityServicesPlatform
 {
     public class Program
@@ -8,6 +10,9 @@ namespace OmanCommunityServicesPlatform
 
             // Add services to the container.
 
+            builder.Services.AddDbContext<OCSPContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            
             builder.Services.AddControllers();
 
             var app = builder.Build();
