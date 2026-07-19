@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using OmanCommunityServicesPlatform.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OmanCommunityServicesPlatform.Models
@@ -25,13 +26,10 @@ namespace OmanCommunityServicesPlatform.Models
         public decimal? longitude { get; set; }           // optional user input
 
         [Required]
-        [MaxLength(10)]
-        [RegularExpression("^(Low|Medium|High)$", ErrorMessage = "Priority must be Low, Medium, or High.")]
-        public string priority { get; set; }              // selected by user (Low | Medium | High)
+        public IssuePriority priority { get; set; }              // selected by user (Low | Medium | High)
 
         [Required]
-        [MaxLength(20)]
-        public string currentStatus { get; set; } = "Open"; // system default
+        public IssueStatus currentStatus { get; set; } = IssueStatus.Open; // system default
 
         [Required]
         public DateTime reportedDate { get; set; } = DateTime.Now; // system generated
