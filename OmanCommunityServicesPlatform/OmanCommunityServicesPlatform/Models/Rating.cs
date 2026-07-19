@@ -30,9 +30,9 @@ namespace OmanCommunityServicesPlatform.Models
         // Navigation Properties
 
         [ForeignKey(nameof(issueId))]
-        public Issue Issue { get; set; } = null!;
+        public Issue Issue { get; set; } 
 
         [ForeignKey(nameof(userId))]
-        public User User { get; set; } = null!;
+        public User User { get; set; }
     }
 }
