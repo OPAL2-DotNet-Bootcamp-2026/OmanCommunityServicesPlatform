@@ -26,39 +26,39 @@ namespace OmanCommunityServicesPlatform.Models
         public decimal? longitude { get; set; }           // optional user input
 
         [Required]
-        public IssuePriority priority { get; set; }              // selected by user (Low | Medium | High)
+        public IssuePriority priority { get; set; }              // From List
+
 
         [Required]
-        public IssueStatus currentStatus { get; set; } = IssueStatus.Open; // system default
+        public IssueStatus currentStatus { get; set; } = IssueStatus.Open;// Default Value
 
         [Required]
-        public DateTime reportedDate { get; set; } = DateTime.Now; // system generated
+        public DateTime reportedDate { get; set; } = DateTime.UtcNow; // Default Value
 
         ///////////////////////////////////////////////////////////////////////////
 
         // foreign key — every issue is reported by a user
         [Required]
         [ForeignKey(nameof(reportedBy))]
-        public int reportedById { get; set; }             // system assigned
-
+        public int reportedById { get; set; }           // Foreign Key
         public User? reportedBy { get; set; }
 
         // foreign key — every issue must belong to a category
         [Required]
         [ForeignKey(nameof(category))]
-        public int categoryId { get; set; }               // selected by user
+        public int categoryId { get; set; }               // Foreign Key
         public Category? category { get; set; }
 
         // foreign key — every issue must belong to a region
         [Required]
         [ForeignKey(nameof(region))]
-        public int regionId { get; set; }                 // selected by user
+        public int regionId { get; set; }                 // Foreign Key
         public Region? region { get; set; }
 
         // foreign key — assigned automatically based on category
         [ForeignKey(nameof(assignedDepartment))]
-        public int? assignedDepartmentId { get; set; }    // assigned automatically by system
-        public  Department? assignedDepartment { get; set; }
+        public int? assignedDepartmentId { get; set; }    // Foreign Key
+        public Department? assignedDepartment { get; set; }
 
         // reverse navigation — one issue has many status updates
         public ICollection<StatusUpdate> statusUpdates { get; set; } 
