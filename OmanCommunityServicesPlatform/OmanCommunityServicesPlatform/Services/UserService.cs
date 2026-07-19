@@ -1,6 +1,6 @@
 ﻿namespace OmanCommunityServicesPlatform.Services
 {
-    public class UserServices
+    public class UserService
     {
     }
 }
