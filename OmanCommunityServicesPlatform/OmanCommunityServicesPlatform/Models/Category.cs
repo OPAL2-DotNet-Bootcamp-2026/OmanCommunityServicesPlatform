@@ -18,7 +18,7 @@ namespace OmanCommunityServicesPlatform.Models
     public string? description { get; set; }                // user input (optional)
     [ForeignKey("department")]
     public int departmentId { get; set; }                  // foreign key
-        public  Department department { get; set; }       // navigation property
+    public  Department department { get; set; }           // navigation property
     public ICollection<Issue> Issues { get; set; }       // navigation property
     }
 }
