@@ -1,8 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OmanCommunityServicesPlatform.Models
 {
+    [Table("Ratings")]
+    [Index(nameof(issueId), nameof(userId), IsUnique = true)]
+
     public class Rating
     {
 
@@ -11,17 +15,18 @@ namespace OmanCommunityServicesPlatform.Models
         public int ratingId { get; set; } //System generated - Primary key for the Rating entity
 
         [Required]
-        public int issueId { get; set; } // user input - Foreign key referencing the Issue entity
+        public int issueId { get; set; } // Foreign Key from Issue - referencing the Issue entity
 
         [Required]
-        public int userId { get; set; } // user input - Foreign key referencing the User entity
+        public int userId { get; set; } // Foreign Key from User - referencing the User entity
 
         [Required]
         [Range(1, 5)] // Validation to ensure the score is between 1 and 5
         public int score { get; set; } //user input - The rating score given by the user
 
         [StringLength(500)] // Validation to limit the feedback length to 500 characters
-        public string? feedback { get; set; } // user input - Optional feedback provided by the user about the issue     
+        public string? feedback { get; set; } // user input - Optional feedback provided by the user about the issue
+
 
         [Required]
         public DateTime ratedAt { get; set; } // System generated - The date and time when the rating was created
