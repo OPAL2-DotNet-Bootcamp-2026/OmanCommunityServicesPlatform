@@ -15,6 +15,12 @@ namespace OmanCommunityServicesPlatform
             builder.Services.AddDbContext<OCSPContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            // Repositories
+            builder.Services.AddScoped<UserRepo>();
+
+            // Services
+            builder.Services.AddScoped<UserService>();
+
             builder.Services.AddControllers();
 
             // Swagger
