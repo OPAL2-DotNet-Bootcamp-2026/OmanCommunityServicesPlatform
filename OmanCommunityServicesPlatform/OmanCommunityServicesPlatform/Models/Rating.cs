@@ -7,6 +7,7 @@ namespace OmanCommunityServicesPlatform.Models
     {
 
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ratingId { get; set; }
 
         [Required]
