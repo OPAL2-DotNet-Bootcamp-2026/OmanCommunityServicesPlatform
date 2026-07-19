@@ -61,18 +61,18 @@ namespace OmanCommunityServicesPlatform.Models
         public virtual Department? assignedDepartment { get; set; }
 
         // reverse navigation — one issue has many status updates
-        public virtual ICollection<StatusUpdate> statusUpdates { get; set; } = new List<StatusUpdate>();
+        public virtual ICollection<StatusUpdate> statusUpdates { get; set; } 
 
         // reverse navigation — one issue has many comments
-        public virtual ICollection<Comment> comments { get; set; } = new List<Comment>();
+        public virtual ICollection<Comment> comments { get; set; } 
 
         // reverse navigation — one issue has many attachments
-        public virtual ICollection<Attachment> attachments { get; set; } = new List<Attachment>();
+        public virtual ICollection<Attachment> attachments { get; set; } 
 
         // reverse navigation — one issue has many ratings
-        public virtual ICollection<Rating> ratings { get; set; } = new List<Rating>();
+        public virtual ICollection<Rating> ratings { get; set; } 
 
         // reverse navigation — one issue has many notifications
-        public virtual ICollection<Notification> notifications { get; set; } = new List<Notification>();
+        public virtual ICollection<Notification> notifications { get; set; } 
     }
 }
