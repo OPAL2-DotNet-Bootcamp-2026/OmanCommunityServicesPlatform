@@ -41,38 +41,38 @@ namespace OmanCommunityServicesPlatform.Models
         [ForeignKey(nameof(reportedBy))]
         public int reportedById { get; set; }             // system assigned
 
-        public virtual User? reportedBy { get; set; }
+        public User? reportedBy { get; set; }
 
         // foreign key — every issue must belong to a category
         [Required]
         [ForeignKey(nameof(category))]
         public int categoryId { get; set; }               // selected by user
-        public virtual Category? category { get; set; }
+        public Category? category { get; set; }
 
         // foreign key — every issue must belong to a region
         [Required]
         [ForeignKey(nameof(region))]
         public int regionId { get; set; }                 // selected by user
-        public virtual Region? region { get; set; }
+        public Region? region { get; set; }
 
         // foreign key — assigned automatically based on category
         [ForeignKey(nameof(assignedDepartment))]
         public int? assignedDepartmentId { get; set; }    // assigned automatically by system
-        public virtual Department? assignedDepartment { get; set; }
+        public  Department? assignedDepartment { get; set; }
 
         // reverse navigation — one issue has many status updates
-        public virtual ICollection<StatusUpdate> statusUpdates { get; set; } 
+        public ICollection<StatusUpdate> statusUpdates { get; set; } 
 
         // reverse navigation — one issue has many comments
-        public virtual ICollection<Comment> comments { get; set; } 
+        public ICollection<Comment> comments { get; set; } 
 
         // reverse navigation — one issue has many attachments
-        public virtual ICollection<Attachment> attachments { get; set; } 
+        public ICollection<Attachment> attachments { get; set; } 
 
         // reverse navigation — one issue has many ratings
-        public virtual ICollection<Rating> ratings { get; set; } 
+        public ICollection<Rating> ratings { get; set; } 
 
         // reverse navigation — one issue has many notifications
-        public virtual ICollection<Notification> notifications { get; set; } 
+        public ICollection<Notification> notifications { get; set; } 
     }
 }
