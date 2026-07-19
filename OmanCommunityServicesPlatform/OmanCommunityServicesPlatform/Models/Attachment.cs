@@ -5,8 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace OmanCommunityServicesPlatform.Models
 {
     [Table("Attachments")]
-    [Index(nameof(issueId), IsUnique = true)]
-    [Index(nameof(fileUrl), IsUnique = true)]
+    [Index(nameof(issueId), nameof(fileUrl), IsUnique = true)]
     public class Attachment
     {
 
