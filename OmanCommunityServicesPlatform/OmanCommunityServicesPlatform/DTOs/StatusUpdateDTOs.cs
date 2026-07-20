@@ -2,10 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace OmanCommunityServicesPlatform.DTOs
-{
-    public class StatusUpdateDTOs
-    {
-
+{  
         // Request DTO — what staff sends when updating issue status
         public class CreateStatusUpdateDto
         {
@@ -32,4 +29,4 @@ namespace OmanCommunityServicesPlatform.DTOs
             public DateTime updatedAt { get; set; }
         }
     }
-}
+
