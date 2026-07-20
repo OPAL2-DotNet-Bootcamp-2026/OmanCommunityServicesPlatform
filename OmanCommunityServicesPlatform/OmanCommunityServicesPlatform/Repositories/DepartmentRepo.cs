@@ -17,9 +17,11 @@ namespace OmanCommunityServicesPlatform.Repositories
         {
             return context.Departments.FirstOrDefault(d => d.departmentId == id);
         }
+        public void Add(Department department)
+        {
+            context.Departments.Add(department);
+            context.SaveChanges();
+        }
 
-
-
-    
     }
 }
