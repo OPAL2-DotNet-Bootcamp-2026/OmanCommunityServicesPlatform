@@ -1,0 +1,17 @@
+﻿using OmanCommunityServicesPlatform.Models;
+
+namespace OmanCommunityServicesPlatform.Repositories
+{
+    public class DepartmentRepo
+    {
+        private OCSPContext context;
+        public DepartmentRepo(OCSPContext _context)
+        {
+            context = _context;
+        }
+        public List<Department> GetAllDepartments()
+        {
+            return context.Departments.ToList();
+        }
+    }
+}
