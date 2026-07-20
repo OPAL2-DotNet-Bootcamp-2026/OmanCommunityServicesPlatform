@@ -26,6 +26,12 @@ namespace OmanCommunityServicesPlatform.Repositories
         {
             context.SaveChanges();
         }
+        public void Delete(Department department)
+        {
+            context.Departments.Remove(department);
+            context.SaveChanges();
+        }
+        
 
     }
 }
