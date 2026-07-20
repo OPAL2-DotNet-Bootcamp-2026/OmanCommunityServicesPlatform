@@ -44,6 +44,7 @@ namespace OmanCommunityServicesPlatform.DTOs
     // Response DTO — what the API returns to the client
     public class IssueResponseDto
     {
+       
         public int issueId { get; set; }
         public string title { get; set; }
         public string description { get; set; }
