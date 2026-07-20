@@ -28,7 +28,7 @@ namespace OmanCommunityServicesPlatform.DTOs
             [MinLength(8, ErrorMessage = "Phone number must be at least 8 numbers.")]
             public string? phoneNumber { get; set; }
 
-            public string? regionId { get; set; } // Optional
+            public int? regionId { get; set; } // Optional
 
         }
 
@@ -56,7 +56,7 @@ namespace OmanCommunityServicesPlatform.DTOs
             [MinLength(8, ErrorMessage = "Phone number must be at least 8 numbers.")]
             public string? phoneNumber { get; set; }
 
-            public string? regionId { get; set; } // Optional
+            public int? regionId { get; set; } // Optional
         }
 
         // Admin-only action, separate from registration
@@ -75,7 +75,7 @@ namespace OmanCommunityServicesPlatform.DTOs
 
         // ── Response DTOs — what the API sends back ───────────────────────────────
 
-        public class userResponeDto
+        public class UserResponeDto
         {
             public int userId { get; set; }
             public string fullName { get; set; }
@@ -83,9 +83,7 @@ namespace OmanCommunityServicesPlatform.DTOs
             public string? phoneNumber { get; set; }
             public UserRole role { get; set; }
             public int? regionId { get; set; }
-            public Region? Region { get; set; }
             public int? departmentId { get; set; }
-            public Department? Department { get; set; }
             public DateTime registrationDate { get; set; }
             public bool isActive { get; set; }
         }
