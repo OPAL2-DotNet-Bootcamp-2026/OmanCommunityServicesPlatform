@@ -28,7 +28,7 @@ namespace OmanCommunityServicesPlatform.Models
         public string fileUrl { get; set; } // user input - URL or path to the uploaded file
 
         [Required]
-        public AttachmentType fileType { get; set; } // user input - Type of the uploaded file
+        public AttachmentFileType fileType { get; set; } // user input - Type of the uploaded file
 
         [Required]
         public DateTime uploadedAt { get; set; } = DateTime.UtcNow; // system generated - Timestamp indicating when the attachment was uploaded, defaulting to the current UTC time
