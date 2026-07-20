@@ -34,7 +34,7 @@ namespace OmanCommunityServicesPlatform.Models
 
         [Required]
         [StringLength(30)]
-        public string type { get; set; } // System generated
+        public NotificationType type { get; set; } // System generated
 
         public bool isRead { get; set; } = false; // Default value set to false, indicating the notification is unread when created
 
