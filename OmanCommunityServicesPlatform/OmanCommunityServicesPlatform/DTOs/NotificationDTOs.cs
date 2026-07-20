@@ -31,5 +31,24 @@ namespace OmanCommunityServicesPlatform
             public string type { get; set; } = string.Empty;
             // Notification type such as StatusChange, Comment, or Assignment
         }
+
+        // Used when updating an existing notification
+        public class UpdateNotificationDTO
+        {
+            [Required]
+            [StringLength(
+                300,
+                ErrorMessage = "Message cannot exceed 300 characters."
+            )]
+            public string message { get; set; } = string.Empty;
+
+            [Required]
+            [StringLength(
+                30,
+                ErrorMessage = "Notification type cannot exceed 30 characters."
+            )]
+            public string type { get; set; } = string.Empty;
+        }
+
     }
 }
