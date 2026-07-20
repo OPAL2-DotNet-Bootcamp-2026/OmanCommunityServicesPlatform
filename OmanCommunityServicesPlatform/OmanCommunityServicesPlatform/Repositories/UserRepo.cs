@@ -27,6 +27,9 @@ namespace OmanCommunityServicesPlatform.Repositories
             return context.Users.FirstOrDefault(u => u.userId == id);
         }
 
-
+        public bool EmailExists(string email)
+        {
+            return context.Users.Any(u => u.email == email);
+        }
     }
 }
