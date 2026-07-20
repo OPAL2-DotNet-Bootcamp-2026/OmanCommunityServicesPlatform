@@ -1,6 +1,6 @@
 ﻿namespace OmanCommunityServicesPlatform.Repositories
 {
-    public class RepositoryRating
+    public class RatingRepo
     {
     }
 }
