@@ -49,6 +49,12 @@ namespace OmanCommunityServicesPlatform
             )]
             public string type { get; set; } = string.Empty;
         }
+        // Used when marking one notification as read or unread
+        public class UpdateNotificationReadStatusDTO
+        {
+            [Required]
+            public bool isRead { get; set; }
+        }
 
     }
 }
