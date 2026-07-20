@@ -13,5 +13,13 @@ namespace OmanCommunityServicesPlatform.Repositories
         {
             return context.Departments.ToList();
         }
+        public Department GetDepartmentById(int id)
+        {
+            return context.Departments.FirstOrDefault(d => d.departmentId == id);
+        }
+
+
+
+    
     }
 }
