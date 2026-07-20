@@ -10,14 +10,17 @@ namespace OmanCommunityServicesPlatform.Repositories
         { 
             this.context = context;
         }
+        // Get all issues
         public List<Issue> GetAll()
         {
             return context.Issues.ToList();
         }
-        public Issue GetById(int issueId)
+        // Get one issue by ID
+        public Issue? GetById(int issueId)
         {
             return context.Issues.FirstOrDefault(i => i.issueId == issueId);
         }
+        // Get issue with all related details
         public Issue GetWithDetails(int issueId)
         {
             return context.Issues
@@ -27,13 +30,23 @@ namespace OmanCommunityServicesPlatform.Repositories
                 .Include(i => i.assignedDepartment)
                 .Include(i => i.comments)
                 .Include(i => i.statusUpdates)
+                .Include(i => i.attachments)
+                .Include(i => i.ratings)
+                .Include(i => i.notifications)
                 .FirstOrDefault(i => i.issueId == issueId);
         }
+        // Add new issue
         public void Add(Issue issue)
         {
             context.Issues.Add(issue);
             context.SaveChanges();
         }
+        // Save updated issue
+        public void Update()
+        {
+            context.SaveChanges();
+        }
+        // Delete issue
         public void Delete(Issue issue)
         {
             context.Issues.Remove(issue);
