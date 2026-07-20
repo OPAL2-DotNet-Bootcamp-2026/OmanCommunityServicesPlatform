@@ -21,7 +21,7 @@ namespace OmanCommunityServicesPlatform.Repositories
             return context.Issues.FirstOrDefault(i => i.issueId == issueId);
         }
         // Get issue with all related details
-        public Issue GetWithDetails(int issueId)
+        public Issue? GetWithDetails(int issueId)
         {
             return context.Issues
                 .Include(i => i.reportedBy)
