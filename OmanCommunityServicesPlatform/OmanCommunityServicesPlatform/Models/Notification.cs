@@ -29,12 +29,11 @@ namespace OmanCommunityServicesPlatform.Models
         public Issue? issue { get; set; }
 
         [Required]
-        [StringLength(300)]
         public string message { get; set; } // System generated
 
         [Required]
         [StringLength(30)]
-        public NotificationType type { get; set; } // System generated
+        public NotificationType type { get; set; } // Calculated 
 
         public bool isRead { get; set; } = false; // Default value set to false, indicating the notification is unread when created
 
