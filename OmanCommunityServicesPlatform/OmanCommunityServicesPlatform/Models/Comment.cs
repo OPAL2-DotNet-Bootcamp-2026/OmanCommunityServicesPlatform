@@ -15,13 +15,13 @@ namespace OmanCommunityServicesPlatform.Models
         // foreign key — comment belongs to an issue
         [Required]
         [ForeignKey(nameof(issue))]
-        public int issueId { get; set; }        // related issue
+        public int issueId { get; set; }         // Foreign Key
         public Issue? issue { get; set; }
 
         // foreign key — comment created by a user
         [Required]
         [ForeignKey(nameof(user))]
-        public int userId { get; set; }         // comment author
+        public int userId { get; set; }    // Foreign Key      
         public User? user { get; set; }
 
         /////////////////////////////////////////////////////////
@@ -30,10 +30,10 @@ namespace OmanCommunityServicesPlatform.Models
         [MaxLength(1000)]
         public string content { get; set; }     // user input
 
-        public bool isStaffComment { get; set; } = false; // system default
+        public bool isStaffComment { get; set; } = false; // Calculated
 
         [Required]
-        public DateTime commentDate { get; set; } = DateTime.Now; // system generated
+        public DateTime commentDate { get; set; } = DateTime.UtcNow; // Default Value
     }
 }
 
