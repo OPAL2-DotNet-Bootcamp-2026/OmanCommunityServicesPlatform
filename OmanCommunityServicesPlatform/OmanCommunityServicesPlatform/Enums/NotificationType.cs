@@ -1,6 +1,9 @@
-﻿namespace OmanCommunityServicesPlatform.Enums
+﻿namespace OmanCommunityServicesPlatform.Models.Enums
 {
-    public class NotificationType
+    public enum NotificationType
     {
+        StatusChange,
+        Comment,
+        Assignment
     }
 }
