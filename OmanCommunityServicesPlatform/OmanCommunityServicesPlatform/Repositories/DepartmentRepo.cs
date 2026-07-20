@@ -31,6 +31,7 @@ namespace OmanCommunityServicesPlatform.Repositories
             context.Departments.Remove(department);
             context.SaveChanges();
         }
+        // Check if department name already exists
         public bool IsDepartmentNameExist(string name)
         {
             return context.Departments.Any(d => d.departmentName == name);
