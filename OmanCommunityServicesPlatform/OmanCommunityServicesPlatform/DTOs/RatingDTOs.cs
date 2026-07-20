@@ -70,6 +70,19 @@ namespace OmanCommunityServicesPlatform.DTOs
             public int userId { get; set; }
             // Foreign key of the user who submitted the rating
 
+            public string userName { get; set; } = string.Empty;
+            // Name of the user who submitted the rating
+
+            public int score { get; set; }
+            // Rating value between 1 and 5
+
+            public string? feedback { get; set; }
+            // Optional feedback
+
+            public DateTime ratedAt { get; set; }
+            // System-generated rating date
+
+
         }
     }
 }
