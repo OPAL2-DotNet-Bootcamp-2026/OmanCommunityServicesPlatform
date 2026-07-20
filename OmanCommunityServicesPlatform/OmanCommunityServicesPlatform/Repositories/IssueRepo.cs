@@ -28,11 +28,6 @@ namespace OmanCommunityServicesPlatform.Repositories
                 .Include(i => i.category)
                 .Include(i => i.region)
                 .Include(i => i.assignedDepartment)
-                .Include(i => i.comments)
-                .Include(i => i.statusUpdates)
-                .Include(i => i.attachments)
-                .Include(i => i.ratings)
-                .Include(i => i.notifications)
                 .FirstOrDefault(i => i.issueId == issueId);
         }
         // Add new issue
