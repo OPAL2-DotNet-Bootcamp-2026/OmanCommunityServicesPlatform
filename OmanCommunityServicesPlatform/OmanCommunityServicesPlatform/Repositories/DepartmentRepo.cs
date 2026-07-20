@@ -22,6 +22,10 @@ namespace OmanCommunityServicesPlatform.Repositories
             context.Departments.Add(department);
             context.SaveChanges();
         }
+        public void Update()
+        {
+            context.SaveChanges();
+        }
 
     }
 }
