@@ -75,7 +75,7 @@ namespace OmanCommunityServicesPlatform.DTOs
 
         // ── Response DTOs — what the API sends back ───────────────────────────────
 
-        public class UserResponeDto
+        public class UserResponseDto
         {
             public int userId { get; set; }
             public string fullName { get; set; }
