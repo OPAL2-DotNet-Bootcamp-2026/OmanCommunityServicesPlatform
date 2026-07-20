@@ -17,14 +17,24 @@ namespace OmanCommunityServicesPlatform.Repositories
             context.SaveChanges();
         }
 
-        public void Update()
+        public List<User> GetAll()
         {
-            context.SaveChanges();
+            return context.Users.ToList();
         }
 
         public User GetById(int id)
         {
             return context.Users.FirstOrDefault(u => u.userId == id);
+        }
+
+        public User GetByEmail(string email)
+        {
+            return context.Users.FirstOrDefault(u => u.email ==email);
+        }
+
+        public void Update()
+        {
+            context.SaveChanges();
         }
 
         public bool EmailExists(string email)
