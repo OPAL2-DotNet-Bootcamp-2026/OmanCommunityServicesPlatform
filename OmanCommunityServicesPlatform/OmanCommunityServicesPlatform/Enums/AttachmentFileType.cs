@@ -1,6 +1,8 @@
-﻿namespace OmanCommunityServicesPlatform.Enums
+﻿namespace OmanCommunityServices.Models.Enums
 {
-    public class AttachmentFileType
+    public enum AttachmentType
     {
+        Image,
+        Document
     }
 }
