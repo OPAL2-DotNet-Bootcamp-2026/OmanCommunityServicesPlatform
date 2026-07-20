@@ -55,7 +55,22 @@ namespace OmanCommunityServicesPlatform.DTOs
             // Updated optional feedback
         }
 
+        // Used to return rating information from the API
+        public class RatingDto
+        {
+            public int ratingId { get; set; }
+            // System-generated rating ID
 
+            public int issueId { get; set; }
+            // Foreign key of the rated issue
+
+            public string issueTitle { get; set; } = string.Empty;
+            // Title of the related issue
+
+            public int userId { get; set; }
+            // Foreign key of the user who submitted the rating
+
+        }
     }
 }
 
