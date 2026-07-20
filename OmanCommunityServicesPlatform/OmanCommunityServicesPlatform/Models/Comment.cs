@@ -30,7 +30,7 @@ namespace OmanCommunityServicesPlatform.Models
         [MaxLength(1000)]
         public string content { get; set; }     // user input
 
-        public bool isStaffComment { get; set; } = false; // Calculated
+        public bool isStaffComment { get; set; } // Calculated
 
         [Required]
         public DateTime commentDate { get; set; } = DateTime.UtcNow; // Default Value
