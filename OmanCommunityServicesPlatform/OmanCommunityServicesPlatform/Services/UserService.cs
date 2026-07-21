@@ -57,6 +57,49 @@ namespace OmanCommunityServicesPlatform.Services
             return Response(user);
         }
 
+        public UpdateProfileDto UpdateUserProfile(int id, UpdateProfileDto dto)
+        {
+            // Check user Existance using Token
+            // Implement Here
+
+            User user = userRepo.GetById(id);
+
+            if (dto.name != null)
+            {
+                user.fullName = dto.name;
+            }
+
+            if (dto.email != null)
+            {
+                if (!userRepo.EmailExists(dto.email))
+                {
+                    user.email = dto.email;
+                }
+            }
+
+            if (dto.phoneNumber != null)
+            {
+                user.phoneNumber = dto.phoneNumber;
+            }
+
+            if (dto.regionId != null)
+            {
+                user.regionId = dto.regionId;
+            }
+
+            userRepo.Update();
+            
+            UpdateProfileDto response = new UpdateProfileDto
+            {
+                name = user.fullName,
+                email = user.email,
+                phoneNumber = user.phoneNumber,
+                regionId = user.regionId
+            };
+
+            return response;
+        }
+
         public UserSummaryDto Response(User user)
         {
             UserSummaryDto response = new UserSummaryDto
