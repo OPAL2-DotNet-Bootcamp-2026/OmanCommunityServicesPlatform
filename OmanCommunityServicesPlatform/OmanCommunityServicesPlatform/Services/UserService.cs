@@ -8,17 +8,17 @@ namespace OmanCommunityServicesPlatform.Services
 {
     public class UserService
     {
-        private UserRepo repo;
+        private UserRepo userRepo;
 
         public UserService(UserRepo _repo)
         {
-            repo = _repo;
+            userRepo = _repo;
         }
 
         public UserSummaryDto RegisterUser(RegisterUserDto dto)
         {
             // Business Rule: Email must be unique
-            if (repo.EmailExists(dto.email))
+            if (userRepo.EmailExists(dto.email))
             {
                 return null;
             }
@@ -33,14 +33,14 @@ namespace OmanCommunityServicesPlatform.Services
                 role = UserRole.Citizen
             };
 
-            repo.Add(newUser);
+            userRepo.Add(newUser);
 
             return Response(newUser);
         }
 
         public UserSummaryDto LoginUser(LoginDto dto)
         {
-            User user = repo.GetByEmail(dto.email);
+            User user = userRepo.GetByEmail(dto.email);
             
             if (user == null)
             {
