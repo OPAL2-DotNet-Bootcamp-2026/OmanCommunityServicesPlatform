@@ -1,5 +1,6 @@
 ﻿using Isopoh.Cryptography.Argon2;
 using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Repositories;
 
@@ -19,7 +20,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Business Rule: Email must be unique
             if (repo.EmailExists(dto.email))
             {
-                return null;
+                throw new InvalidOperationException("Email is already registered.");
             }
 
             User newUser = new User
@@ -28,7 +29,8 @@ namespace OmanCommunityServicesPlatform.Services
                 email = dto.email,
                 passwordHash = Argon2.Hash(dto.password),
                 phoneNumber = dto.phoneNumber,
-                regionId = dto.regionId
+                regionId = dto.regionId,
+                role = UserRole.Citizen
             };
 
             repo.Add(newUser);
