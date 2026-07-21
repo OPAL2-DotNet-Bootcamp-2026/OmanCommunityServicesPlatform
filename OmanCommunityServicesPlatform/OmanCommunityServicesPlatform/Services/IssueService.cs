@@ -8,14 +8,21 @@ namespace OmanCommunityServicesPlatform.Services
     public class IssueService
     {
         private IssueRepo issueRepo;
-        public IssueService(IssueRepo _issueRepo)
+        private CategoryRepo categoryRepo;
+        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo)
         {
             issueRepo = _issueRepo;
+            categoryRepo = _categoryRepo;
+         
         }
 
         //create Issue 
-        public IssueResponseDto Create(CreateIssueDto dto)
+        public IssueResponseDto? Create(CreateIssueDto dto)
         {
+            Category? category = categoryRepo.GetById(dto.categoryId);
+            if (category == null)
+                return null;
+
             Issue issue = new Issue();
 
             issue.title = dto.title;
@@ -24,7 +31,10 @@ namespace OmanCommunityServicesPlatform.Services
             issue.latitude = dto.latitude;
             issue.longitude = dto.longitude;
             issue.priority = dto.priority;
+            issue.regionId = dto.regionId;
             issue.categoryId = dto.categoryId;
+
+            issue.assignedDepartmentId = category.departmentId;
 
             // System values
             issue.currentStatus = IssueStatus.Open;

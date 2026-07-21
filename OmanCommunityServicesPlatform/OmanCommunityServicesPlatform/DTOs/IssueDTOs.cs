@@ -27,6 +27,10 @@ namespace OmanCommunityServicesPlatform.DTOs
         // Citizen selects a category, not a department
         [Range(1, int.MaxValue,ErrorMessage = "A valid category is required.")]
         public int categoryId { get; set; }
+
+        // Citizen selects a region
+        [Range(1, int.MaxValue, ErrorMessage = "A valid region is required.")]
+        public int regionId { get; set; }
     }
 
 
