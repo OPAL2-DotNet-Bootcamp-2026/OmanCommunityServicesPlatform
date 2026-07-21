@@ -3,7 +3,7 @@
 namespace OmanCommunityServicesPlatform.DTOs
 {
     // DTO used for returning Department data to the client
-    public class DepartmentDTO
+    public class ResponseDepartmentDTO
     {
         public int departmentId { get; set; }
         public string departmentName { get; set; } = string.Empty;
