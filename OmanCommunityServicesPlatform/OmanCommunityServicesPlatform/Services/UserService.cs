@@ -10,11 +10,13 @@ namespace OmanCommunityServicesPlatform.Services
     {
         private UserRepo userRepo;
         private DepartmentRepo departmentRepo;
+        private RegionRepo regionRepo;
 
-        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo)
+        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo)
         {
             userRepo = _repo;
             departmentRepo = _departmentRepo;
+            regionRepo = _regionRepo;
         }
 
         public UserSummaryDto RegisterUser(RegisterUserDto dto)
@@ -24,6 +26,11 @@ namespace OmanCommunityServicesPlatform.Services
             {
                 return null;
             }
+
+            if (!regionRepo.RegionExists(dto.regionId))
+            {
+                return null;
+            } 
 
             User newUser = new User
             {
@@ -78,10 +85,11 @@ namespace OmanCommunityServicesPlatform.Services
 
             if (dto.email != null)
             {
-                if (!userRepo.EmailExists(dto.email))
+                if (userRepo.EmailExists(dto.email))
                 {
-                    user.email = dto.email;
+                    return null;
                 }
+                user.email = dto.email;
             }
 
             if (dto.phoneNumber != null)
@@ -91,6 +99,10 @@ namespace OmanCommunityServicesPlatform.Services
 
             if (dto.regionId != null)
             {
+                if (!regionRepo.RegionExists(dto.regionId))
+                {
+                    return null;
+                }
                 user.regionId = dto.regionId;
             }
 
