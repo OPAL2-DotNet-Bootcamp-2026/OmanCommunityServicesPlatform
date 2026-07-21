@@ -38,6 +38,25 @@ namespace OmanCommunityServicesPlatform.Services
             return Response(newUser);
         }
 
+        public UserSummaryDto LoginUser(LoginDto dto)
+        {
+            User user = repo.GetByEmail(dto.email);
+            
+            if (user == null)
+            {
+                return null;
+            }
+
+            bool validPassword = Argon2.Verify(dto.password, user.passwordHash);
+
+            if (!validPassword)
+            {
+                return null;
+            }
+
+            return Response(user);
+        }
+
         public UserSummaryDto Response(User user)
         {
             UserSummaryDto response = new UserSummaryDto
