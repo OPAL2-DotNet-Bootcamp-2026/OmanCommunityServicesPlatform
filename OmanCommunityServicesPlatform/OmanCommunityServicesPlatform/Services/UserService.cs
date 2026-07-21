@@ -9,10 +9,12 @@ namespace OmanCommunityServicesPlatform.Services
     public class UserService
     {
         private UserRepo userRepo;
+        private DepartmentRepo departmentRepo;
 
-        public UserService(UserRepo _repo)
+        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo)
         {
             userRepo = _repo;
+            departmentRepo = _departmentRepo;
         }
 
         public UserSummaryDto RegisterUser(RegisterUserDto dto)
@@ -129,6 +131,12 @@ namespace OmanCommunityServicesPlatform.Services
 
         public AssignDepartmentResponseDto AssignDepartment(AssignDepartmentDto dto)
         {
+            Department department = departmentRepo.GetDepartmentById(dto.departmentId);
+            if (department == null)
+            {
+                return null;
+            }
+
             User user = userRepo.GetById(dto.userId);
 
             if (user == null)
@@ -142,7 +150,7 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            user.departmentId = dto.departmentId;
+            user.departmentId = department.departmentId;
             userRepo.Update();
 
             AssignDepartmentResponseDto response = new AssignDepartmentResponseDto
@@ -151,8 +159,8 @@ namespace OmanCommunityServicesPlatform.Services
                 name = user.fullName,
                 email = user.email,
                 role = user.role,
-                departmentId = (int) user.departmentId,
-                departmentName = user.Department.departmentName
+                departmentId = department.departmentId,
+                departmentName = department.departmentName
             };
 
             return response;
