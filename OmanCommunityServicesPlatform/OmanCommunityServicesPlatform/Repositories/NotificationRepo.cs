@@ -153,6 +153,30 @@ namespace OmanCommunityServicesPlatform
             context.SaveChanges();
         }
 
+        // Marks one notification as read.
+        public bool MarkAsRead(int notificationId)
+        {
+            // Searches for the notification.
+            Notification? notification =
+                context.Notifications.FirstOrDefault(
+                    n => n.notificationId == notificationId
+                );
+
+            // Returns false if the notification does not exist.
+            if (notification == null)
+            {
+                return false;
+            }
+
+            // Changes the read status.
+            notification.isRead = true;
+
+            // Saves the change in the database.
+            context.SaveChanges();
+
+            return true;
+        }
+
 
     }
 }
