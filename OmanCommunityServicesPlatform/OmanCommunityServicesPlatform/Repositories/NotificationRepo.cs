@@ -121,11 +121,20 @@ namespace OmanCommunityServicesPlatform
                 notification.type == type &&
                 notification.message == message
             );
-
-
-
-
+            // Any() returns true when a matching notification exists.
+            // It returns false when no matching notification exists.
         }
+
+        // Adds a new notification to the database.
+        public void Add(Notification notification)
+        {
+            // Marks the notification as a new record.
+            context.Notifications.Add(notification);
+
+            // Sends the INSERT command to SQL Server.
+            context.SaveChanges();
+        }
+
 
     }
 }
