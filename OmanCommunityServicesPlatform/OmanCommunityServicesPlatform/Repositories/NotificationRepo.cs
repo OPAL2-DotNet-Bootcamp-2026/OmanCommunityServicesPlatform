@@ -60,6 +60,29 @@ namespace OmanCommunityServicesPlatform
                 );
         }
 
+        // Returns all notifications that belong to one user.
+        public List<Notification> GetByUserId(int userId)
+        {
+            return context.Notifications
+
+                // Loads the optional Issue related to each notification.
+                .Include(notification => notification.issue)
+
+                // Filters notifications by userId.
+                .Where(
+                    notification => notification.userId == userId
+                )
+
+                // Shows the newest notifications first.
+                .OrderByDescending(
+                    notification => notification.createdAt
+                )
+
+                // Executes the query and returns a list.
+                .ToList();
+        }
+
+
 
     }
 
