@@ -68,9 +68,6 @@ namespace OmanCommunityServicesPlatform.Services
 
         public UpdateProfileDto UpdateUserProfile(int id, UpdateProfileDto dto)
         {
-            // Check user Existance using Token
-            // Implement Here
-
             User user = userRepo.GetById(id);
             
             if (user == null)
@@ -119,6 +116,7 @@ namespace OmanCommunityServicesPlatform.Services
             return response;
         }
 
+        // Authorization Level must be Admin
         public UserSummaryDto ChangeUserRole(ChangeUserRoleDto dto)
         {
             User user = userRepo.GetById(dto.userId);
@@ -141,6 +139,7 @@ namespace OmanCommunityServicesPlatform.Services
             return Response(user);
         }
 
+        // Authorization Level must be Admin
         public AssignDepartmentResponseDto AssignDepartment(AssignDepartmentDto dto)
         {
             Department department = departmentRepo.GetDepartmentById(dto.departmentId);
