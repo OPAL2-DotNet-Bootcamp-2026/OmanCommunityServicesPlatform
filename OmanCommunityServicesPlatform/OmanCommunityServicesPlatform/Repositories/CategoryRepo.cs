@@ -15,5 +15,11 @@ namespace OmanCommunityServicesPlatform.Repositories
         {
             return context.Categories.Include(c => c.department).Include(c => c.Issues).ToList();
         }
+        //Get Category by id 
+        public Category? GetCategoryById(int id)
+        {
+            return context.Categories.Include(c => c.department).Include(c => c.Issues).FirstOrDefault(c => c.categoryId == id);
+
+        }
     }
 }
