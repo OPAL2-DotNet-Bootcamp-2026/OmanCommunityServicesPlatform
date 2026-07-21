@@ -1,5 +1,4 @@
 ﻿using OmanCommunityServicesPlatform.Enums;
-using OmanCommunityServicesPlatform.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace OmanCommunityServicesPlatform.DTOs
@@ -18,7 +17,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         [MaxLength(150)]
         public string email { get; set; }
 
-        [Required(ErrorMessage = "Email is Required.")]
+        [Required(ErrorMessage = "Password is Required.")]
         [MaxLength(256)]
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
         public string password { get; set; }
@@ -39,7 +38,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         public string email { get; set; }
 
 
-        [Required(ErrorMessage = "Email is Required.")]
+        [Required(ErrorMessage = "Password is Required.")]
         [MaxLength(256)]
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
         public string password { get; set; }
@@ -47,20 +46,28 @@ namespace OmanCommunityServicesPlatform.DTOs
 
     public class UpdateProfileDto
     {
-        [Required(ErrorMessage = "Name is required.")]
+        // All fields are optional and the user can update any field
+        
         [MaxLength(50)]
-        public string name { get; set; }
+        public string? name { get; set; }
+
+        [EmailAddress(ErrorMessage = "Invalid Email format.")]
+        [MaxLength(150)]
+        public string? email { get; set; }
 
         [MaxLength(20)]
         [MinLength(8, ErrorMessage = "Phone number must be at least 8 numbers.")]
         public string? phoneNumber { get; set; }
 
-        public int? regionId { get; set; } // Optional
+        public int? regionId { get; set; }
     }
 
     // Admin-only action, separate from registration
     public class ChangeUserRoleDto
     {
+        [Required(ErrorMessage = "User ID is Required.")]
+        public int userId { get; set; }
+
         [Required(ErrorMessage = "Role is Required.")]
         public UserRole role { get; set; }
     }
@@ -68,6 +75,9 @@ namespace OmanCommunityServicesPlatform.DTOs
     // 	Admin-only action, only valid if target role is Staff/Admin
     public class AssignDepartmentDto
     {
+        [Required(ErrorMessage = "User ID is Required.")]
+        public int userId { get; set; }
+
         [Required(ErrorMessage = "Department ID is Required.")]
         public int departmentId { get; set; }
     }
@@ -77,7 +87,7 @@ namespace OmanCommunityServicesPlatform.DTOs
     public class UserResponseDto
     {
         public int userId { get; set; }
-        public string fullName { get; set; }
+        public string name { get; set; }
         public string email { get; set; }
         public string? phoneNumber { get; set; }
         public UserRole role { get; set; }
@@ -90,7 +100,18 @@ namespace OmanCommunityServicesPlatform.DTOs
     public class UserSummaryDto
     {
         public int userId { get; set; }
-        public string fullName { get; set; }
+        public string email { get; set; }
+        public string name { get; set; }
         public UserRole role { get; set; }
+    }
+
+    public class AssignDepartmentResponseDto
+    {
+        public int userId { get; set; }
+        public string email { get; set; }
+        public string name { get; set; }
+        public UserRole role { get; set; }
+        public int departmentId { get; set; }
+        public string departmentName { get; set; }
     }
 }
