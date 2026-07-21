@@ -9,11 +9,12 @@ namespace OmanCommunityServicesPlatform.Services
     {
         private IssueRepo issueRepo;
         private CategoryRepo categoryRepo;
-        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo)
+        private StatusUpdateRepo statusUpdateRepo;
+        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, StatusUpdateRepo _statusUpdateRepo)
         {
             issueRepo = _issueRepo;
             categoryRepo = _categoryRepo;
-         
+            statusUpdateRepo = _statusUpdateRepo;
         }
 
         //create Issue 
@@ -35,7 +36,6 @@ namespace OmanCommunityServicesPlatform.Services
             issue.categoryId = dto.categoryId;
 
             issue.assignedDepartmentId = category.departmentId;
-
             // System values
             issue.currentStatus = IssueStatus.Open;
             issue.reportedDate = DateTime.UtcNow;
@@ -53,6 +53,10 @@ namespace OmanCommunityServicesPlatform.Services
             response.priority = issue.priority;
             response.currentStatus = issue.currentStatus;
             response.reportedDate = issue.reportedDate;
+
+            response.categoryName = issue.category?.categoryName;
+            response.regionName = issue.region?.regionName;
+            response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
 
             return response;
         }
@@ -77,6 +81,9 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.currentStatus = issue.currentStatus;
                 dto.reportedDate = issue.reportedDate;
 
+                dto.categoryName = issue.category?.categoryName;
+                dto.regionName = issue.region?.regionName;
+                dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
                 response.Add(dto);
             }
 
@@ -101,7 +108,9 @@ namespace OmanCommunityServicesPlatform.Services
             response.priority = issue.priority;
             response.currentStatus = issue.currentStatus;
             response.reportedDate = issue.reportedDate;
-
+            response.categoryName = issue.category?.categoryName;
+            response.regionName = issue.region?.regionName;
+            response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
             return response;
         }
         //  Change Issue Status
@@ -112,8 +121,19 @@ namespace OmanCommunityServicesPlatform.Services
             if (issue == null)
                 return null;
 
+            // Save the old status
+            IssueStatus previousStatus = issue.currentStatus;
+            // Change to the new status
             issue.currentStatus = dto.newStatus;
+            // Create a history record
+            StatusUpdate statusUpdate =new StatusUpdate();
+            statusUpdate.issueId = issue.issueId;
+            statusUpdate.previousStatus = previousStatus;
+            statusUpdate.newStatus = dto.newStatus;
+            statusUpdate.notes = dto.notes;
+            statusUpdate.updatedAt = DateTime.UtcNow;
 
+            statusUpdateRepo.Add(statusUpdate);
             issueRepo.Update();
 
             IssueResponseDto response = new IssueResponseDto();
@@ -127,6 +147,9 @@ namespace OmanCommunityServicesPlatform.Services
             response.priority = issue.priority;
             response.currentStatus = issue.currentStatus;
             response.reportedDate = issue.reportedDate;
+            response.categoryName = issue.category?.categoryName;
+            response.regionName = issue.region?.regionName;
+            response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
 
             return response;
         }
