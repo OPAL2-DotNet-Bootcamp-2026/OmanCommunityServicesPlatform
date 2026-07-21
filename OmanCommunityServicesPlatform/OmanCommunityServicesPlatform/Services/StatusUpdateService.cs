@@ -16,7 +16,7 @@ namespace OmanCommunityServicesPlatform.Services
         }
 
         // Create Status Update
-        public StatusUpdateResponseDto Create(CreateStatusUpdateDto dto)
+        public StatusUpdateResponseDto Create(CreateStatusUpdateDto dto , int userId)
         {
             Issue? issue = issueRepo.GetById(dto.issueId);
 
@@ -25,7 +25,8 @@ namespace OmanCommunityServicesPlatform.Services
 
             StatusUpdate statusUpdate = new StatusUpdate();
 
-            statusUpdate.issueId = issue.issueId;  
+            statusUpdate.issueId = issue.issueId;
+            statusUpdate.updatedById = userId;
             statusUpdate.previousStatus = issue.currentStatus;
             statusUpdate.newStatus = dto.newStatus;
             statusUpdate.notes = dto.notes;
