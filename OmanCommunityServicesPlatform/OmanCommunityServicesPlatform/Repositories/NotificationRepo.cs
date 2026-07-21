@@ -18,8 +18,30 @@ namespace OmanCommunityServicesPlatform
             this.context = context;
         }
 
-  
+        // Returns all notifications from the database.
+        public List<Notification> GetAll()
+        {
+            return context.Notifications
+
+                // Loads the User who receives each notification.
+                .Include(notification => notification.user)
+
+                // Loads the related Issue.
+                // The Issue may be null because issueId is optional.
+                .Include(notification => notification.issue)
+
+                // Sorts notifications from newest to oldest.
+                .OrderByDescending(
+                    notification => notification.createdAt
+                )
+
+                // Executes the query and returns a list.
+                .ToList();
+        }
+
+
+
 
     }
-    
+
 }
