@@ -77,7 +77,7 @@ namespace OmanCommunityServicesPlatform.DTOs
     public class UserResponseDto
     {
         public int userId { get; set; }
-        public string fullName { get; set; }
+        public string name { get; set; }
         public string email { get; set; }
         public string? phoneNumber { get; set; }
         public UserRole role { get; set; }
@@ -91,7 +91,7 @@ namespace OmanCommunityServicesPlatform.DTOs
     {
         public int userId { get; set; }
         public string email { get; set; }
-        public string fullName { get; set; }
+        public string name { get; set; }
         public UserRole role { get; set; }
     }
 }
