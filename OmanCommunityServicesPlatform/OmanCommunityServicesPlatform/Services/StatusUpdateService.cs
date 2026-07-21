@@ -9,16 +9,14 @@ namespace OmanCommunityServicesPlatform.Services
         private StatusUpdateRepo statusUpdateRepo;
         private IssueRepo issueRepo;
 
-        public StatusUpdateService(
-            StatusUpdateRepo _statusUpdateRepo,
-            IssueRepo _issueRepo)
+        public StatusUpdateService(StatusUpdateRepo _statusUpdateRepo, IssueRepo _issueRepo)
         {
             statusUpdateRepo = _statusUpdateRepo;
             issueRepo = _issueRepo;
         }
 
         // Create Status Update
-        public StatusUpdateResponseDto Create(CreateStatusUpdateDto dto, int updatedById)
+        public StatusUpdateResponseDto Create(CreateStatusUpdateDto dto)
         {
             Issue? issue = issueRepo.GetById(dto.issueId);
 
@@ -27,8 +25,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             StatusUpdate statusUpdate = new StatusUpdate();
 
-            statusUpdate.issueId = issue.issueId;
-            statusUpdate.updatedById = updatedById;
+            statusUpdate.issueId = issue.issueId;  
             statusUpdate.previousStatus = issue.currentStatus;
             statusUpdate.newStatus = dto.newStatus;
             statusUpdate.notes = dto.notes;
