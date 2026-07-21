@@ -107,7 +107,25 @@ namespace OmanCommunityServicesPlatform
                 .ToList();
         }
 
+        // Checks whether the exact same notification already exists.
+        public bool NotificationExists(
+            int userId,
+            int? issueId,
+            NotificationType type,
+            string message
+        )
+        {
+            return context.Notifications.Any(notification =>
+                notification.userId == userId &&
+                notification.issueId == issueId &&
+                notification.type == type &&
+                notification.message == message
+            );
+
+
+
+
+        }
 
     }
-
 }
