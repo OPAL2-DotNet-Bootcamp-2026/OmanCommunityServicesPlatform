@@ -20,7 +20,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Business Rule: Email must be unique
             if (repo.EmailExists(dto.email))
             {
-                throw new InvalidOperationException("Email is already registered.");
+                return null;
             }
 
             User newUser = new User
