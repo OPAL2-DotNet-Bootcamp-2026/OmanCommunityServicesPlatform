@@ -129,8 +129,8 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            // Business Rule: User must be wither Staff or Admin
-            if (user.role != UserRole.Admin || user.role != UserRole.Staff)
+            // Business Rule: User must be either Staff or Admin
+            if (user.role == UserRole.Citizen)
             {
                 return null;
             }
