@@ -66,6 +66,9 @@ namespace OmanCommunityServicesPlatform.DTOs
     // Admin-only action, separate from registration
     public class ChangeUserRoleDto
     {
+        [Required(ErrorMessage = "User ID is Required.")]
+        public int userId { get; set; }
+
         [Required(ErrorMessage = "Role is Required.")]
         public UserRole role { get; set; }
     }

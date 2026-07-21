@@ -105,9 +105,9 @@ namespace OmanCommunityServicesPlatform.Services
             return response;
         }
 
-        public UserSummaryDto ChangeUserRole(int id, ChangeUserRoleDto dto)
+        public UserSummaryDto ChangeUserRole(ChangeUserRoleDto dto)
         {
-            User user = userRepo.GetById(id);
+            User user = userRepo.GetById(dto.userId);
 
             if (user == null)
             {
