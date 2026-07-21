@@ -5,7 +5,7 @@ namespace OmanCommunityServicesPlatform.DTOs
 {
     public class CreateRegionDto
     {
-        // ── Request DTOs ─────────────────────────────────────────────
+        // ── Request DTOs ─ what the client sends ────────────────────────────────────────────
         [Required(ErrorMessage = "Region name is required.")]
         [MaxLength(100)]
         public string regionName { get; set; }
@@ -22,7 +22,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         [Required(ErrorMessage = "Governorate is required.")]
         public Governorate governorate { get; set; }
     }
-    // ── Response DTO ─────────────────────────────────────────────
+    // ── Response DTOs ─ what the API sends back ────────────────────────────────────────────
 
     public class RegionResponseDto
     {
