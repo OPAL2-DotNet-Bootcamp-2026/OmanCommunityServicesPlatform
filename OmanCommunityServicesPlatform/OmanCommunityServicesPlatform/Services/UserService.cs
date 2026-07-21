@@ -120,6 +120,37 @@ namespace OmanCommunityServicesPlatform.Services
             return Response(user);
         }
 
+        public AssignDepartmentResponeDto AssignDepartment(AssignDepartmentResponeDto dto)
+        {
+            User user = userRepo.GetById(dto.userId);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            // Business Rule: User must be wither Staff or Admin
+            if (user.role != UserRole.Admin || user.role != UserRole.Staff)
+            {
+                return null;
+            }
+
+            user.departmentId = dto.departmentId;
+            userRepo.Update();
+
+            AssignDepartmentResponeDto response = new AssignDepartmentResponeDto
+            {
+                userId = user.userId,
+                name = user.fullName,
+                email = user.email,
+                role = user.role,
+                departmentId = (int)user.departmentId,
+                departmentName = user.Department.departmentName
+            };
+
+            return response;
+        }
+
         public UserSummaryDto Response(User user)
         {
             UserSummaryDto response = new UserSummaryDto

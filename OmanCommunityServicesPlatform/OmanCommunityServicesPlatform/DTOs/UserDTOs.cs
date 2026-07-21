@@ -73,6 +73,9 @@ namespace OmanCommunityServicesPlatform.DTOs
     // 	Admin-only action, only valid if target role is Staff/Admin
     public class AssignDepartmentDto
     {
+        [Required(ErrorMessage = "User ID is Required.")]
+        public int userId { get; set; }
+
         [Required(ErrorMessage = "Department ID is Required.")]
         public int departmentId { get; set; }
     }
@@ -98,5 +101,15 @@ namespace OmanCommunityServicesPlatform.DTOs
         public string email { get; set; }
         public string name { get; set; }
         public UserRole role { get; set; }
+    }
+
+    public class AssignDepartmentResponeDto
+    {
+        public int userId { get; set; }
+        public string email { get; set; }
+        public string name { get; set; }
+        public UserRole role { get; set; }
+        public int departmentId { get; set; }
+        public string departmentName { get; set; }
     }
 }
