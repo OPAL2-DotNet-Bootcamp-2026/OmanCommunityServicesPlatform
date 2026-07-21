@@ -143,6 +143,16 @@ namespace OmanCommunityServicesPlatform
             context.SaveChanges();
         }
 
+        // Deletes an existing notification.
+        public void Delete(Notification notification)
+        {
+            // Marks the notification for deletion.
+            context.Notifications.Remove(notification);
+
+            // Sends the DELETE command to SQL Server.
+            context.SaveChanges();
+        }
+
 
     }
 }
