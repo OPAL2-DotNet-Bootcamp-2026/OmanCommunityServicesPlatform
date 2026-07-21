@@ -38,6 +38,10 @@ namespace OmanCommunityServicesPlatform.Repositories
             context.Categories.Remove(category);
             context.SaveChanges();
         }
-
+        // Check if category name already exists
+        public bool IsCategoryNameExist(string name)
+        {
+            return context.Categories.Any(c => c.categoryName == name);
+        }
     }
 }
