@@ -47,15 +47,20 @@ namespace OmanCommunityServicesPlatform.DTOs
 
     public class UpdateProfileDto
     {
-        [Required(ErrorMessage = "Name is required.")]
+        // All fields are optional and the user can update any field
+        
         [MaxLength(50)]
-        public string name { get; set; }
+        public string? name { get; set; }
+
+        [EmailAddress(ErrorMessage = "Invalid Email format.")]
+        [MaxLength(150)]
+        public string? email { get; set; }
 
         [MaxLength(20)]
         [MinLength(8, ErrorMessage = "Phone number must be at least 8 numbers.")]
         public string? phoneNumber { get; set; }
 
-        public int? regionId { get; set; } // Optional
+        public int? regionId { get; set; }
     }
 
     // Admin-only action, separate from registration
