@@ -135,6 +135,14 @@ namespace OmanCommunityServicesPlatform
             context.SaveChanges();
         }
 
+        // Saves changes made to an existing notification.
+        public void Update()
+        {
+            // Entity Framework tracks the loaded notification.
+            // SaveChanges sends the UPDATE command.
+            context.SaveChanges();
+        }
+
 
     }
 }
