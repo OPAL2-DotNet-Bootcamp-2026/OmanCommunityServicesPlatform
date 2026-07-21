@@ -23,6 +23,28 @@ namespace OmanCommunityServicesPlatform
             this.context = context;
         }
 
+        // Returns all ratings from the database.
+        public List<Rating> GetAll()
+        {
+            return context.Ratings
+
+                    // Loads the Issue connected to every rating.
+                    // This allows us to access values such as:
+                    // rating.issue.title
+                    .Include(rating => rating.issueId)
+
+                    // Loads the User who submitted every rating.
+                    // This allows us to access values such as:
+                    // rating.user.fullName
+                    .Include(rating => rating.userId)
+
+                    // Executes the database query
+                    // and converts the result into a List<Rating>.
+                    .ToList();
+
+
+        }
+
     }
 }
 
