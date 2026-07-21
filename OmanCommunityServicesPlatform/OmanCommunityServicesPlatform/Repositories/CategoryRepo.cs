@@ -27,5 +27,17 @@ namespace OmanCommunityServicesPlatform.Repositories
             context.Categories.Add(category);
             context.SaveChanges();
         }
+        //Update category
+        public void Update()
+        {
+            context.SaveChanges();
+        }
+        //Delete category 
+        public void Delete(Category category)
+        {
+            context.Categories.Remove(category);
+            context.SaveChanges();
+        }
+
     }
 }
