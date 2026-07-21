@@ -18,8 +18,7 @@ namespace OmanCommunityServicesPlatform.Repositories
         // Get Category by id
         public Category? GetCategoryById(int id)
         {
-            return context.Categories
-                          .FirstOrDefault(c => c.categoryId == id);
+            return context.Categories.FirstOrDefault(c => c.categoryId == id);
         }
         // Add new category
         public void Add(Category category)
