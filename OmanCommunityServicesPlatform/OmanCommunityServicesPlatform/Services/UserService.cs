@@ -115,12 +115,19 @@ namespace OmanCommunityServicesPlatform.Services
             }
 
             user.role = dto.role;
+
+            // Clearing department if user downgraded to Citizen
+            if (dto.role == UserRole.Citizen) 
+            {
+                user.departmentId = null;
+            }
+            
             userRepo.Update();
 
             return Response(user);
         }
 
-        public AssignDepartmentResponeDto AssignDepartment(AssignDepartmentResponeDto dto)
+        public AssignDepartmentResponseDto AssignDepartment(AssignDepartmentDto dto)
         {
             User user = userRepo.GetById(dto.userId);
 
@@ -138,13 +145,13 @@ namespace OmanCommunityServicesPlatform.Services
             user.departmentId = dto.departmentId;
             userRepo.Update();
 
-            AssignDepartmentResponeDto response = new AssignDepartmentResponeDto
+            AssignDepartmentResponseDto response = new AssignDepartmentResponseDto
             {
                 userId = user.userId,
                 name = user.fullName,
                 email = user.email,
                 role = user.role,
-                departmentId = (int)user.departmentId,
+                departmentId = (int) user.departmentId,
                 departmentName = user.Department.departmentName
             };
 
