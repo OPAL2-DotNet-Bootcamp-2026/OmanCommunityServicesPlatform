@@ -63,6 +63,11 @@ namespace OmanCommunityServicesPlatform.Services
             // Implement Here
 
             User user = userRepo.GetById(id);
+            
+            if (user == null)
+            {
+                return null;
+            }
 
             if (dto.name != null)
             {
@@ -98,6 +103,21 @@ namespace OmanCommunityServicesPlatform.Services
             };
 
             return response;
+        }
+
+        public UserSummaryDto ChangeUserRole(int id, ChangeUserRoleDto dto)
+        {
+            User user = userRepo.GetById(id);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            user.role = dto.role;
+            userRepo.Update();
+
+            return Response(user);
         }
 
         public UserSummaryDto Response(User user)
