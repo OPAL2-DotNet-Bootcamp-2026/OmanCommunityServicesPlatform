@@ -29,7 +29,7 @@ namespace OmanCommunityServicesPlatform.Models
         public string? phoneNumber { get; set; }        // User Input
 
         [Required]
-        public UserRole role { get; set; } = UserRole.Citizen;      // Default Value
+        public UserRole role { get; set; } = UserRole.Citizen;      // Form List Citizen | Staff | Admin
 
         [ForeignKey(nameof(Region))]
         public int? regionId { get; set; }      // Foreign Key
