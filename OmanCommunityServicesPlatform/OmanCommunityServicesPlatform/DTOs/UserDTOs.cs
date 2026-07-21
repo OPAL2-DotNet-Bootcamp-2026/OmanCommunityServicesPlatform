@@ -18,7 +18,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         [MaxLength(150)]
         public string email { get; set; }
 
-        [Required(ErrorMessage = "Email is Required.")]
+        [Required(ErrorMessage = "Password is Required.")]
         [MaxLength(256)]
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
         public string password { get; set; }
@@ -39,7 +39,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         public string email { get; set; }
 
 
-        [Required(ErrorMessage = "Email is Required.")]
+        [Required(ErrorMessage = "Password is Required.")]
         [MaxLength(256)]
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
         public string password { get; set; }
