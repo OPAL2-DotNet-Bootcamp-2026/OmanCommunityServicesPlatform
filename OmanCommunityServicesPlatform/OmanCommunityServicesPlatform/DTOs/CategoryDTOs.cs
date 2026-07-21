@@ -4,7 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OmanCommunityServicesPlatform.DTOs
 {
-    public class RepoCategoryDTO
+    
+    public class RepoCategoryDTO   //GET
     {
         public int categoryId { get; set; }
         public string categoryName { get; set; } = string.Empty;
@@ -14,7 +15,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         public int issueCount { get; set; }
     }
     //Used when creating a new category 
-    public class CreateCategoryDTO
+    public class CreateCategoryDTO   //POST
     {
         [Required]
         [MaxLength(100)]
@@ -26,7 +27,7 @@ namespace OmanCommunityServicesPlatform.DTOs
     }
 
     // Used when updating a category
-    public class UpdateCategoryDTO
+    public class UpdateCategoryDTO   //PUT
     {
         [Required]
         [MaxLength(100)]
