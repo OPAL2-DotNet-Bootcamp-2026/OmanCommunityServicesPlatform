@@ -13,26 +13,26 @@ namespace OmanCommunityServicesPlatform.Repositories
         // Get all categories
         public List<Category> GetAllCategories()
         {
-            return context.Categories.Include(c => c.department).Include(c => c.Issues).ToList();
+            return context.Categories.ToList();
         }
-        //Get Category by id 
+        // Get Category by id
         public Category? GetCategoryById(int id)
         {
-            return context.Categories.Include(c => c.department).Include(c => c.Issues).FirstOrDefault(c => c.categoryId == id);
-
+            return context.Categories
+                          .FirstOrDefault(c => c.categoryId == id);
         }
-        //Add new category 
-        public void Add(Category category) 
-        { 
+        // Add new category
+        public void Add(Category category)
+        {
             context.Categories.Add(category);
             context.SaveChanges();
         }
-        //Update category
+        // Update category
         public void Update()
         {
             context.SaveChanges();
         }
-        //Delete category 
+        // Delete category
         public void Delete(Category category)
         {
             context.Categories.Remove(category);
