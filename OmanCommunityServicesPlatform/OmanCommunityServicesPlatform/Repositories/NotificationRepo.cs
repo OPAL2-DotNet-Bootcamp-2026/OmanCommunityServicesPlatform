@@ -82,6 +82,30 @@ namespace OmanCommunityServicesPlatform
                 .ToList();
         }
 
+        // Returns only unread notifications for one user.
+        public List<Notification> GetUnreadByUserId(int userId)
+        {
+            return context.Notifications
+
+                // Loads the optional related Issue.
+                .Include(notification => notification.issue)
+
+                // Applies two conditions:
+                // 1. Notification belongs to the selected user.
+                // 2. Notification has not been read.
+                .Where(notification =>
+                    notification.userId == userId &&
+                    notification.isRead == false
+                )
+
+                // Shows newest unread notifications first.
+                .OrderByDescending(
+                    notification => notification.createdAt
+                )
+
+                // Executes the query and returns a list.
+                .ToList();
+        }
 
 
     }
