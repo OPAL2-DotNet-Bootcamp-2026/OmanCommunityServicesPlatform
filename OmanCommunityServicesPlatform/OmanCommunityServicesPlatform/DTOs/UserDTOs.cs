@@ -90,6 +90,7 @@ namespace OmanCommunityServicesPlatform.DTOs
     public class UserSummaryDto
     {
         public int userId { get; set; }
+        public string email { get; set; }
         public string fullName { get; set; }
         public UserRole role { get; set; }
     }
