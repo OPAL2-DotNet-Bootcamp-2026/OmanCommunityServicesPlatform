@@ -106,7 +106,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         public UserRole role { get; set; }
     }
 
-    public class AssignDepartmentResponeDto
+    public class AssignDepartmentResponseDto
     {
         public int userId { get; set; }
         public string email { get; set; }
