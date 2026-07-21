@@ -40,6 +40,25 @@ namespace OmanCommunityServicesPlatform
         }
 
 
+        // Returns one notification using its primary key.
+        // Notification? means the method may return null.
+        public Notification? GetById(int notificationId)
+        {
+            return context.Notifications
+
+                // Loads the related User.
+                .Include(notification => notification.user)
+
+                // Loads the optional related Issue.
+                .Include(notification => notification.issue)
+
+                // Returns the first matching notification,
+                // or null when no notification is found.
+                .FirstOrDefault(
+                    notification =>
+                        notification.notificationId == notificationId
+                );
+        }
 
 
     }
