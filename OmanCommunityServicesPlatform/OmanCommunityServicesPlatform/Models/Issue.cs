@@ -22,7 +22,11 @@ namespace OmanCommunityServicesPlatform.Models
         [Required]
         [MaxLength(300)]
         public string location { get; set; }              // user input
+        
+        [Column(TypeName = "decimal(9,6)")]
         public decimal? latitude { get; set; }            // optional user input
+        
+        [Column(TypeName = "decimal(9,6)")]
         public decimal? longitude { get; set; }           // optional user input
 
         [Required]
