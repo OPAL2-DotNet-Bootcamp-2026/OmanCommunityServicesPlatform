@@ -161,9 +161,19 @@ namespace OmanCommunityServicesPlatform
                 throw new UnauthorizedAccessException(
                     "You cannot update another user's rating.");
             }
+            // Update the score.
+            rating.score = dto.score;
 
+            // Update the optional feedback.
+            rating.feedback = dto.feedback;
+
+            // Save the changes.
+            ratingRepo.Update();
+
+            return true;
 
         }
+
 
 
 
