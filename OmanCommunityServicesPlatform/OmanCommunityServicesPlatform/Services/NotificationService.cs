@@ -22,5 +22,14 @@ namespace OmanCommunityServicesPlatform.Services
             this.context = context;
         }
 
+        // --------------------------------------------------
+        // GET ALL NOTIFICATIONS
+        // --------------------------------------------------
+
+        public List<Notification> GetAllNotifications()
+        {
+            return notificationRepo.GetAll();
+        }
+
     }
 }
