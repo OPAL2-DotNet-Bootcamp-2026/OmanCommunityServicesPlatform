@@ -58,5 +58,37 @@ namespace OmanCommunityServicesPlatform
             return ratingRepo.GetByIssueId(issueId);
         }
 
+        // --------------------------------------------------
+        // CREATE RATING
+        // --------------------------------------------------
+
+        // Creates a new rating.
+        //
+        // dto contains:
+        // issueId
+        // score
+        // feedback
+        //
+        // userId is received separately because your DTO
+        // does not contain userId.
+        public Rating CreateRating(
+            CreateRatingDto dto,
+            int userId
+        )
+        {
+            // Check whether the issue exists.
+            Issue? issue = context.Issues.FirstOrDefault(
+                issue => issue.issueId == dto.issueId
+            );
+
+            // Stop the operation when the issue does not exist.
+            if (issue == null)
+            {
+                throw new KeyNotFoundException(
+                    "Issue was not found."
+                );
+            }
+
+        }
     }
 }
