@@ -19,4 +19,15 @@ namespace OmanCommunityServicesPlatform.DTOs
         [Required]
         public AttachmentFileType fileType { get; set; }
     }
+    // Data sent from the client to update an attachment
+    public class UpdateAttachmentDto
+    {
+        [Required]
+        [StringLength(300)]
+        public string fileUrl { get; set; }
+
+        [Required]
+        public AttachmentFileType fileType { get; set; }
+    }
+
 }
