@@ -103,6 +103,19 @@ namespace OmanCommunityServicesPlatform
                 user.userId == userId
             );
         }
+
+        // Checks whether the same user has already rated
+        // the same issue.
+        public bool UserAlreadyRated(
+            int issueId,
+            int userId
+        )
+        {
+            return context.Ratings.Any(rating =>
+                rating.issueId == issueId &&
+                rating.userId == userId
+            );
+        }
     }
 }
 
