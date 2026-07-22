@@ -184,7 +184,34 @@ namespace OmanCommunityServicesPlatform.Services
                 // Current system time.
                 createdAt = DateTime.UtcNow
             };
+            // Send the notification to the repository.
+            // The repository saves it in SQL Server.
+            notificationRepo.Add(notification);
 
+
+            // Get the saved notification again.
+            //
+            // This loads the related User and optional Issue
+            // because GetById uses Include().
+            Notification? savedNotification =
+                notificationRepo.GetById(
+                    notification.notificationId
+                );
+
+
+            // This should not normally happen because the
+            // notification was just saved.
+            if (savedNotification == null)
+            {
+                throw new InvalidOperationException(
+                    "The notification was saved but could not be retrieved."
+                );
+            }
+
+
+            return savedNotification;
         }
+
+    }
     }
 }
