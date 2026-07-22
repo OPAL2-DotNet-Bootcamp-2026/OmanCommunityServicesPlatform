@@ -204,6 +204,10 @@ namespace OmanCommunityServicesPlatform
                     "You cannot delete another user's rating."
                 );
             }
+            // Delete the rating using the repository.
+            ratingRepo.Delete(rating);
+
+            return true;
         }
     }
 }
