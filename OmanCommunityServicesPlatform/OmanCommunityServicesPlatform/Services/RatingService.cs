@@ -103,6 +103,25 @@ namespace OmanCommunityServicesPlatform
                 );
             }
 
+            // Create a Rating entity using the DTO values.
+            Rating rating = new Rating
+            {
+                // Foreign key of the issue being rated.
+                issueId = dto.issueId,
+
+                // Foreign key of the user submitting the rating.
+                userId = userId,
+
+                // User-selected score from 1 to 5.
+                score = dto.score,
+
+                // Optional feedback written by the user.
+                feedback = dto.feedback,
+
+                // System-generated creation date.
+                ratedAt = DateTime.UtcNow
+            };
+
 
         }
     }
