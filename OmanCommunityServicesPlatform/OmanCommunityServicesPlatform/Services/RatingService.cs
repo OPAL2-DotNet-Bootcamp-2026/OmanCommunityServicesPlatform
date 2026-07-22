@@ -37,6 +37,17 @@ namespace OmanCommunityServicesPlatform
             return ratingRepo.GetAll();
         }
 
+        // --------------------------------------------------
+        // GET ONE RATING
+        // --------------------------------------------------
+
+        // Returns one rating using its ID.
+        // Returns null when the rating does not exist.
+        public Rating? GetRatingById(int ratingId)
+        {
+            return ratingRepo.GetById(ratingId);
+        }
+
 
     }
 }
