@@ -11,7 +11,7 @@ namespace OmanCommunityServicesPlatform.Repositories
         }
 
         //Get all regions
-        public List<Region>GetAll()
+        public List<Region> GetAll()
         {
             return context.Regions.ToList();
         }
@@ -31,6 +31,11 @@ namespace OmanCommunityServicesPlatform.Repositories
         public void Add(Region region)
         {
             context.Regions.Add(region);
+            context.SaveChanges();
+        }
+        // Save updated region
+        public void Update()
+        {
             context.SaveChanges();
         }
         // Delete region
