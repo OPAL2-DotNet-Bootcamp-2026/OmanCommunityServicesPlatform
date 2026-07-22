@@ -1,4 +1,5 @@
 ﻿using OmanCommunityServicesPlatform.Enums;
+using OmanCommunityServicesPlatform.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace OmanCommunityServicesPlatform
