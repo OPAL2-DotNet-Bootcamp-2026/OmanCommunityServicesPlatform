@@ -302,7 +302,22 @@ namespace OmanCommunityServicesPlatform.Services
                 return false;
             }
 
+            // Set the read status from the DTO.
+            //
+            // true  = read
+            // false = unread
+            notification.isRead = dto.isRead;
+
+
+            // Save the change.
+            notificationRepo.Update();
+
+
+            return true;
         }
 
-
     }
+
+
+}
+
