@@ -20,6 +20,7 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
 
             Region region = new Region();
+
             region.regionName = dto.regionName;
             region.governorate = dto.governorate;
 
