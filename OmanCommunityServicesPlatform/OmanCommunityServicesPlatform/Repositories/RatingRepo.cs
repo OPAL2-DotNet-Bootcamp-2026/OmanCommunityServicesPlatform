@@ -215,6 +215,42 @@ namespace OmanCommunityServicesPlatform
             return true;
         }
 
+        // Deletes an existing rating.
+        public bool DeleteRating(
+            int ratingId,
+            int userId
+        )
+        {
+            // Find the rating.
+            Rating? rating = context.Ratings
+                .FirstOrDefault(rating =>
+                    rating.ratingId == ratingId
+                );
+
+            // Return false when the rating does not exist.
+            if (rating == null)
+            {
+                return false;
+            }
+
+            // Make sure the rating belongs to the given user.
+            if (rating.userId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You cannot delete another user's rating."
+                );
+            }
+
+            // Mark the rating for deletion.
+            context.Ratings.Remove(rating);
+
+            // Delete it from the database.
+            context.SaveChanges();
+
+            return true;
+
+
+        }
     }
 }
 
