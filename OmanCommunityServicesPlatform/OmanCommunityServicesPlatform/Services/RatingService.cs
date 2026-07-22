@@ -48,6 +48,15 @@ namespace OmanCommunityServicesPlatform
             return ratingRepo.GetById(ratingId);
         }
 
+        // --------------------------------------------------
+        // GET RATINGS BY ISSUE
+        // --------------------------------------------------
+
+        // Returns all ratings belonging to one issue.
+        public List<Rating> GetRatingsByIssueId(int issueId)
+        {
+            return ratingRepo.GetByIssueId(issueId);
+        }
 
     }
 }
