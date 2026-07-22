@@ -3,20 +3,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OmanCommunityServicesPlatform.DTOs
 {
-    // Data sent from the client to create a new attachment
+    // Request DTO — what the client sends when uploading an attachment
     public class CreateAttachmentDto
     {
-        [Required]
+        [Required(ErrorMessage = "Issue is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "A valid issue is required.")]
         public int issueId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Uploaded by is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "A valid user is required.")]
         public int uploadedById { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "File URL is required.")]
         [StringLength(300)]
         public string fileUrl { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "File type is required.")]
+        [EnumDataType(typeof(AttachmentFileType), ErrorMessage = "Invalid file type.")]
         public AttachmentFileType fileType { get; set; }
     }
     // Data sent from the client to update an attachment
@@ -29,7 +32,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         [Required]
         public AttachmentFileType fileType { get; set; }
     }
-    // Data returned to the client
+    // Response DTO — what the API returns to the client
     public class AttachmentResponseDto
     {
         public int attachmentId { get; set; }
