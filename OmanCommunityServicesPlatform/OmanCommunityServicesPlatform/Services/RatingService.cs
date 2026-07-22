@@ -89,6 +89,21 @@ namespace OmanCommunityServicesPlatform
                 );
             }
 
+            // Check whether this user already rated this issue.
+            bool alreadyRated = ratingRepo.UserAlreadyRated(
+                dto.issueId,
+                userId
+            );
+
+            // Prevent duplicate ratings.
+            if (alreadyRated)
+            {
+                throw new InvalidOperationException(
+                    "This user has already rated this issue."
+                );
+            }
+
+
         }
     }
 }
