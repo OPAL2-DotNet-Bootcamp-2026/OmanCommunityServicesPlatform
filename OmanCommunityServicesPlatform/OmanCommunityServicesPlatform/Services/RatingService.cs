@@ -10,17 +10,23 @@ namespace OmanCommunityServicesPlatform
     // The service calls the repository.
     public class RatingService
     {
-        // Stores the Rating repository.
-        // The repository communicates with the database.
-        private readonly OCSPContext ratingRepo;
+        // Repository used for Rating database operations.
+        private readonly RatingRepo ratingRepo;
 
+        // Database context used here to check whether
+        // the Issue and User exist.
+        private readonly OCSPContext context;
 
         // Constructor Dependency Injection.
-        // ASP.NET Core provides RatingRepo automatically.
-        public RatingService(OCSPContext ratingRepo)
+        public RatingService(
+            RatingRepo ratingRepo,
+            OCSPContext context
+        )
         {
-            // Stores the received repository in the field.
             this.ratingRepo = ratingRepo;
+            this.context = context;
         }
+
+
     }
 }
