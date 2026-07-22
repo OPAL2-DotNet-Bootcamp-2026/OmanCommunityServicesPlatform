@@ -176,6 +176,45 @@ namespace OmanCommunityServicesPlatform
             return rating;
         }
 
+        // Updates an existing rating.
+        public bool UpdateRating(
+            int ratingId,
+            int userId,
+            UpdateRatingDTO dto
+        )
+        {
+            // Find the existing rating.
+            Rating? rating = context.Ratings
+                .FirstOrDefault(rating =>
+                    rating.ratingId == ratingId
+                );
+
+            // Return false if the rating does not exist.
+            if (rating == null)
+            {
+                return false;
+            }
+
+            // Make sure the rating belongs to the given user.
+            if (rating.userId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You cannot update another user's rating."
+                );
+            }
+
+            // Update the score.
+            rating.score = dto.score;
+
+            // Update the optional feedback.
+            rating.feedback = dto.feedback;
+
+            // Save the modifications.
+            context.SaveChanges();
+
+            return true;
+        }
+
     }
 }
 
