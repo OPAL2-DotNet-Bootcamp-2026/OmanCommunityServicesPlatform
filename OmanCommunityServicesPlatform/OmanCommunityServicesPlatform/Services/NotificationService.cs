@@ -276,7 +276,33 @@ namespace OmanCommunityServicesPlatform.Services
 
             return true;
         }
+
+        // --------------------------------------------------
+        // UPDATE READ STATUS
+        // --------------------------------------------------
+
+        // Changes a notification to read or unread.
+        //
+        // Calls:
+        // NotificationRepo.GetById()
+        // NotificationRepo.Update()
+        public bool UpdateNotificationReadStatus(
+            int notificationId,
+            UpdateNotificationReadStatusDTO dto
+        )
+        {
+            // Find the notification.
+            Notification? notification =
+                notificationRepo.GetById(notificationId);
+
+
+            // Return false when the notification does not exist.
+            if (notification == null)
+            {
+                return false;
+            }
+
+        }
+
+
     }
-    }
-    
-}
