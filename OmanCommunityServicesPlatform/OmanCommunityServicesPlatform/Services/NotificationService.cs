@@ -262,7 +262,21 @@ namespace OmanCommunityServicesPlatform.Services
                     "Another identical notification already exists."
                 );
             }
+            // Update the notification message.
+            notification.message = dto.message;
+
+            // Update the notification type.
+            notification.type = dto.type;
+
+
+            // Entity Framework tracks the loaded notification.
+            // Update() calls SaveChanges().
+            notificationRepo.Update();
+
+
+            return true;
         }
+    }
     }
     
 }
