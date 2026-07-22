@@ -123,6 +123,15 @@ namespace OmanCommunityServicesPlatform
             };
 
 
+            // Send the Rating entity to the repository.
+            // The repository saves it in the database.
+            ratingRepo.Add(rating);
+
+            // Return the newly created Rating.
+            return rating;
         }
+
+
     }
+}
 }
