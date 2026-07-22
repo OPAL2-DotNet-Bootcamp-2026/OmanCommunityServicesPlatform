@@ -197,8 +197,15 @@ namespace OmanCommunityServicesPlatform
                 return false;
             }
 
-
+            // Check whether the rating belongs to this user.
+            if (rating.userId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You cannot delete another user's rating."
+                );
+            }
         }
+    }
 }
 
 
