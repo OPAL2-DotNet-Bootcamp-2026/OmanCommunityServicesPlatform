@@ -131,7 +131,30 @@ namespace OmanCommunityServicesPlatform
             return rating;
         }
 
+        // --------------------------------------------------
+        // UPDATE RATING
+        // --------------------------------------------------
 
+        // Updates the score and feedback of an existing rating.
+        //
+        // userId is used to make sure a user can update
+        // only their own rating.
+        public bool UpdateRating(
+            int ratingId,
+            int userId,
+            UpdateRatingDTO dto
+        )
+        {
+            // Find the existing rating.
+            Rating? rating = ratingRepo.GetById(ratingId);
+
+            // Return false when the rating does not exist.
+            if (rating == null)
+            {
+                return false;
+            }
+
+        }
     }
 }
-}
+
