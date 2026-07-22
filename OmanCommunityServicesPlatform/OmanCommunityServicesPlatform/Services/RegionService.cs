@@ -12,7 +12,6 @@ namespace OmanCommunityServicesPlatform.Services
             regionRepo = _regionRepo;
         }
         // Create Region
-
         public RegionResponseDto? Create(CreateRegionDto dto)
         {
             // Prevent duplicate names — regionName has a unique index in the DB
@@ -73,8 +72,8 @@ namespace OmanCommunityServicesPlatform.Services
             // If the name is changing, make sure the new name isn't taken
             if (region.regionName != dto.regionName)
             {
-                Region? existing = regionRepo.GetByName(dto.regionName);
-                if (existing != null)
+                Region? existingRegion = regionRepo.GetByName(dto.regionName);
+                if (existingRegion != null)
                     return null;
             }
             region.regionName = dto.regionName;
