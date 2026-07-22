@@ -27,6 +27,16 @@ namespace OmanCommunityServicesPlatform
             this.context = context;
         }
 
+        // --------------------------------------------------
+        // GET ALL RATINGS
+        // --------------------------------------------------
+
+        // Returns all Rating entities from the database.
+        public List<Rating> GetAllRatings()
+        {
+            return ratingRepo.GetAll();
+        }
+
 
     }
 }
