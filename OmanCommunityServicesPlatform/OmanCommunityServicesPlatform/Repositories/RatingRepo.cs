@@ -86,6 +86,14 @@ namespace OmanCommunityServicesPlatform
                 // Executes the query.
                 .ToList();
         }
+        // Returns true when the issue exists.
+        // Returns false when it does not exist.
+        public bool IssueExists(int issueId)
+        {
+            return context.Issues.Any(issue =>
+                issue.issueId == issueId
+            );
+        }
     }
 }
 
