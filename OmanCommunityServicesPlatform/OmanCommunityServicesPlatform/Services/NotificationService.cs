@@ -325,6 +325,32 @@ namespace OmanCommunityServicesPlatform.Services
         {
             return notificationRepo.MarkAsRead(notificationId);
         }
+        // --------------------------------------------------
+        // DELETE NOTIFICATION
+        // --------------------------------------------------
+
+        public bool DeleteNotification(
+            int notificationId
+        )
+        {
+            // Find the notification first.
+            Notification? notification =
+                notificationRepo.GetById(notificationId);
+
+
+            // Return false when it does not exist.
+            if (notification == null)
+            {
+                return false;
+            }
+
+
+            // Ask the repository to delete the entity.
+            notificationRepo.Delete(notification);
+
+
+            return true;
+        }
     }
 
 
