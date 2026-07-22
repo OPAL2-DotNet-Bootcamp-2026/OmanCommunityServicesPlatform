@@ -144,7 +144,25 @@ namespace OmanCommunityServicesPlatform.Services
                     );
                 }
             }
+            // Check whether the exact same notification
+            // already exists.
+            bool duplicateExists =
+                notificationRepo.NotificationExists(
+                    userId,
+                    dto.issueId,
+                    dto.type,
+                    dto.message
+                );
+
+            // Prevent duplicate notifications.
+            if (duplicateExists)
+            {
+                throw new InvalidOperationException(
+                    "This notification already exists."
+                );
+            }
 
 
         }
     }
+}
