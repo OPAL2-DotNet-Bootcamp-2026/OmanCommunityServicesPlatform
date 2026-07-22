@@ -316,6 +316,15 @@ namespace OmanCommunityServicesPlatform.Services
             return true;
         }
 
+        // --------------------------------------------------
+        // MARK AS READ
+        // --------------------------------------------------
+        public bool MarkNotificationAsRead(
+            int notificationId
+        )
+        {
+            return notificationRepo.MarkAsRead(notificationId);
+        }
     }
 
 
