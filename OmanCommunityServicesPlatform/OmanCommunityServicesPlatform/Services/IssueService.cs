@@ -9,34 +9,42 @@ namespace OmanCommunityServicesPlatform.Services
     {
         private IssueRepo issueRepo;
         private CategoryRepo categoryRepo;
+        private RegionRepo regionRepo;
         private StatusUpdateRepo statusUpdateRepo;
-        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, StatusUpdateRepo _statusUpdateRepo)
+        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, StatusUpdateRepo _statusUpdateRepo, RegionRepo _regionRepo)
         {
             issueRepo = _issueRepo;
             categoryRepo = _categoryRepo;
             statusUpdateRepo = _statusUpdateRepo;
+           regionRepo = _regionRepo;
         }
 
         //create Issue 
-        public IssueResponseDto? Create(CreateIssueDto dto)
+        public IssueResponseDto? Create(CreateIssueDto dto, int reportedById)
         {
+            // Validate user-chosen references before touching the entity
             Category? category = categoryRepo.GetById(dto.categoryId);
             if (category == null)
                 return null;
+            Region? region = regionRepo.GetById(dto.regionId);
+            if (region == null)
+                return null;
 
             Issue issue = new Issue();
-
+            // User input
             issue.title = dto.title;
             issue.description = dto.description;
             issue.location = dto.location;
             issue.latitude = dto.latitude;
             issue.longitude = dto.longitude;
             issue.priority = dto.priority;
+            // User-chosen references (validated above)
             issue.regionId = dto.regionId;
             issue.categoryId = dto.categoryId;
 
             issue.assignedDepartmentId = category.departmentId;
             // System values
+            issue.reportedById = reportedById;
             issue.currentStatus = IssueStatus.Open;
             issue.reportedDate = DateTime.UtcNow;
 
@@ -54,8 +62,8 @@ namespace OmanCommunityServicesPlatform.Services
             response.currentStatus = issue.currentStatus;
             response.reportedDate = issue.reportedDate;
 
-            response.categoryName = issue.category?.categoryName;
-            response.regionName = issue.region?.regionName;
+            response.categoryName = category.categoryName;
+            response.regionName = region.regionName;
             response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
 
             return response;
