@@ -175,10 +175,30 @@ namespace OmanCommunityServicesPlatform
         }
 
 
+        // --------------------------------------------------
+        // DELETE RATING
+        // --------------------------------------------------
+
+        // Deletes one rating.
+        //
+        // userId is checked so that a user cannot delete
+        // another user's rating.
+        public bool DeleteRating(
+            int ratingId,
+            int userId
+        )
+        {
+            // Search for the rating.
+            Rating? rating = ratingRepo.GetById(ratingId);
+
+            // Return false when the rating does not exist.
+            if (rating == null)
+            {
+                return false;
+            }
 
 
-
-    }
+        }
 }
 
 
