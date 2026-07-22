@@ -4,7 +4,7 @@
 namespace OmanCommunityServicesPlatform.DTOs
 {
     
-    public class RepoCategoryDTO   //GET
+    public class ResponseCategoryDTO   //GET
     {
         public int categoryId { get; set; }
         public string categoryName { get; set; } = string.Empty;
