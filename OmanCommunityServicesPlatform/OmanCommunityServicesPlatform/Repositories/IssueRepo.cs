@@ -13,13 +13,21 @@ namespace OmanCommunityServicesPlatform.Repositories
         // Get all issues
         public List<Issue> GetAll()
         {
-            return context.Issues.ToList();
+            return context.Issues
+                .Include(i => i.category)
+                .Include(i => i.region)
+                .Include(i => i.assignedDepartment)
+                .ToList();
               
         }
         // Get one issue by ID
         public Issue? GetById(int issueId)
         {
-            return context.Issues.FirstOrDefault(i => i.issueId == issueId);
+            return context.Issues
+                .Include(i => i.category)
+                .Include(i => i.region)
+                .Include (i => i.assignedDepartment)
+                .FirstOrDefault(i => i.issueId == issueId);
                
         }
 
