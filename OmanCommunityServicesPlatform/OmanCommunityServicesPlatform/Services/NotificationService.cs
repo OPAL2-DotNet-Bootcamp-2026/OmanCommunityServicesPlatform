@@ -212,6 +212,32 @@ namespace OmanCommunityServicesPlatform.Services
             return savedNotification;
         }
 
-    }
-    }
+        // --------------------------------------------------
+        // UPDATE NOTIFICATION
+        // --------------------------------------------------
+
+        // Updates the message and notification type.
+        //
+        // Calls:
+        // NotificationRepo.GetById()
+        // NotificationRepo.NotificationExists()
+        // NotificationRepo.Update()
+        public bool UpdateNotification(
+            int notificationId,
+            UpdateNotificationDTO dto
+        )
+        {
+            // Find the existing notification.
+            Notification? notification =
+                notificationRepo.GetById(notificationId);
+
+
+            // Return false when it does not exist.
+            if (notification == null)
+            {
+                return false;
+            }
+
+        }
+    
 }
