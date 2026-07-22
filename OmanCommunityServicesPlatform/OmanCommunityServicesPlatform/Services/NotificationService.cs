@@ -65,6 +65,86 @@ namespace OmanCommunityServicesPlatform.Services
             return notificationRepo.GetByUserId(userId);
         }
 
+        // --------------------------------------------------
+        // GET UNREAD NOTIFICATIONS BY USER ID
+        // --------------------------------------------------
 
+        // Returns only unread notifications for one user.
+        //
+        // Calls:
+        // NotificationRepo.GetUnreadByUserId()
+        public List<Notification> GetUnreadNotificationsByUserId(
+            int userId
+        )
+        {
+            // Check whether the user exists.
+            bool userExists = context.Users.Any(user =>
+                user.userId == userId
+            );
+
+            if (!userExists)
+            {
+                throw new KeyNotFoundException(
+                    "User was not found."
+                );
+            }
+
+            return notificationRepo.GetUnreadByUserId(userId);
+        }
+
+        / --------------------------------------------------
+        // CREATE NOTIFICATION
+        // --------------------------------------------------
+
+        // Creates a new notification.
+        //
+        // The DTO contains:
+        // issueId
+        // message
+        // type
+        //
+        // The userId is received separately because your
+        // CreateNotificationDTO does not contain userId.
+        //
+        // Calls:
+        // NotificationRepo.NotificationExists()
+        // NotificationRepo.Add()
+        public Notification CreateNotification(
+            CreateNotificationDTO dto,
+            int userId
+        )
+        {
+            // Check whether the notification receiver exists.
+            bool userExists = context.Users.Any(user =>
+                user.userId == userId
+            );
+
+            if (!userExists)
+            {
+                throw new KeyNotFoundException(
+                    "User was not found."
+                );
+            }
+
+
+            // issueId is optional.
+            //
+            // We only check the Issues table when the DTO
+            // contains an issueId.
+            if (dto.issueId.HasValue)
+            {
+                bool issueExists = context.Issues.Any(issue =>
+                    issue.issueId == dto.issueId.Value
+                );
+
+                if (!issueExists)
+                {
+                    throw new KeyNotFoundException(
+                        "Issue was not found."
+                    );
+                }
+            }
+
+
+        }
     }
-}
