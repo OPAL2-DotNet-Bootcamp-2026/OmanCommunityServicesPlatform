@@ -154,7 +154,29 @@ namespace OmanCommunityServicesPlatform
                 return false;
             }
 
+            // Check ownership.
+            // The logged-in user must be the owner of the rating.
+            if (rating.userId != userId)
+            {
+                throw new UnauthorizedAccessException(
+                    "You cannot update another user's rating.");
+            }
+
+
         }
+
+
+
+
     }
 }
+
+
+
+
+         
+
+
+        
+
 
