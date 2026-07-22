@@ -31,5 +31,14 @@ namespace OmanCommunityServicesPlatform.Services
             return notificationRepo.GetAll();
         }
 
+        // --------------------------------------------------
+        // GET NOTIFICATION BY ID
+        // --------------------------------------------------
+        public Notification? GetNotificationById(
+            int notificationId
+        )
+        {
+            return notificationRepo.GetById(notificationId);
+        }
     }
 }
