@@ -29,5 +29,14 @@ namespace OmanCommunityServicesPlatform.DTOs
         [Required]
         public AttachmentFileType fileType { get; set; }
     }
-
+    // Data returned to the client
+    public class AttachmentResponseDto
+    {
+        public int attachmentId { get; set; }
+        public int issueId { get; set; }
+        public int uploadedById { get; set; }
+        public string fileUrl { get; set; }
+        public AttachmentFileType fileType { get; set; }
+        public DateTime uploadedAt { get; set; }
+    }
 }
