@@ -162,6 +162,28 @@ namespace OmanCommunityServicesPlatform.Services
                 );
             }
 
+            // Convert CreateNotificationDTO
+            // into a Notification entity.
+            Notification notification = new Notification
+            {
+                // User who will receive the notification.
+                userId = userId,
+
+                // Optional related issue.
+                issueId = dto.issueId,
+
+                // Notification message from the DTO.
+                message = dto.message,
+
+                // StatusChange, Comment, or Assignment.
+                type = dto.type,
+
+                // A new notification starts as unread.
+                isRead = false,
+
+                // Current system time.
+                createdAt = DateTime.UtcNow
+            };
 
         }
     }
