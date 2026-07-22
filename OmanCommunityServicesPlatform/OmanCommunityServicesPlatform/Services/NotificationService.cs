@@ -238,6 +238,31 @@ namespace OmanCommunityServicesPlatform.Services
                 return false;
             }
 
+            // Check whether another notification already has
+            // the same unique combination.
+            bool duplicateExists =
+                notificationRepo.NotificationExists(
+                    notification.userId,
+                    notification.issueId,
+                    dto.type,
+                    dto.message
+                );
+
+
+            // Only reject the duplicate when the values are
+            // actually changing to another existing combination.
+            bool valuesChanged =
+                notification.message != dto.message ||
+                notification.type != dto.type;
+
+
+            if (duplicateExists && valuesChanged)
+            {
+                throw new InvalidOperationException(
+                    "Another identical notification already exists."
+                );
+            }
         }
+    }
     
 }
