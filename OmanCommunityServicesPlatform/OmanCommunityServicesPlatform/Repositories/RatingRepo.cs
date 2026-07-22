@@ -116,6 +116,66 @@ namespace OmanCommunityServicesPlatform
                 rating.userId == userId
             );
         }
+
+        // Creates and saves a new rating.
+        public Rating CreateRating(
+            CreateRatingDto dto,
+            int userId
+        )
+        {
+            // Check that the issue exists.
+            if (!IssueExists(dto.issueId))
+            {
+                throw new KeyNotFoundException(
+                    "Issue was not found."
+                );
+            }
+
+            // Check that the user exists.
+            if (!UserExists(userId))
+            {
+                throw new KeyNotFoundException(
+                    "User was not found."
+                );
+            }
+
+            // Check that the user did not already rate this issue.
+            if (UserAlreadyRated(dto.issueId, userId))
+            {
+                throw new InvalidOperationException(
+                    "This user has already rated this issue."
+                );
+            }
+
+            // Create the Rating entity.
+            Rating rating = new Rating
+            {
+                // Issue being rated.
+                issueId = dto.issueId,
+
+                // User creating the rating.
+                userId = userId,
+
+                // Score from the DTO.
+                score = dto.score,
+
+                // Optional feedback from the DTO.
+                feedback = dto.feedback,
+
+                // System-generated creation time.
+                ratedAt = DateTime.UtcNow
+            };
+
+            // Add the new entity to the Ratings table.
+            context.Ratings.Add(rating);
+
+            // Save it in SQL Server.
+            context.SaveChanges();
+
+            // Return the newly created Rating entity.
+            return rating;
+        }
+
     }
 }
 
