@@ -24,7 +24,7 @@ namespace OmanCommunityServicesPlatform
         }
 
         // Returns all ratings from the database.
-        public List<Rating> GetAll()
+        public List<Rating> GetAllRatings()
         {
             return context.Ratings
 
@@ -48,7 +48,7 @@ namespace OmanCommunityServicesPlatform
         // Returns one rating using its primary key.
         // Rating? means the method may return null
         // if the rating does not exist.
-        public Rating? GetById(int ratingId)
+        public Rating? GetRatingById(int ratingId)
         {
             return context.Ratings
 
@@ -65,6 +65,26 @@ namespace OmanCommunityServicesPlatform
                 rating => rating.ratingId == ratingId);
 
 
+        }
+
+        // Gets all ratings that belong to one issue.
+        public List<Rating> GetRatingsByIssueId(int issueId)
+        {
+            return context.Ratings
+
+                // Loads the related Issue.
+                .Include(rating => rating.issueId)
+
+                // Loads the user who submitted each rating.
+                .Include(rating => rating.userId)
+
+                // Returns only ratings connected to the given issue.
+                .Where(rating =>
+                    rating.issueId == issueId
+                )
+
+                // Executes the query.
+                .ToList();
         }
     }
 }
