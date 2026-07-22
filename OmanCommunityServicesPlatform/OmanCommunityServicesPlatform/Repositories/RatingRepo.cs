@@ -94,6 +94,15 @@ namespace OmanCommunityServicesPlatform
                 issue.issueId == issueId
             );
         }
+
+        // Returns true when the user exists.
+        // Returns false when the user does not exist.
+        public bool UserExists(int userId)
+        {
+            return context.Users.Any(user =>
+                user.userId == userId
+            );
+        }
     }
 }
 
