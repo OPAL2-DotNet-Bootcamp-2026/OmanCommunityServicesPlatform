@@ -31,12 +31,12 @@ namespace OmanCommunityServicesPlatform.Repositories
             // Loads the Issue connected to every rating.
             // This allows us to access values such as:
             // rating.issue.title
-            .Include(rating => rating.issueId)
+            .Include(rating => rating.Issue)
 
             // Loads the User who submitted every rating.
             // This allows us to access values such as:
             // rating.user.fullName
-            .Include(rating => rating.userId)
+            .Include(rating => rating.User)
 
             // Executes the database query
             // and converts the result into a List<Rating>.
@@ -53,10 +53,10 @@ namespace OmanCommunityServicesPlatform.Repositories
             return context.Ratings
 
             // Loads the related Issue entity.
-            .Include(rating => rating.issueId)
+            .Include(rating => rating.Issue)
 
             // Loads the related User entity.
-            .Include(rating => rating.userId)
+            .Include(rating => rating.User)
 
             // Searches for the first rating
             // whose ratingId matches the given parameter.
@@ -73,10 +73,10 @@ namespace OmanCommunityServicesPlatform.Repositories
             return context.Ratings
 
                 // Loads the related Issue.
-                .Include(rating => rating.issueId)
+                .Include(rating => rating.Issue)
 
                 // Loads the user who submitted each rating.
-                .Include(rating => rating.userId)
+                .Include(rating => rating.User)
 
                 // Returns only ratings connected to the given issue.
                 .Where(rating =>
