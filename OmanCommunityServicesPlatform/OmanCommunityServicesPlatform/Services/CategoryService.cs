@@ -55,9 +55,9 @@ namespace OmanCommunityServicesPlatform.Services
             if (categoryRepo.IsCategoryNameExist(dto.categoryName))
                 return null;
             Category category = new Category();
-            category .categoryName = dto.categoryName;
+            category.categoryName = dto.categoryName;
             category.description = dto.description;
-            category.department= dto.department;
+            category.department = dto.department;
             categoryRepo.Add(category)
             ResponseCategoryDTO response = new ResponseCategoryDTO();
             response.categoryId = category.categoryId;
@@ -68,18 +68,18 @@ namespace OmanCommunityServicesPlatform.Services
             return response;
         }
         //Update C
-        public ResponseCategoryDTO Update(int id,UpdateCategoryDTO dto)
+        public ResponseCategoryDTO Update(int id, UpdateCategoryDTO dto)
         {
             Category category = categoryRepo.GetCategoryId(id);
 
             if (category == null)
                 return null;
-            if(category.categoryName != dto.categoryName && categoryRepo.IsCategoryNameExit(dto.categoryName))
+            if (category.categoryName != dto.categoryName && categoryRepo.IsCategoryNameExit(dto.categoryName))
             {
                 return null;
             }
-            category.categoryName= dto.categoryName;
-            category.description= dto.description;
+            category.categoryName = dto.categoryName;
+            category.description = dto.description;
             category.departmentId = dto.departmentId;
             categoryRepo.Update();
 
@@ -97,10 +97,10 @@ namespace OmanCommunityServicesPlatform.Services
         }
 
         //Delete category
-        public bool Delete(int id) 
+        public bool Delete(int id)
         {
-            Category category =categoryRepo.GetCategoryId(id);
-            if(category == null)
+            Category category = categoryRepo.GetCategoryId(id);
+            if (category == null)
                 return false;
             categoryRepo.Delete(category);
             return true;
