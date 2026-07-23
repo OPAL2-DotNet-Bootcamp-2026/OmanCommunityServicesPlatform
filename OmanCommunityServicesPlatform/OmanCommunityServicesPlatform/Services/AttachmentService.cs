@@ -29,7 +29,7 @@ namespace OmanCommunityServicesPlatform.Services
             if (user == null)
                 return null;
 
-            Attachment? existingAttachment = attachmentRepo.GetByIssueIdAndUrl(dto.issueId,dto.fileUrl);
+            Attachment? existingAttachment = attachmentRepo.GetByIssueIdAndUrl(dto.issueId, dto.fileUrl);
             if (existingAttachment != null)
                 return null;
 
@@ -41,7 +41,7 @@ namespace OmanCommunityServicesPlatform.Services
             attachment.uploadedAt = DateTime.UtcNow;
 
             attachmentRepo.Add(attachment);
-            AttachmentResponseDto response =new AttachmentResponseDto();
+            AttachmentResponseDto response = new AttachmentResponseDto();
 
             response.attachmentId = attachment.attachmentId;
             response.issueId = attachment.issueId;
@@ -50,6 +50,27 @@ namespace OmanCommunityServicesPlatform.Services
             response.fileType = attachment.fileType;
             response.uploadedAt = attachment.uploadedAt;
 
+            return response;
+        }
+        // Get attachments by issue ID
+        public List<AttachmentResponseDto> GetByIssueId(int issueId)
+        {
+            List<Attachment> attachments = attachmentRepo.GetByIssueId(issueId);
+            List<AttachmentResponseDto> response = new List<AttachmentResponseDto>();
+
+            foreach (Attachment attachment in attachments)
+            {
+                AttachmentResponseDto dto = new AttachmentResponseDto();
+
+                dto.attachmentId = attachment.attachmentId;
+                dto.issueId = attachment.issueId;
+                dto.uploadedById = attachment.uploadedById;
+                dto.fileUrl = attachment.fileUrl;
+                dto.fileType = attachment.fileType;
+                dto.uploadedAt = attachment.uploadedAt;
+
+                response.Add(dto);
+            }
             return response;
         }
     }
