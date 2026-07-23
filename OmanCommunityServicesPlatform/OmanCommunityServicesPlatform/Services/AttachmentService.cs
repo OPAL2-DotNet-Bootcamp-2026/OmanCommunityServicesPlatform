@@ -125,5 +125,17 @@ namespace OmanCommunityServicesPlatform.Services
 
             return response;
         }
+
+        public bool Delete(int id)
+        {
+            Attachment? attachment = attachmentRepo.GetById(id);
+
+            if (attachment == null)
+                return false;
+
+            attachmentRepo.Delete(attachment);
+
+            return true;
+        }
     }
 }
