@@ -2,7 +2,7 @@
 using OmanCommunityServicesPlatform.Models;
 
 
-namespace OmanCommunityServicesPlatform
+namespace OmanCommunityServicesPlatform.Repositories
 
 {
     public class RatingRepo
