@@ -2,7 +2,7 @@
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Models.Enums;
 
-namespace OmanCommunityServicesPlatform
+namespace OmanCommunityServicesPlatform.Repositories
 {
     public class NotificationRepo
     {
