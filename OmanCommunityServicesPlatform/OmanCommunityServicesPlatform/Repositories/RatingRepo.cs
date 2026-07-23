@@ -120,38 +120,14 @@ namespace OmanCommunityServicesPlatform.Repositories
 
 
         // Deletes an existing rating.
-        public bool DeleteRating(
-            int ratingId,
-            int userId
-        )
+        public void Delete(Rating rating)
         {
-            // Find the rating.
-            Rating? rating = context.Ratings
-                .FirstOrDefault(rating =>
-                    rating.ratingId == ratingId
-                );
-
-            // Return false when the rating does not exist.
-            if (rating == null)
-            {
-                return false;
-            }
-
-            // Make sure the rating belongs to the given user.
-            if (rating.userId != userId)
-            {
-                throw new UnauthorizedAccessException(
-                    "You cannot delete another user's rating."
-                );
-            }
-
-            // Mark the rating for deletion.
+            // Marks the Rating entity for deletion.
             context.Ratings.Remove(rating);
 
-            // Delete it from the database.
+            // Sends the DELETE command to the database.
             context.SaveChanges();
 
-            return true;
 
 
         }
