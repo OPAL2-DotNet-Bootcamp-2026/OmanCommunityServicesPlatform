@@ -86,23 +86,6 @@ namespace OmanCommunityServicesPlatform.Repositories
                 // Executes the query.
                 .ToList();
         }
-        // Returns true when the issue exists.
-        // Returns false when it does not exist.
-        public bool IssueExists(int issueId)
-        {
-            return context.Issues.Any(issue =>
-                issue.issueId == issueId
-            );
-        }
-
-        // Returns true when the user exists.
-        // Returns false when the user does not exist.
-        public bool UserExists(int userId)
-        {
-            return context.Users.Any(user =>
-                user.userId == userId
-            );
-        }
 
         // Checks whether the same user has already rated
         // the same issue.
@@ -117,102 +100,14 @@ namespace OmanCommunityServicesPlatform.Repositories
             );
         }
 
-        // Creates and saves a new rating.
-        public Rating CreateRating(
-            CreateRatingDto dto,
-            int userId
-        )
+        // Adds a new rating to the Ratings table.
+        public void Add(Rating rating)
         {
-            // Check that the issue exists.
-            if (!IssueExists(dto.issueId))
-            {
-                throw new KeyNotFoundException(
-                    "Issue was not found."
-                );
-            }
-
-            // Check that the user exists.
-            if (!UserExists(userId))
-            {
-                throw new KeyNotFoundException(
-                    "User was not found."
-                );
-            }
-
-            // Check that the user did not already rate this issue.
-            if (UserAlreadyRated(dto.issueId, userId))
-            {
-                throw new InvalidOperationException(
-                    "This user has already rated this issue."
-                );
-            }
-
-            // Create the Rating entity.
-            Rating rating = new Rating
-            {
-                // Issue being rated.
-                issueId = dto.issueId,
-
-                // User creating the rating.
-                userId = userId,
-
-                // Score from the DTO.
-                score = dto.score,
-
-                // Optional feedback from the DTO.
-                feedback = dto.feedback,
-
-                // System-generated creation time.
-                ratedAt = DateTime.UtcNow
-            };
-
-            // Add the new entity to the Ratings table.
+            // Marks the Rating entity as new.
             context.Ratings.Add(rating);
 
-            // Save it in SQL Server.
+            // Sends the INSERT command to the database.
             context.SaveChanges();
-
-            // Return the newly created Rating entity.
-            return rating;
-        }
-
-        // Updates an existing rating.
-        public bool UpdateRating(
-            int ratingId,
-            int userId,
-            UpdateRatingDTO dto
-        )
-        {
-            // Find the existing rating.
-            Rating? rating = context.Ratings
-                .FirstOrDefault(rating =>
-                    rating.ratingId == ratingId
-                );
-
-            // Return false if the rating does not exist.
-            if (rating == null)
-            {
-                return false;
-            }
-
-            // Make sure the rating belongs to the given user.
-            if (rating.userId != userId)
-            {
-                throw new UnauthorizedAccessException(
-                    "You cannot update another user's rating."
-                );
-            }
-
-            // Update the score.
-            rating.score = dto.score;
-
-            // Update the optional feedback.
-            rating.feedback = dto.feedback;
-
-            // Save the modifications.
-            context.SaveChanges();
-
-            return true;
         }
 
         // Deletes an existing rating.
