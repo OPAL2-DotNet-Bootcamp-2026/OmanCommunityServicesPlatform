@@ -73,5 +73,25 @@ namespace OmanCommunityServicesPlatform.Services
             }
             return response;
         }
+        // Get attachment by ID
+        public AttachmentResponseDto? GetById(int id)
+        {
+            Attachment? attachment = attachmentRepo.GetById(id);
+
+            if (attachment == null)
+                return null;
+
+            AttachmentResponseDto response = new AttachmentResponseDto();
+
+            response.attachmentId = attachment.attachmentId;
+            response.issueId = attachment.issueId;
+            response.uploadedById = attachment.uploadedById;
+            response.fileUrl = attachment.fileUrl;
+            response.fileType = attachment.fileType;
+            response.uploadedAt = attachment.uploadedAt;
+
+            return response;
+
+        }
     }
 }
