@@ -110,6 +110,15 @@ namespace OmanCommunityServicesPlatform.Repositories
             context.SaveChanges();
         }
 
+        // Saves changes made to an existing tracked rating.
+        public void Update()
+        {
+            // Entity Framework tracks changes made
+            // to a rating loaded from the database.
+            context.SaveChanges();
+        }
+
+
         // Deletes an existing rating.
         public bool DeleteRating(
             int ratingId,
