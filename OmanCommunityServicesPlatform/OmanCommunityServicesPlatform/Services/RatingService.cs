@@ -1,7 +1,7 @@
 ﻿using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Models;
 
-namespace OmanCommunityServicesPlatform
+namespace OmanCommunityServicesPlatform.Services
 {
     // The RatingService contains the business logic
     // related to ratings.
