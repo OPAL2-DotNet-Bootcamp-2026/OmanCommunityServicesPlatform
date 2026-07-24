@@ -56,6 +56,11 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
+            if (!user.isActive)
+            {
+                return null;
+            }
+
             bool validPassword = Argon2.Verify(dto.password, user.passwordHash);
 
             if (!validPassword)
@@ -175,6 +180,23 @@ namespace OmanCommunityServicesPlatform.Services
             };
 
             return response;
+        }
+
+        // Authorization Level must be Admin
+        public bool DeactivateUser(int userId)
+        {
+            User user = userRepo.GetById(userId);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.isActive = false;
+
+            userRepo.Update();
+
+            return true;
         }
 
         public UserSummaryDto Response(User user)
