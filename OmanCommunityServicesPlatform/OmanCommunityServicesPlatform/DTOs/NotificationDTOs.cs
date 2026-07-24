@@ -43,5 +43,18 @@ namespace OmanCommunityServicesPlatform.DTOs
     {
         [Required]
         public bool isRead { get; set; }
-    }         
+    }
+
+    // Used when returning notification data to the client
+    public class NotificationResponseDto
+    {
+        public int notificationId { get; set; }
+        public int userId { get; set; }
+        public int? issueId { get; set; }
+        public string message { get; set; } = string.Empty;
+        public NotificationType type { get; set; }
+        public bool isRead { get; set; }
+        public DateTime createdAt { get; set; }
+    }
+
 }
