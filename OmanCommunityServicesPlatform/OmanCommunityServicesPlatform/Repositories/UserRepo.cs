@@ -28,42 +28,19 @@ namespace OmanCommunityServicesPlatform.Repositories
         // 	Needed for profile views, and internally by Service for almost every other operation
         public User GetById(int id)
         {
-            return context.Users
-                .Include(u => u.Issues)
-                .Include(u => u.Comments)
-                .Include(u => u.Comments)
-                .Include(u => u.Ratings)
-                .Include(u => u.Attachments)
-                .Include(u => u.Notifications)
-                .Include(u => u.StatusUpdates)
-                .FirstOrDefault(u => u.userId == id);
+            return context.Users.FirstOrDefault(u => u.userId == id);
         }
 
         // Needed for login lookups and for checking duplicate registrations
         public User GetByEmail(string email)
         {
-            return context.Users
-                .Include(u => u.Issues)
-                .Include(u => u.Comments)
-                .Include(u => u.Comments)
-                .Include(u => u.Ratings)
-                .Include(u => u.Attachments)
-                .Include(u => u.Notifications)
-                .Include(u => u.StatusUpdates).FirstOrDefault(u => u.email ==email);
+            return context.Users.FirstOrDefault(u => u.email ==email);
         }
 
         // Needed so Staff dashboards or Admin can see who's in a department
         public List<User> GetByDepartment(int departmentId)
         {
-            return context.Users
-                .Include(u => u.Issues)
-                .Include(u => u.Comments)
-                .Include(u => u.Comments)
-                .Include(u => u.Ratings)
-                .Include(u => u.Attachments)
-                .Include(u => u.Notifications)
-                .Include(u => u.StatusUpdates)
-                .Where(u => u.departmentId == departmentId).ToList();
+            return context.Users.Where(u => u.departmentId == departmentId).ToList();
         }
 
         public void Update()
@@ -73,15 +50,7 @@ namespace OmanCommunityServicesPlatform.Repositories
 
         public bool EmailExists(string email)
         {
-            return context.Users
-                .Include(u => u.Issues)
-                .Include(u => u.Comments)
-                .Include(u => u.Comments)
-                .Include(u => u.Ratings)
-                .Include(u => u.Attachments)
-                .Include(u => u.Notifications)
-                .Include(u => u.StatusUpdates)
-                .Any(u => u.email == email);
+            return context.Users.Any(u => u.email == email);
         }
     }
 }
