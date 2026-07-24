@@ -33,13 +33,9 @@ namespace OmanCommunityServicesPlatform.DTOs
             300,
             ErrorMessage = "Message cannot exceed 300 characters."
         )]
-        public string message { get; set; } 
+        public string message { get; set; }
 
-        [Required]
-        [StringLength(
-            30,
-            ErrorMessage = "Notification type cannot exceed 30 characters."
-        )]
+        [Required(ErrorMessage = "Notification Type is Required")]
         public NotificationType type { get; set; } 
     }
     // Used when marking one notification as read or unread
