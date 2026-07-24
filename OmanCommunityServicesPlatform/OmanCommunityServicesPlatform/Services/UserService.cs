@@ -27,7 +27,7 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            if (!regionRepo.RegionExists(dto.regionId))
+            if (regionRepo.GetById((int)dto.regionId) == null)
             {
                 return null;
             } 
@@ -96,7 +96,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             if (dto.regionId != null)
             {
-                if (!regionRepo.RegionExists(dto.regionId))
+                if (regionRepo.GetById((int)dto.regionId) == null)
                 {
                     return null;
                 }
