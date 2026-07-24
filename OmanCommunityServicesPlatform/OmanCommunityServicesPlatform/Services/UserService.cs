@@ -27,10 +27,10 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            if (regionRepo.GetById((int)dto.regionId) == null)
+            if (dto.regionId.HasValue && regionRepo.GetById(dto.regionId.Value) == null)
             {
                 return null;
-            } 
+            }
 
             User newUser = new User
             {
