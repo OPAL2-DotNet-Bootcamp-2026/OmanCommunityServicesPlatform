@@ -1,7 +1,8 @@
 ﻿using OmanCommunityServicesPlatform.Enums;
+using OmanCommunityServicesPlatform.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace OmanCommunityServicesPlatform
+namespace OmanCommunityServicesPlatform.DTOs
 {
 
     // Used when creating a new notification
@@ -32,13 +33,9 @@ namespace OmanCommunityServicesPlatform
             300,
             ErrorMessage = "Message cannot exceed 300 characters."
         )]
-        public string message { get; set; } 
+        public string message { get; set; }
 
-        [Required]
-        [StringLength(
-            30,
-            ErrorMessage = "Notification type cannot exceed 30 characters."
-        )]
+        [Required(ErrorMessage = "Notification Type is Required")]
         public NotificationType type { get; set; } 
     }
     // Used when marking one notification as read or unread
@@ -46,5 +43,18 @@ namespace OmanCommunityServicesPlatform
     {
         [Required]
         public bool isRead { get; set; }
-    }         
+    }
+
+    // Used when returning notification data to the client
+    public class NotificationResponseDto
+    {
+        public int notificationId { get; set; }
+        public int userId { get; set; }
+        public int? issueId { get; set; }
+        public string message { get; set; } = string.Empty;
+        public NotificationType type { get; set; }
+        public bool isRead { get; set; }
+        public DateTime createdAt { get; set; }
+    }
+
 }
