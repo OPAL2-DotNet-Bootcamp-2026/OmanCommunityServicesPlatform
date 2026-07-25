@@ -44,5 +44,10 @@ namespace OmanCommunityServicesPlatform.Repositories
             context.Regions.Remove(region);
             context.SaveChanges();
         }
+        // Check if region exists
+        public bool Exists(int id)
+        {
+            return context.Regions.Any(r => r.regionId == id);
+        }
     }
 }
