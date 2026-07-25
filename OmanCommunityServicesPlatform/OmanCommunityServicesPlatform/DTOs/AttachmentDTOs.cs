@@ -10,10 +10,6 @@ namespace OmanCommunityServicesPlatform.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "A valid issue is required.")]
         public int issueId { get; set; }
 
-        [Required(ErrorMessage = "Uploaded by is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "A valid user is required.")]
-        public int uploadedById { get; set; }
-
         [Required(ErrorMessage = "File URL is required.")]
         [StringLength(300)]
         public string fileUrl { get; set; }
