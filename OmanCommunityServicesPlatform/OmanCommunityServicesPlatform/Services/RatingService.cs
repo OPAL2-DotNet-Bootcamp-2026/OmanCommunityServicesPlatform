@@ -13,18 +13,19 @@ namespace OmanCommunityServicesPlatform.Services
         // Repository used for Rating database operations.
         private readonly RatingRepo ratingRepo;
 
-        // Database context used here to check whether
-        // the Issue and User exist.
-        private readonly OCSPContext context;
+        // Used to retrieve and validate the Issue.
+        private readonly IssueRepo issueRepo;
 
         // Constructor Dependency Injection.
+        // OCSPContext is not used directly in the Service.
+        // Database operations should happen through repositories.
         public RatingService(
             RatingRepo ratingRepo,
-            OCSPContext context
+            IssueRepo issueRepo
         )
         {
             this.ratingRepo = ratingRepo;
-            this.context = context;
+            this.issueRepo = issueRepo;
         }
 
         // --------------------------------------------------
