@@ -246,6 +246,9 @@ namespace OmanCommunityServicesPlatform.Services
                     dto.message
                 );
 
+            bool valuesChanged =
+                notification.message != dto.message ||
+                notification.type != dto.type;
 
             // Reject only when:
             // 1. The values are actually changing.
@@ -264,15 +267,13 @@ namespace OmanCommunityServicesPlatform.Services
 
             return true;
 
-
-            ;
         }
 
         // --------------------------------------------------
         // UPDATE READ STATUS
         // --------------------------------------------------
 
-        // Changes a notification to read or unread.
+        // Changes a notification to read or unread. Can be used as mark Notification as Unread feature
         //
         // Calls:
         // NotificationRepo.GetById()
