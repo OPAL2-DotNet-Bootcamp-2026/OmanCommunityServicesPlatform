@@ -205,7 +205,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Return a DTO instead of the raw entity.
             return MapToDto(notification);
 
-        }
+            }
 
 
             
@@ -236,14 +236,36 @@ namespace OmanCommunityServicesPlatform.Services
                 return false;
             }
 
-            // true means read.
-            // false means unread.
-            notification.isRead = dto.isRead;
+            // Check whether another notification already has
+            // the same unique combination.
+            bool duplicateExists =
+                notificationRepo.NotificationExists(
+                    notification.userId,
+                    notification.issueId,
+                    dto.type,
+                    dto.message
+                );
 
-            // Save the change.
+
+            // Reject only when:
+            // 1. The values are actually changing.
+            // 2. Another identical Notification exists.
+            if (valuesChanged && duplicateExists)
+            {
+                return false;
+            }
+
+            // Update the allowed properties.
+            notification.message = dto.message;
+            notification.type = dto.type;
+
+            // Save the tracked changes.
             notificationRepo.Update();
 
             return true;
+
+
+            ;
         }
 
         // --------------------------------------------------
