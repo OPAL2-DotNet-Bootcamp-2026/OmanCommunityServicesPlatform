@@ -359,6 +359,31 @@ namespace OmanCommunityServicesPlatform.Services
 
             return true;
         }
+
+            // --------------------------------------------------
+            // MAP ENTITY TO RESPONSE DTO
+            // --------------------------------------------------
+
+            // Converts a Notification entity into
+            // NotificationResponseDto.
+            //
+            // This prevents the API from returning User and Issue
+            // navigation properties.
+        private NotificationResponseDto MapToDto(
+            Notification notification
+        )
+        {
+            return new NotificationResponseDto
+            {
+                notificationId = notification.notificationId,
+                userId = notification.userId,
+                issueId = notification.issueId,
+                message = notification.message,
+                type = notification.type,
+                isRead = notification.isRead,
+                createdAt = notification.createdAt
+            };
+        }
     }
 
 
