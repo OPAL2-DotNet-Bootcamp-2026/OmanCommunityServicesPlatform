@@ -34,7 +34,13 @@ namespace OmanCommunityServicesPlatform.Services
         // Returns all Rating entities from the database.
         public List<Rating> GetAllRatings()
         {
-            return ratingRepo.GetAll();
+            // Get all Rating entities from RatingRepo.
+            List<Rating> ratings = ratingRepo.GetAll();
+
+            // Convert every Rating entity into a RatingDto.
+            return ratings
+                .Select(rating => MapToDto(rating))
+                .ToList();
 
         }
 
