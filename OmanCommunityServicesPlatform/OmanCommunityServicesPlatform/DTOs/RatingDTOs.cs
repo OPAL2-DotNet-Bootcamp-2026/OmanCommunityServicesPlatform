@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace OmanCommunityServicesPlatform
+namespace OmanCommunityServicesPlatform.DTOs
 {
  
     // Used when creating a new rating
