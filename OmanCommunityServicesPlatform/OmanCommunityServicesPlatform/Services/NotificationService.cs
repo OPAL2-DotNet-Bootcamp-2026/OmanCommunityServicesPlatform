@@ -34,9 +34,16 @@ namespace OmanCommunityServicesPlatform.Services
         // GET ALL NOTIFICATIONS
         // --------------------------------------------------
 
-        public List<Notification> GetAllNotifications()
+        public List<NotificationResponseDto> GetAllNotifications()
         {
-            return notificationRepo.GetAll();
+            // Get all Notification entities.
+            List<Notification> notifications =
+                notificationRepo.GetAll();
+
+            // Convert every entity into a response DTO.
+            return notifications
+                .Select(notification => MapToDto(notification))
+                .ToList();
         }
 
         // --------------------------------------------------
