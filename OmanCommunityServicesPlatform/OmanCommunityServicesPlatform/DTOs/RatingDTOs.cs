@@ -56,6 +56,16 @@ namespace OmanCommunityServicesPlatform.DTOs
 
     }
 
+    public class ResponseRatingDto
+    {
+        public int ratingId { get; set; }
+        public int issueId { get; set; }
+        public int userId { get; set; }
+        public int score { get; set; }
+        public string? feedback { get; set; }
+        public DateTime ratedAt { get; set; }
+    }
+
 }
 
 

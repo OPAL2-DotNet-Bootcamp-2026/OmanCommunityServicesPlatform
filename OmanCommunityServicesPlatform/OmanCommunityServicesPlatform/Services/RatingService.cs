@@ -1,4 +1,5 @@
 ﻿using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Repositories;
 
@@ -117,7 +118,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             // Business rule:
             // The User can only rate a resolved Issue.
-            if (issue.currentStatus != "Resolved")
+            if (issue.currentStatus != IssueStatus.Resolved)
             {
                 return null;
             }
