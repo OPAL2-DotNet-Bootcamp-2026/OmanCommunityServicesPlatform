@@ -20,7 +20,7 @@ namespace OmanCommunityServicesPlatform.Services
 
         public NotificationService(
             NotificationRepo notificationRepo,
-            OUserRepo userRepo,
+            UserRepo userRepo,
             IssueRepo issueRepo
         )
         {
