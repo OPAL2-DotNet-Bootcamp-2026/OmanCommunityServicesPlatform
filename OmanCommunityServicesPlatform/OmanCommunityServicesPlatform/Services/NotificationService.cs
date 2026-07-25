@@ -71,24 +71,24 @@ namespace OmanCommunityServicesPlatform.Services
         // GET NOTIFICATIONS BY USER ID
         // --------------------------------------------------
 
-        public List<Notification> GetNotificationsByUserId(
+        public List<NotificationResponseDto>? GetNotificationsByUserId(
             int userId
         )
         {
-            // Check whether the selected user exists.
-            bool userExists = context.Users.Any(user =>
-                user.userId == userId
-            );
-
-            // Stop the operation if the user does not exist.
-            if (!userExists)
+            // Ask UserRepo whether the User exists.
+            if (!userRepo.Exists(userId))
             {
-                throw new KeyNotFoundException(
-                    "User was not found."
-                );
+                return null;
             }
 
-            return notificationRepo.GetByUserId(userId);
+            // Get the User's Notification entities.
+            List<Notification> notifications =
+                notificationRepo.GetByUserId(userId);
+
+            // Convert all entities into DTOs.
+            return notifications
+                .Select(notification => MapToDto(notification))
+                .ToList();
         }
 
         // --------------------------------------------------
