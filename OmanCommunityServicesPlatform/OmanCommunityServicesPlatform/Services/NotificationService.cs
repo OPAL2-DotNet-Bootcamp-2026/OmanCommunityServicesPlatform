@@ -119,7 +119,7 @@ namespace OmanCommunityServicesPlatform.Services
                 .ToList();
         }
 
-        / --------------------------------------------------
+        // --------------------------------------------------
         // CREATE NOTIFICATION
         // --------------------------------------------------
 
@@ -205,29 +205,10 @@ namespace OmanCommunityServicesPlatform.Services
             // Return a DTO instead of the raw entity.
             return MapToDto(notification);
 
-
-            // Get the saved notification again.
-            //
-            // This loads the related User and optional Issue
-            // because GetById uses Include().
-            Notification? savedNotification =
-                notificationRepo.GetById(
-                    notification.notificationId
-                );
-
-
-            // This should not normally happen because the
-            // notification was just saved.
-            if (savedNotification == null)
-            {
-                throw new InvalidOperationException(
-                    "The notification was saved but could not be retrieved."
-                );
-            }
-
-
-            return savedNotification;
         }
+
+
+            
 
         // --------------------------------------------------
         // UPDATE NOTIFICATION
