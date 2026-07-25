@@ -51,7 +51,7 @@ namespace OmanCommunityServicesPlatform.Services
 
         // Returns one rating using its ID.
         // Returns null when the rating does not exist.
-        public Rating? GetRatingById(int ratingId)
+        public ResponseRatingDto? GetRatingById(int ratingId)
         {
             // Ask RatingRepo to find the Rating.
             Rating? rating = ratingRepo.GetById(ratingId);
@@ -71,7 +71,7 @@ namespace OmanCommunityServicesPlatform.Services
         // --------------------------------------------------
 
         // Returns all ratings belonging to one issue.
-        public List<Rating> GetRatingsByIssueId(int issueId)
+        public List<ResponseRatingDto> GetRatingsByIssueId(int issueId)
         {
             // Get Rating entities related to the selected Issue.
             List<Rating> ratings =
@@ -97,7 +97,7 @@ namespace OmanCommunityServicesPlatform.Services
         //
         // userId is received separately because your DTO
         // does not contain userId.
-        public Rating CreateRating(
+        public ResponseRatingDto? CreateRating(
             CreateRatingDto dto,
             int userId
         )
@@ -248,9 +248,9 @@ namespace OmanCommunityServicesPlatform.Services
             // Rating.Issue
             // Rating.User
             // and other Entity Framework navigation data.
-        private RatingDto MapToDto(Rating rating)
+        private ResponseRatingDto MapToDto(Rating rating)
         {
-            return new RatingDto
+            return new ResponseRatingDto
             {
                 ratingId = rating.ratingId,
                 issueId = rating.issueId,
