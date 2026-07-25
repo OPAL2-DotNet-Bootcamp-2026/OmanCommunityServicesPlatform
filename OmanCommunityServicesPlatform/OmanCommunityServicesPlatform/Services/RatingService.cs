@@ -211,6 +211,29 @@ namespace OmanCommunityServicesPlatform.Services
 
             return true;
         }
+
+             // --------------------------------------------------
+             // MAP RATING ENTITY TO DTO
+             // --------------------------------------------------
+
+            // Converts a Rating entity into RatingDto.
+            //
+            // This prevents the API from returning:
+            // Rating.Issue
+            // Rating.User
+            // and other Entity Framework navigation data.
+        private RatingDto MapToDto(Rating rating)
+        {
+            return new RatingDto
+            {
+                ratingId = rating.ratingId,
+                issueId = rating.issueId,
+                userId = rating.userId,
+                score = rating.score,
+                feedback = rating.feedback,
+                ratedAt = rating.ratedAt
+            };
+        }
     }
 }
 
