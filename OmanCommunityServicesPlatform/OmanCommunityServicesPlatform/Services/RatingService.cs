@@ -101,31 +101,35 @@ namespace OmanCommunityServicesPlatform.Services
             int userId
         )
         {
-            // Check whether the issue exists.
-            Issue? issue = context.Issues.FirstOrDefault(
-                issue => issue.issueId == dto.issueId
-            );
+            // Ask IssueRepo to find the Issue.
+            //
+            // RatingRepo cannot do this check because
+            // no Rating record exists yet.
+            Issue? issue = IssueRepo.GetById(dto.issueId);
 
-            // Stop the operation when the issue does not exist.
+            // Return null when the Issue does not exist.
             if (issue == null)
             {
-                throw new KeyNotFoundException(
-                    "Issue was not found."
-                );
+                return null;
             }
 
-            // Check whether this user already rated this issue.
-            bool alreadyRated = ratingRepo.UserAlreadyRated(
-                dto.issueId,
-                userId
-            );
+            // Business rule:
+            // The User can only rate a resolved Issue.
+            if (issue.currentStatus != "Resolved")
+            {
+                return null;
+            }
+            // Check whether this User already rated this Issue.
+            bool alreadyRated =
+                ratingRepo.UserAlreadyRated(
+                    dto.issueId,
+                    userId
+                );
 
             // Prevent duplicate ratings.
             if (alreadyRated)
             {
-                throw new InvalidOperationException(
-                    "This user has already rated this issue."
-                );
+                return null;
             }
 
             // Create a Rating entity using the DTO values.
@@ -152,8 +156,8 @@ namespace OmanCommunityServicesPlatform.Services
             // The repository saves it in the database.
             ratingRepo.Add(rating);
 
-            // Return the newly created Rating.
-            return rating;
+            // Convert the created entity into RatingDto.
+            return MapToDto(rating);
         }
 
         // --------------------------------------------------
@@ -183,8 +187,7 @@ namespace OmanCommunityServicesPlatform.Services
             // The logged-in user must be the owner of the rating.
             if (rating.userId != userId)
             {
-                throw new UnauthorizedAccessException(
-                    "You cannot update another user's rating.");
+                return false;
             }
             // Update the score.
             rating.score = dto.score;
