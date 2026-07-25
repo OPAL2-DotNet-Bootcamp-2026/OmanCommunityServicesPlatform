@@ -35,6 +35,7 @@ namespace OmanCommunityServicesPlatform.Services
         public List<Rating> GetAllRatings()
         {
             return ratingRepo.GetAll();
+
         }
 
         // --------------------------------------------------
@@ -56,6 +57,7 @@ namespace OmanCommunityServicesPlatform.Services
         public List<Rating> GetRatingsByIssueId(int issueId)
         {
             return ratingRepo.GetByIssueId(issueId);
+
         }
 
         // --------------------------------------------------
