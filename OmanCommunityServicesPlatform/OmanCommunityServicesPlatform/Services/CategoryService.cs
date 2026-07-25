@@ -1,4 +1,6 @@
-﻿using OmanCommunityServicesPlatform.Models;
+﻿using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Models;
+using OmanCommunityServicesPlatform.Repositories;
 
 namespace OmanCommunityServicesPlatform.Services
 {
@@ -33,7 +35,7 @@ namespace OmanCommunityServicesPlatform.Services
         //Get category response by Id 
         public ResponseCategoryDTO GetById(int id)
         {
-            Category category = categoryRepo.GetById(id);
+            Category category = categoryRepo.GetCategoryById(id);
             if (category == null)
                 return null;
             ResponseCategoryDTO response = new ResponseCategoryDTO();
