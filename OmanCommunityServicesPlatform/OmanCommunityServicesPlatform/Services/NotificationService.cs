@@ -136,42 +136,30 @@ namespace OmanCommunityServicesPlatform.Services
         // Calls:
         // NotificationRepo.NotificationExists()
         // NotificationRepo.Add()
-        public Notification CreateNotification(
+        public NotificationResponseDto? CreateNotification(
             CreateNotificationDTO dto,
             int userId
         )
         {
-            // Check whether the notification receiver exists.
-            bool userExists = context.Users.Any(user =>
-                user.userId == userId
-            );
 
-            if (!userExists)
+            // Check whether the receiving User exists.
+            if (!userRepo.Exists(userId))
             {
-                throw new KeyNotFoundException(
-                    "User was not found."
-                );
+                return null;
             }
-
 
             // issueId is optional.
             //
-            // We only check the Issues table when the DTO
-            // contains an issueId.
-            if (dto.issueId.HasValue)
+            // Only check IssueRepo when the DTO contains issueId.
+            if (
+                dto.issueId.HasValue &&
+                !issueRepo.Exists(dto.issueId.Value)
+            )
             {
-                bool issueExists = context.Issues.Any(issue =>
-                    issue.issueId == dto.issueId.Value
-                );
-
-                if (!issueExists)
-                {
-                    throw new KeyNotFoundException(
-                        "Issue was not found."
-                    );
-                }
+                return null;
             }
-            // Check whether the exact same notification
+
+            // Check whether the exact same Notification
             // already exists.
             bool duplicateExists =
                 notificationRepo.NotificationExists(
@@ -181,39 +169,41 @@ namespace OmanCommunityServicesPlatform.Services
                     dto.message
                 );
 
-            // Prevent duplicate notifications.
+            // Do not create a duplicate Notification.
             if (duplicateExists)
             {
-                throw new InvalidOperationException(
-                    "This notification already exists."
-                );
+                return null;
             }
 
             // Convert CreateNotificationDTO
             // into a Notification entity.
             Notification notification = new Notification
             {
-                // User who will receive the notification.
+                // User receiving the Notification.
                 userId = userId,
 
-                // Optional related issue.
+                // Optional related Issue.
                 issueId = dto.issueId,
 
-                // Notification message from the DTO.
+                // Notification message.
                 message = dto.message,
 
-                // StatusChange, Comment, or Assignment.
+                // Notification category.
                 type = dto.type,
 
-                // A new notification starts as unread.
+                // New Notifications start as unread.
                 isRead = false,
 
-                // Current system time.
+                // System-generated creation date and time.
                 createdAt = DateTime.UtcNow
             };
-            // Send the notification to the repository.
-            // The repository saves it in SQL Server.
+
+            // Save the new Notification.
             notificationRepo.Add(notification);
+
+            // notificationId is generated after SaveChanges().
+            // Return a DTO instead of the raw entity.
+            return MapToDto(notification);
 
 
             // Get the saved notification again.
