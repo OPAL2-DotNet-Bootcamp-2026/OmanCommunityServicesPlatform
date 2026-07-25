@@ -282,27 +282,22 @@ namespace OmanCommunityServicesPlatform.Services
             UpdateNotificationReadStatusDTO dto
         )
         {
-            // Find the notification.
+            // Find the Notification.
             Notification? notification =
                 notificationRepo.GetById(notificationId);
 
-
-            // Return false when the notification does not exist.
+            // Notification was not found.
             if (notification == null)
             {
                 return false;
             }
 
-            // Set the read status from the DTO.
-            //
-            // true  = read
-            // false = unread
+            // true means read.
+            // false means unread.
             notification.isRead = dto.isRead;
-
 
             // Save the change.
             notificationRepo.Update();
-
 
             return true;
         }
