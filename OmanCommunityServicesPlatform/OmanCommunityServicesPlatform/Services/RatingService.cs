@@ -1,5 +1,6 @@
 ﻿using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Models;
+using OmanCommunityServicesPlatform.Repositories;
 
 namespace OmanCommunityServicesPlatform.Services
 {
