@@ -228,9 +228,8 @@ namespace OmanCommunityServicesPlatform.Services
             // Check whether the rating belongs to this user.
             if (rating.userId != userId)
             {
-                throw new UnauthorizedAccessException(
-                    "You cannot delete another user's rating."
-                );
+                return false;
+               
             }
             // Delete the rating using the repository.
             ratingRepo.Delete(rating);
