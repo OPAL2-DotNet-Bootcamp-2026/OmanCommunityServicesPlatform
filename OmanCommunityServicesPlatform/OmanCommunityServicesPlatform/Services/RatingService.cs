@@ -72,7 +72,14 @@ namespace OmanCommunityServicesPlatform.Services
         // Returns all ratings belonging to one issue.
         public List<Rating> GetRatingsByIssueId(int issueId)
         {
-            return ratingRepo.GetByIssueId(issueId);
+            // Get Rating entities related to the selected Issue.
+            List<Rating> ratings =
+                ratingRepo.GetByIssueId(issueId);
+
+            // Convert every Rating entity into RatingDto.
+            return ratings
+                .Select(rating => MapToDto(rating))
+                .ToList();
 
         }
 
