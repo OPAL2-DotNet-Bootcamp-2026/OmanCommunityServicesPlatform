@@ -1,4 +1,8 @@
 ﻿using OmanCommunityServicesPlatform.Models;
+using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Repositories;
+
+
 
 namespace OmanCommunityServicesPlatform.Services
 {
@@ -7,19 +11,23 @@ namespace OmanCommunityServicesPlatform.Services
         // Repository used for notification database operations.
         private readonly NotificationRepo notificationRepo;
 
-        // Context used to check whether users and issues exist.
-        private readonly OCSPContext context;
+        // Used to check whether a User exists.
+        private readonly UserRepo userRepo;
+
+        // Used to check whether an Issue exists.
+        private readonly IssueRepo issueRepo;
+
 
         public NotificationService(
             NotificationRepo notificationRepo,
-            OCSPContext context
+            OUserRepo userRepo,
+            IssueRepo issueRepo
         )
         {
             // Store the repository inside the service.
             this.notificationRepo = notificationRepo;
-
-            // Store the database context inside the service.
-            this.context = context;
+            this.userRepo = userRepo;
+            this.issueRepo = issueRepo;
         }
 
         // --------------------------------------------------
