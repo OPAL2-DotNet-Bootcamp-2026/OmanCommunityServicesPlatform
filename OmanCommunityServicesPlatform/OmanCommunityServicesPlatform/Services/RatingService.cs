@@ -33,7 +33,7 @@ namespace OmanCommunityServicesPlatform.Services
         // --------------------------------------------------
 
         // Returns all Rating entities from the database.
-        public List<Rating> GetAllRatings()
+        public List<ResponseRatingDto> GetAllRatings()
         {
             // Get all Rating entities from RatingRepo.
             List<Rating> ratings = ratingRepo.GetAll();
@@ -106,7 +106,7 @@ namespace OmanCommunityServicesPlatform.Services
             //
             // RatingRepo cannot do this check because
             // no Rating record exists yet.
-            Issue? issue = IssueRepo.GetById(dto.issueId);
+            Issue? issue = issueRepo.GetById(dto.issueId);
 
             // Return null when the Issue does not exist.
             if (issue == null)
