@@ -89,10 +89,9 @@ namespace OmanCommunityServicesPlatform.Services
             response.categoryName = category.categoryName;
             response.description = category.description;
             response.departmentId = category.departmentId;
-
-            if (category.departmentId != null)
-                response.departmentName = category.department.departmentName;
+            response.departmentName = category.department.departmentName;
             response.issueCount = category.Issues.Count;
+            
             return response;
         }
 
