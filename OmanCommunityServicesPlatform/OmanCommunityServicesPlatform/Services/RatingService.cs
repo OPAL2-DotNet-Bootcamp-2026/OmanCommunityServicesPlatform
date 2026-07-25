@@ -52,7 +52,17 @@ namespace OmanCommunityServicesPlatform.Services
         // Returns null when the rating does not exist.
         public Rating? GetRatingById(int ratingId)
         {
-            return ratingRepo.GetById(ratingId);
+            // Ask RatingRepo to find the Rating.
+            Rating? rating = ratingRepo.GetById(ratingId);
+
+            // The Rating does not exist.
+            if (rating == null)
+            {
+                return null;
+            }
+
+            // Convert the Rating entity into RatingDto.
+            return MapToDto(rating);
         }
 
         // --------------------------------------------------
