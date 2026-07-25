@@ -49,11 +49,22 @@ namespace OmanCommunityServicesPlatform.Services
         // --------------------------------------------------
         // GET NOTIFICATION BY ID
         // --------------------------------------------------
-        public Notification? GetNotificationById(
+        public NotificationResponseDto? GetNotificationById(
             int notificationId
         )
         {
-            return notificationRepo.GetById(notificationId);
+            // Find the Notification entity.
+            Notification? notification =
+                notificationRepo.GetById(notificationId);
+
+            // Notification was not found.
+            if (notification == null)
+            {
+                return null;
+            }
+
+            // Return a DTO instead of the raw entity.
+            return MapToDto(notification);
         }
 
         // --------------------------------------------------
