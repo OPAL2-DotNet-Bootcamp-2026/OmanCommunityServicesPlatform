@@ -17,14 +17,14 @@ namespace OmanCommunityServicesPlatform.Services
             userRepo = _userRepo;
         }
         // Create attachment
-        public AttachmentResponseDto? Create(CreateAttachmentDto dto)
+        public AttachmentResponseDto? Create(CreateAttachmentDto dto , int uploadedById)
         {
             Issue? issue = issueRepo.GetById(dto.issueId);
 
             if (issue == null)
                 return null;
 
-            User? user = userRepo.GetById(dto.uploadedById);
+            User? user = userRepo.GetById(uploadedById);
 
             if (user == null)
                 return null;
@@ -35,7 +35,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             Attachment attachment = new Attachment();
             attachment.issueId = dto.issueId;
-            attachment.uploadedById = dto.uploadedById;
+            attachment.uploadedById = uploadedById;
             attachment.fileUrl = dto.fileUrl;
             attachment.fileType = dto.fileType;
             attachment.uploadedAt = DateTime.UtcNow;
