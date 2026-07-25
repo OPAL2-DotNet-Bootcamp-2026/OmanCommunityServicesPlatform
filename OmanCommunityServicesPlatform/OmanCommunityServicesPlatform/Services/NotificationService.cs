@@ -99,23 +99,24 @@ namespace OmanCommunityServicesPlatform.Services
         //
         // Calls:
         // NotificationRepo.GetUnreadByUserId()
-        public List<Notification> GetUnreadNotificationsByUserId(
+        public List<NotificationResponseDto>? GetUnreadNotificationsByUserId(
             int userId
         )
         {
-            // Check whether the user exists.
-            bool userExists = context.Users.Any(user =>
-                user.userId == userId
-            );
-
-            if (!userExists)
+            // Check whether the User exists.
+            if (!userRepo.Exists(userId))
             {
-                throw new KeyNotFoundException(
-                    "User was not found."
-                );
+                return null;
             }
 
-            return notificationRepo.GetUnreadByUserId(userId);
+            // Get unread Notification entities.
+            List<Notification> notifications =
+                notificationRepo.GetUnreadByUserId(userId);
+
+            // Convert all entities into DTOs.
+            return notifications
+                .Select(notification => MapToDto(notification))
+                .ToList();
         }
 
         / --------------------------------------------------
