@@ -23,7 +23,7 @@ namespace OmanCommunityServicesPlatform.Services
         public IssueResponseDto? Create(CreateIssueDto dto, int reportedById)
         {
             // Validate user-chosen references before touching the entity
-            Category? category = categoryRepo.GetById(dto.categoryId);
+            Category? category = categoryRepo.GetCategoryById(dto.categoryId);
             if (category == null)
                 return null;
             Region? region = regionRepo.GetById(dto.regionId);
