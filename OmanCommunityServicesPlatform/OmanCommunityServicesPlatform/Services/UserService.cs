@@ -193,7 +193,7 @@ namespace OmanCommunityServicesPlatform.Services
         }
 
         // Authorization Level must be Admin
-        public bool DeactivateUser(int userId)
+        public bool DeactivateUser(int userId, int requestingAdminId)
         {
             User user = userRepo.GetById(userId);
 
@@ -202,8 +202,13 @@ namespace OmanCommunityServicesPlatform.Services
                 return false;
             }
 
-            user.isActive = false;
+            // Prevent an Admin from deactivating their own account
+            if (userId == requestingAdminId)
+            {
+                return false;
+            }
 
+            user.isActive = false;
             userRepo.Update();
 
             return true;
