@@ -44,5 +44,18 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(result);
         }
+
+        [HttpPut("UpdateProfile/{id}")]
+        public IActionResult UpdateProfile(int id, UpdateProfileDto dto)
+        {
+            UpdateProfileDto updated = userService.UpdateUserProfile(id, dto);
+
+            if (updated == null)
+            {
+                return NotFound(new { message = $"User with ID {id} was not found." });
+            }
+
+            return Ok(updated);
+        }
     }
 }
