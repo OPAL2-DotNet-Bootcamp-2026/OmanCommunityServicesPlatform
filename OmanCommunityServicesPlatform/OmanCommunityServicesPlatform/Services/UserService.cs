@@ -11,12 +11,14 @@ namespace OmanCommunityServicesPlatform.Services
         private UserRepo userRepo;
         private DepartmentRepo departmentRepo;
         private RegionRepo regionRepo;
+        private AuthService authService;
 
-        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo)
+        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo, AuthService _authService)
         {
             userRepo = _repo;
             departmentRepo = _departmentRepo;
             regionRepo = _regionRepo;
+            authService = _authService;
         }
 
         public UserSummaryDto RegisterUser(RegisterUserDto dto)
@@ -47,7 +49,7 @@ namespace OmanCommunityServicesPlatform.Services
             return Response(newUser);
         }
 
-        public UserSummaryDto LoginUser(LoginDto dto)
+        public string LoginUser(LoginDto dto)
         {
             User user = userRepo.GetByEmail(dto.email);
             
@@ -68,7 +70,7 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            return Response(user);
+            return authService.GenerateToken(user);
         }
 
         public UpdateProfileDto UpdateUserProfile(int id, UpdateProfileDto dto)
