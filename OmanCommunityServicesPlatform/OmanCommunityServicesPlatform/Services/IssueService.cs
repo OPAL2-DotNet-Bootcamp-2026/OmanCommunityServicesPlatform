@@ -161,9 +161,10 @@ namespace OmanCommunityServicesPlatform.Services
 
             return response;
         }
-        public List<IssueResponseDto> GetByReportedById(int reportedId)
+         // Get issues by reported user ID
+        public List<IssueResponseDto> GetByReportedById(int reportedById)
         {
-            List<Issue> issues = issueRepo.GetByReportedById(reportedId);
+            List<Issue> issues = issueRepo.GetByReportedById(reportedById);
             List<IssueResponseDto> response = new List<IssueResponseDto>();
 
             foreach (Issue issue in issues)
