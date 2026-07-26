@@ -21,7 +21,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         // Citizen reports a new issue
         [HttpPost("CreateIssue")]
         [Authorize(Roles = "Citizen")]
-        public IActionResult create([FromRoute] int reportedById, [FromBody] CreateIssueDto dto)
+        public IActionResult CreateIssue([FromRoute] int reportedById, [FromBody] CreateIssueDto dto)
         {
             IssueResponseDto created = issueService.Create(dto, reportedById);
 
