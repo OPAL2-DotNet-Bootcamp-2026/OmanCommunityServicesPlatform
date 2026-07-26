@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
 
@@ -17,6 +18,28 @@ namespace OmanCommunityServicesPlatform.Controllers
         public RatingController(RatingService ratingService)
         {
             this.ratingService = ratingService;
+        }
+        // --------------------------------------------------
+        // GET ALL RATINGS
+        // GET: /rating/GetAllRatings
+        // --------------------------------------------------
+
+        [HttpGet("GetAllRatings")]
+        public IActionResult GetAllRatings()
+        {
+            // Ask the Service to return all Ratings.
+            List<ResponseRatingDto> ratings =
+                ratingService.GetAllRatings();
+
+            // Karim's controller pattern returns NoContent
+            // when the list contains no records.
+            if (ratings.Count == 0)
+            {
+                return NoContent();
+            }
+
+            // Return HTTP 200 with the Rating DTOs.
+            return Ok(ratings);
         }
 
     }
