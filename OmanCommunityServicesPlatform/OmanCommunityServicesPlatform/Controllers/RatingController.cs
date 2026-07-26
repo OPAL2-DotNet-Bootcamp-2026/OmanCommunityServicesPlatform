@@ -42,5 +42,34 @@ namespace OmanCommunityServicesPlatform.Controllers
             return Ok(ratings);
         }
 
+        // --------------------------------------------------
+        // GET RATING BY ID
+        // GET: /rating/GetRatingById/5
+        // --------------------------------------------------
+
+        [AllowAnonymous]
+
+        [HttpGet("GetRatingById/{ratingId}")]
+        public IActionResult GetRatingById(
+            [FromRoute] int ratingId
+        )
+        {
+            // Ask the Service to find one Rating.
+            ResponseRatingDto? rating =
+                ratingService.GetRatingById(ratingId);
+
+            // Service returns null when the Rating
+            // does not exist.
+            if (rating = null)
+            {
+                return NotFound(new
+                {
+                    message = "Rating was not found."
+                });
+            }
+            // Return HTTP 200 with the Rating.
+            return Ok(rating);
+        }
     }
+    
 }
