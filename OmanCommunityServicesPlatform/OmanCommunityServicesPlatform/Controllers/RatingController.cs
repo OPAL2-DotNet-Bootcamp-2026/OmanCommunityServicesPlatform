@@ -119,6 +119,12 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The authenticated User ID was not found."
                 });
             }
+            // Ask the Service to create the Rating.
+            ResponseRatingDto? createdRating =
+                ratingService.CreateRating(
+                    dto,
+                    userId.Value
+                );
         }
     }
     
