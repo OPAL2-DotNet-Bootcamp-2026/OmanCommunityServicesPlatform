@@ -67,6 +67,20 @@ namespace OmanCommunityServicesPlatform.Controllers
             }
             return Ok(issue);
         }
-    }
+        // Admin changes the issue status
+        [HttpPut("ChangeIssueStatus/{id}")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult ChangeIssueStatus([FromRoute] int id, [FromBody] ChangeIssueStatusDto dto)
+        {
+            IssueResponseDto updated = issueService.ChangeStatus(id, dto);
+            if (updated == null)
+            {
+                return NotFound(new { message = $"Issue with ID {id} was not found." });
 
+            }
+
+            return Ok(updated);
+        }
+
+    }
 }
