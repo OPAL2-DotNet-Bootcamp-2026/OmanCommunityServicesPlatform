@@ -161,7 +161,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             return response;
         }
-         // Get issues by reported user ID
+        // Get all issues created by a specific user
         public List<IssueResponseDto> GetByReportedById(int reportedById)
         {
             List<Issue> issues = issueRepo.GetByReportedById(reportedById);
@@ -196,7 +196,8 @@ namespace OmanCommunityServicesPlatform.Services
             if (issue == null)
                 return false;
 
-            issueRepo.Delete(issue);
+            issue.currentStatus = IssueStatus.Resolved;
+            issueRepo.Update();
 
             return true;
         }
