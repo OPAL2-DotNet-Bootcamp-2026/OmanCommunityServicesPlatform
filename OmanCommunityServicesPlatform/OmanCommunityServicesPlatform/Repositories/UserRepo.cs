@@ -48,6 +48,11 @@ namespace OmanCommunityServicesPlatform.Repositories
             context.SaveChanges();
         }
 
+        public bool Exists(int id)
+        {
+            return context.Users.Any(u => u.userId == id);
+        }
+
         public bool EmailExists(string email)
         {
             return context.Users.Any(u => u.email == email);
