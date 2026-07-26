@@ -188,8 +188,8 @@ namespace OmanCommunityServicesPlatform.Services
             }
             return response;
         }
-        // Delete Issue 
-        public bool Delete(int id)
+        // Resolve Issue 
+        public bool ResolveIssue(int id)
         {
             Issue issue = issueRepo.GetById(id);
 
