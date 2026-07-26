@@ -47,7 +47,6 @@ namespace OmanCommunityServicesPlatform.Controllers
         // GET: /rating/GetRatingById/5
         // --------------------------------------------------
 
-        [AllowAnonymous]
 
         [HttpGet("GetRatingById/{ratingId}")]
         public IActionResult GetRatingById(
