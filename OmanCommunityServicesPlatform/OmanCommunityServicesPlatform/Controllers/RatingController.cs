@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
+using System.Security.Claims;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -235,6 +236,33 @@ namespace OmanCommunityServicesPlatform.Controllers
                 message = "Rating deleted successfully."
             });
         }
+
+        // --------------------------------------------------
+        // GET AUTHENTICATED USER ID
+        // --------------------------------------------------
+
+        // Reads the logged-in User ID from the JWT token.
+        private int? GetAuthenticatedUserId()
+        {
+            // Search for the standard User ID claim.
+            string? userIdValue =
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier
+                );
+
+            // Some projects store the claim using "userId".
+            if (string.IsNullOrWhiteSpace(userIdValue))
+            {
+                userIdValue =
+                    User.FindFirstValue("userId");
+            }
+            // Convert the claim value from string to integer.
+            bool converted = int.TryParse(
+                userIdValue,
+                out int userId
+            );
+        }
     }
-    
 }
+    
+
