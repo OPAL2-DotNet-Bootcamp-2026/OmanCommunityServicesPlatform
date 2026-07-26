@@ -145,6 +145,30 @@ namespace OmanCommunityServicesPlatform.Controllers
                 rating = createdRating
             });
         }
+
+        // --------------------------------------------------
+        // UPDATE RATING
+        // PUT: /rating/Update/5
+        // --------------------------------------------------
+
+        [HttpPut("Update/{ratingId}")]
+        public IActionResult UpdateRating(
+            [FromRoute] int ratingId,
+            [FromBody] UpdateRatingDTO dto
+        )
+        {
+            // Read the logged-in User ID from JWT.
+            int? userId = GetAuthenticatedUserId();
+
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+        }
     }
     
 }
