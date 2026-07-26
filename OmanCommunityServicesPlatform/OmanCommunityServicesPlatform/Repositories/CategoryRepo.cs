@@ -20,6 +20,7 @@ namespace OmanCommunityServicesPlatform.Repositories
         {
             return context.Categories.Include(c => c.department).Include(c => c.Issues).FirstOrDefault(c => c.categoryId == id);
         }
+  
         // Add new category
         public void Add(Category category)
         {

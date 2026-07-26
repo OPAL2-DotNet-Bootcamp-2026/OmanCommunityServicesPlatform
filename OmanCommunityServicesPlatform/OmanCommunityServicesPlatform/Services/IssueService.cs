@@ -23,7 +23,7 @@ namespace OmanCommunityServicesPlatform.Services
         public IssueResponseDto? Create(CreateIssueDto dto, int reportedById)
         {
             // Validate user-chosen references before touching the entity
-            Category? category = categoryRepo.GetById(dto.categoryId);
+            Category? category = categoryRepo.GetCategoryById(dto.categoryId);
             if (category == null)
                 return null;
             Region? region = regionRepo.GetById(dto.regionId);
@@ -161,15 +161,43 @@ namespace OmanCommunityServicesPlatform.Services
 
             return response;
         }
-        // Delete Issue 
-        public bool Delete(int id)
+        // Get all issues created by a specific user
+        public List<IssueResponseDto> GetByReportedById(int reportedById)
+        {
+            List<Issue> issues = issueRepo.GetByReportedById(reportedById);
+            List<IssueResponseDto> response = new List<IssueResponseDto>();
+
+            foreach (Issue issue in issues)
+            {
+                IssueResponseDto dto = new IssueResponseDto();
+
+                dto.issueId = issue.issueId;
+                dto.title = issue.title;
+                dto.description = issue.description;
+                dto.location = issue.location;
+                dto.latitude = issue.latitude;
+                dto.longitude = issue.longitude;
+                dto.priority = issue.priority;
+                dto.currentStatus = issue.currentStatus;
+                dto.reportedDate = issue.reportedDate;
+                dto.categoryName = issue.category?.categoryName;
+                dto.regionName = issue.region?.regionName;
+                dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+
+                response.Add(dto);
+            }
+            return response;
+        }
+        // Resolve Issue 
+        public bool ResolveIssue(int id)
         {
             Issue issue = issueRepo.GetById(id);
 
             if (issue == null)
                 return false;
 
-            issueRepo.Delete(issue);
+            issue.currentStatus = IssueStatus.Resolved;
+            issueRepo.Update();
 
             return true;
         }
