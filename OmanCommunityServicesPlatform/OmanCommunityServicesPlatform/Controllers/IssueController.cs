@@ -81,6 +81,18 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(updated);
         }
+        // Admin marks the issue as resolved
+        [HttpPut("ResolveIssue/{id}")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult ResolveIssue([FromRoute] int id)
+        {
+            bool resolved = issueService.ResolveIssue(id);
 
+            if (!resolved)
+            {
+                return NotFound(new { message = $"Issue with ID {id} was not found." });
+            }
+            return Ok(new { message = "Issue resolved successfully." });
+        }
     }
 }
