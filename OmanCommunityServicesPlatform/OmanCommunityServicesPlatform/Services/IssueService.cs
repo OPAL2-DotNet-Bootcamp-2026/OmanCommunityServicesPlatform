@@ -161,6 +161,32 @@ namespace OmanCommunityServicesPlatform.Services
 
             return response;
         }
+        public List<IssueResponseDto> GetByReportedById(int reportedId)
+        {
+            List<Issue> issues = issueRepo.GetByReportedById(reportedId);
+            List<IssueResponseDto> response = new List<IssueResponseDto>();
+
+            foreach (Issue issue in issues)
+            {
+                IssueResponseDto dto = new IssueResponseDto();
+
+                dto.issueId = issue.issueId;
+                dto.title = issue.title;
+                dto.description = issue.description;
+                dto.location = issue.location;
+                dto.latitude = issue.latitude;
+                dto.longitude = issue.longitude;
+                dto.priority = issue.priority;
+                dto.currentStatus = issue.currentStatus;
+                dto.reportedDate = issue.reportedDate;
+                dto.categoryName = issue.category?.categoryName;
+                dto.regionName = issue.region?.regionName;
+                dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+
+                response.Add(dto);
+            }
+            return response;
+        }
         // Delete Issue 
         public bool Delete(int id)
         {
