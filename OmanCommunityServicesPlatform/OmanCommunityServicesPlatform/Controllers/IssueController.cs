@@ -19,7 +19,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         // POST issue/CreateIssue
         // Citizen reports a new issue
         [HttpPost("CreateIssue")]
-        [Authorize]
+        [Authorize(Roles = "Citizen")]
         public IActionResult create([FromRoute] int reportedById , [FromBody] CreateIssueDto dto)
         {
             IssueResponseDto created = issueService.Create(dto, reportedById);
@@ -31,6 +31,18 @@ namespace OmanCommunityServicesPlatform.Controllers
             return Ok(created); //200, issue created
 
         }
-        
+
+        // Citizen views all issues they reported
+        [HttpGet("GetMyIssues/{reportedById}")]
+        [Authorize(Roles = "Citizen")]
+        public IActionResult GetMyIssues([FromRoute] int reportedById)
+        {
+            List<IssueResponseDto> issues = issueService.GetByReportedById(reportedById);
+            if (issues.Count == 0)
+                return NoContent();
+            return Ok(issues);
+
+
+        }
     }
 }
