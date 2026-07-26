@@ -213,6 +213,23 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The authenticated User ID was not found."
                 });
             }
+            // The Service checks that the Rating exists
+            // and belongs to this authenticated User.
+            bool deleted = ratingService.DeleteRating(
+                ratingId,
+                userId.Value
+            );
+
+            if (!deleted)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The Rating could not be deleted. " +
+                        "It may not exist or it may belong " +
+                        "to another User."
+                });
+            }
         }
     }
     
