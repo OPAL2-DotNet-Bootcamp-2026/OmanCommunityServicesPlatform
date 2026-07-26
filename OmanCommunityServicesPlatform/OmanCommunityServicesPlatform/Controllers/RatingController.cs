@@ -176,6 +176,17 @@ namespace OmanCommunityServicesPlatform.Controllers
                 userId.Value,
                 dto
             );
+            if (!updated)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The Rating could not be updated. " +
+                        "It may not exist or it may belong " +
+                        "to another User."
+                });
+            }
+
         }
     }
     
