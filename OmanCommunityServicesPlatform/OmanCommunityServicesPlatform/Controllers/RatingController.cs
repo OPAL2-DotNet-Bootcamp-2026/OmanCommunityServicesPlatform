@@ -125,6 +125,25 @@ namespace OmanCommunityServicesPlatform.Controllers
                     dto,
                     userId.Value
                 );
+            if (createdRating = null)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The Rating could not be created. " +
+                        "The Issue may not exist, " +
+                        "may not be Resolved, " +
+                        "or you may have already rated it."
+                });
+            }
+
+            // Karim's controller examples commonly return Ok()
+            // after creating a record.
+            return Ok(new
+            {
+                message = "Rating created successfully.",
+                rating = createdRating
+            });
         }
     }
     
