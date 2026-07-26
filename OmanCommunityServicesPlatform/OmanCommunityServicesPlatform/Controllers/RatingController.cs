@@ -92,6 +92,34 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(ratings);
         }
+
+        // --------------------------------------------------
+        // CREATE RATING
+        // POST: /rating/Create
+        // --------------------------------------------------
+
+        // [Authorize] is inherited from the controller,
+        // so the User must send a valid JWT.
+        [HttpPost("Create")]
+        public IActionResult CreateRating(
+            [FromBody] CreateRatingDto dto
+        )
+        {
+            // Read the authenticated User ID
+            // from the JWT token.
+            int? userId = GetAuthenticatedUserId();
+
+            // The token is valid, but it does not contain
+            // a valid User ID claim.
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+        }
     }
     
 }
