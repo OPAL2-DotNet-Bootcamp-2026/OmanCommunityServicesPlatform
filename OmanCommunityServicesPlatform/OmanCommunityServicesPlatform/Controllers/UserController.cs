@@ -45,14 +45,27 @@ namespace OmanCommunityServicesPlatform.Controllers
             return Ok(result);
         }
 
-        [HttpPut("{id}/update-Profile")]
+        [Authorize]
+        [HttpPut("{id}/update-profile")]
         public IActionResult UpdateProfile([FromRoute] int id, [FromBody] UpdateProfileDto dto)
         {
-            UpdateProfileDto updated = userService.UpdateUserProfile(id, dto);
+            var claim = User.FindFirst("userId");
+            if (claim == null || !int.TryParse(claim.Value, out int requestingUserId))
+            {
+                return Unauthorized();
+            }
+
+            // A user can only update their own profile
+            if (id != requestingUserId)
+            {
+                return Forbid();
+            }
+
+            UpdateProfileDto? updated = userService.UpdateUserProfile(id, dto);
 
             if (updated == null)
             {
-                return NotFound(new { message = $"User with ID {id} was not found."});
+                return NotFound(new { message = $"User with ID {id} was not found." });
             }
 
             return Ok(updated);
@@ -67,7 +80,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (changed == null)
             {
-                return NotFound(new { message = $"User with ID {dto.userId} was not found."}); // User to change role in the DTO
+                return NotFound(new { message = $"User with ID {dto.userId} was not found." }); // User to change role in the DTO
             }
 
             return Ok(changed);
