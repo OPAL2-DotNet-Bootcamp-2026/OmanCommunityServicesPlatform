@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Services;
 
 namespace OmanCommunityServicesPlatform.Controllers
@@ -11,7 +12,7 @@ namespace OmanCommunityServicesPlatform.Controllers
     public class IssueController : ControllerBase
     {
         private IssueService issueService;
-        public IssueController(IssueService _issueService) 
+        public IssueController(IssueService _issueService)
         {
             issueService = _issueService;
         }
@@ -20,7 +21,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         // Citizen reports a new issue
         [HttpPost("CreateIssue")]
         [Authorize(Roles = "Citizen")]
-        public IActionResult create([FromRoute] int reportedById , [FromBody] CreateIssueDto dto)
+        public IActionResult create([FromRoute] int reportedById, [FromBody] CreateIssueDto dto)
         {
             IssueResponseDto created = issueService.Create(dto, reportedById);
 
@@ -40,9 +41,32 @@ namespace OmanCommunityServicesPlatform.Controllers
             List<IssueResponseDto> issues = issueService.GetByReportedById(reportedById);
             if (issues.Count == 0)
                 return NoContent();
+
             return Ok(issues);
+        }
+        // Admin views all reported issues
+        [HttpGet("GetAllIssues")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult GetAllIssues()
+        {
+            List<IssueResponseDto> issues = issueService.GetAll();
+            if (issues.Count == 0)
+                return NoContent();
 
-
+            return Ok(issues);
+        }
+        // Admin or citizen views the details of one issue
+        [HttpGet("GetIssueById/{id}")]
+        [Authorize(Roles = "Citizen,Admin")]
+        public IActionResult GetIssueById([FromRoute] int id)
+        {
+            IssueResponseDto issue = issueService.GetById(id);
+            if (issue == null)
+            {
+                return NotFound(new { Message = $"Issue with ID {id} was not found." });
+            }
+            return Ok(issue);
         }
     }
+
 }
