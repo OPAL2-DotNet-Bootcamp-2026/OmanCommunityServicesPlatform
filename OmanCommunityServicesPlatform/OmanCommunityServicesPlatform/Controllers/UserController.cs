@@ -52,10 +52,25 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (updated == null)
             {
-                return NotFound(new { message = $"User with ID {id} was not found." });
+                return NotFound(new { message = $"User with ID {id} was not found."});
             }
 
             return Ok(updated);
+        }
+
+        // Admin Use this to chnage another user role
+        [HttpPut("ChangeRole")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult ChangeRole(ChangeUserRoleDto dto)
+        {
+            UserSummaryDto changed = userService.ChangeUserRole(dto);
+
+            if (changed == null)
+            {
+                return NotFound(new { message = $"User with ID {dto.userId} was not found."}); // User to change role in the DTO
+            }
+
+            return Ok(changed);
         }
     }
 }
