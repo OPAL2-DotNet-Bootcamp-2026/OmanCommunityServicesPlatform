@@ -69,6 +69,29 @@ namespace OmanCommunityServicesPlatform.Controllers
             // Return HTTP 200 with the Rating.
             return Ok(rating);
         }
+        // --------------------------------------------------
+        // GET RATINGS BY ISSUE
+        // GET: /rating/GetRatingsByIssueId/10
+        // --------------------------------------------------
+
+        [HttpGet("GetRatingsByIssueId/{issueId}")]
+        public IActionResult GetRatingsByIssueId(
+            [FromRoute] int issueId
+        )
+        {
+            // Ask the Service to return all Ratings
+            // belonging to the selected Issue.
+            List<ResponseRatingDto> ratings =
+                ratingService.GetRatingsByIssueId(issueId);
+
+            // No Ratings were found for the Issue.
+            if (ratings.Count == 0)
+            {
+                return NoContent();
+            }
+
+            return Ok(ratings);
+        }
     }
     
 }
