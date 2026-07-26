@@ -30,7 +30,7 @@ namespace OmanCommunityServicesPlatform.Repositories
                 .FirstOrDefault(i => i.issueId == issueId);
                
         }
-        // Get issues by reported user ID
+        //  Get all issues created by a specific user
         public List<Issue> GetByReportedById(int reportedById)
         {
             return context.Issues
