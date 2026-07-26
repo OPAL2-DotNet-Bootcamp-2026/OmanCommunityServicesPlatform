@@ -45,7 +45,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             return Ok(result);
         }
 
-        [HttpPut("{id}/UpdateProfile")]
+        [HttpPut("{id}/update-Profile")]
         public IActionResult UpdateProfile([FromRoute] int id, [FromBody] UpdateProfileDto dto)
         {
             UpdateProfileDto updated = userService.UpdateUserProfile(id, dto);
@@ -59,7 +59,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         }
 
         // Admin Use this to change another user role
-        [HttpPut("ChangeRole")]
+        [HttpPut("change-role")]
         [Authorize(Roles = "Admin")]
         public IActionResult ChangeRole([FromBody] ChangeUserRoleDto dto)
         {
@@ -71,6 +71,21 @@ namespace OmanCommunityServicesPlatform.Controllers
             }
 
             return Ok(changed);
+        }
+
+        // Admin uses this to assign a Staff/Admin user to a department
+        [HttpPatch("assign-department")]
+        [Authorize(Roles = "Admin")]
+        public IActionResult AssignDepartment([FromBody] AssignDepartmentDto dto)
+        {
+            AssignDepartmentResponseDto response = userService.AssignDepartment(dto);
+
+            if (response == null)
+            {
+                return BadRequest(new { message = "Unable to assign department. Check that the user exists, the department exists, and the user is Staff or Admin." });
+            }
+
+            return Ok(response);
         }
 
         // Admin use only — deactivates another user's account
