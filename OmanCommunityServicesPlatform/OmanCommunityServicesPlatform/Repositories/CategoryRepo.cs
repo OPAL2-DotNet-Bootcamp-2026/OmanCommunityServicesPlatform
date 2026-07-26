@@ -20,15 +20,7 @@ namespace OmanCommunityServicesPlatform.Repositories
         {
             return context.Categories.Include(c => c.department).Include(c => c.Issues).FirstOrDefault(c => c.categoryId == id);
         }
-        public List<Issue> GetByReportedById(int reportedById)
-        {
-            return context.Issues
-                .Include(i => i.category)
-                .Include(i => i.region)
-                .Include(i => i.assignedDepartment)
-                .Where(i => i.reportedById == reportedById)
-                .ToList();
-        }
+  
         // Add new category
         public void Add(Category category)
         {
