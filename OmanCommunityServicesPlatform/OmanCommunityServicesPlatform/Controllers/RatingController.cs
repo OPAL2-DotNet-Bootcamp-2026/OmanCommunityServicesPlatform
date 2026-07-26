@@ -168,6 +168,14 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The authenticated User ID was not found."
                 });
             }
+            // The Service checks:
+            // 1. Whether the Rating exists.
+            // 2. Whether it belongs to this User.
+            bool updated = ratingService.UpdateRating(
+                ratingId,
+                userId.Value,
+                dto
+            );
         }
     }
     
