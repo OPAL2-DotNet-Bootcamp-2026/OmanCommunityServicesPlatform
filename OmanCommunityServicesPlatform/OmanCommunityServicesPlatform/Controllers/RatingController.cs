@@ -192,6 +192,28 @@ namespace OmanCommunityServicesPlatform.Controllers
             });
 
         }
+        // --------------------------------------------------
+        // DELETE RATING
+        // DELETE: /rating/Delete/5
+        // --------------------------------------------------
+
+        [HttpDelete("Delete/{ratingId}")]
+        public IActionResult DeleteRating(
+            [FromRoute] int ratingId
+        )
+        {
+            // Read the logged-in User ID from JWT.
+            int? userId = GetAuthenticatedUserId();
+
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+        }
     }
     
 }
