@@ -39,7 +39,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (result == null)
             {
-                return Unauthorized();
+                return Unauthorized(new { message = "Invalid email or password." });
             }
 
             return Ok(result);
