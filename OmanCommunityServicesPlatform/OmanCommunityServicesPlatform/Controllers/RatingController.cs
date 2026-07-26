@@ -186,6 +186,10 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "to another User."
                 });
             }
+            return Ok(new
+            {
+                message = "Rating updated successfully."
+            });
 
         }
     }
