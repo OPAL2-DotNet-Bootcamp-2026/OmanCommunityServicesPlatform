@@ -21,9 +21,27 @@ namespace OmanCommunityServicesPlatform
 
             // Repositories
             builder.Services.AddScoped<UserRepo>();
+            builder.Services.AddScoped<AttachmentRepo>();
+            builder.Services.AddScoped<CategoryRepo>();
+            builder.Services.AddScoped<DepartmentRepo>();
+            builder.Services.AddScoped<IssueRepo>();
+            builder.Services.AddScoped<NotificationRepo>();
+            builder.Services.AddScoped<RatingRepo>();
+            builder.Services.AddScoped<RegionRepo>();
+            builder.Services.AddScoped<StatusUpdateRepo>();
+            //builder.Services.AddScoped<CommentRepo>();
 
             // Services
             builder.Services.AddScoped<UserService>();
+            builder.Services.AddScoped<AttachmentService>();
+            builder.Services.AddScoped<CategoryService>();
+            builder.Services.AddScoped<DepartmentService>();
+            builder.Services.AddScoped<IssueService>();
+            builder.Services.AddScoped<NotificationService>();
+            builder.Services.AddScoped<RatingService>();
+            builder.Services.AddScoped<RegionService>();
+            builder.Services.AddScoped<StatusUpdateService>();
+            //builder.Services.AddScoped<CommentService>();
 
             // Register AuthService 
             builder.Services.AddScoped<AuthService>();
