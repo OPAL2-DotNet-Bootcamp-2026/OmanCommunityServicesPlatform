@@ -105,7 +105,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         public UserRole role { get; set; }
     }
 
-    public class UserLoginDto
+    public class LoginResponseDto
     {
         public string Token { get; set; }
         public int userId { get; set; }
