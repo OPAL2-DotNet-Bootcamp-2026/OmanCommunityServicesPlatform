@@ -31,6 +31,18 @@ namespace OmanCommunityServicesPlatform.Controllers
             return Ok(created);
         }
 
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] LoginDto dto)
+        {
+            LoginResponseDto result = userService.LoginUser(dto);
 
+            if (result == null)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(result);
+        }
     }
 }
