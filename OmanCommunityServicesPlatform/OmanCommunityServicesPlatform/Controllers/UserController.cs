@@ -46,7 +46,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         }
 
         [Authorize]
-        [HttpPut("{id}/update-profile")]
+        [HttpPatch("{id}/update-profile")]
         public IActionResult UpdateProfile([FromRoute] int id, [FromBody] UpdateProfileDto dto)
         {
             var claim = User.FindFirst("userId");
@@ -72,7 +72,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         }
 
         // Admin Use this to change another user role
-        [HttpPut("change-role")]
+        [HttpPatch("change-role")]
         [Authorize(Roles = "Admin")]
         public IActionResult ChangeRole([FromBody] ChangeUserRoleDto dto)
         {
@@ -102,11 +102,11 @@ namespace OmanCommunityServicesPlatform.Controllers
         }
 
         // Admin use only — deactivates another user's account
-        [HttpPatch("deactivate")]
+        [HttpPatch("{userId}/deactivate")]
         [Authorize(Roles = "Admin")]
-        public IActionResult Deactivate([FromBody] int userId)
+        public IActionResult Deactivate([FromRoute] int userId)
         {
-            // Get admin ID from the token to make sure does not deactivate himself
+            // Extract the calling Admin's ID so the Service can prevent self-deactivation
             var claim = User.FindFirst("userId");
             if (claim == null || !int.TryParse(claim.Value, out int requestingAdminId))
             {
