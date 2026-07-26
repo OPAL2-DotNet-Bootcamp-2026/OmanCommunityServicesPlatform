@@ -8,7 +8,9 @@ namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
     [Route("rating")]
-
+    // All endpoints require authentication by default.
+    // Public endpoints are marked with [AllowAnonymous].
+    [Authorize]
     public class RatingController : ControllerBase
     {
         // Service used for Rating business logic.
@@ -25,6 +27,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         // GET: /rating/GetAllRatings
         // --------------------------------------------------
 
+        // Anyone can view all Ratings without logging in.
+        [AllowAnonymous]
         [HttpGet("GetAllRatings")]
         public IActionResult GetAllRatings()
         {
@@ -48,7 +52,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         // GET: /rating/GetRatingById/5
         // --------------------------------------------------
 
-
+        // Anyone can view one Rating without logging in.
+        [AllowAnonymous]
         [HttpGet("GetRatingById/{ratingId}")]
         public IActionResult GetRatingById(
             [FromRoute] int ratingId
@@ -60,7 +65,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             // Service returns null when the Rating
             // does not exist.
-            if (rating = null)
+            if (rating == null)
             {
                 return NotFound(new
                 {
@@ -75,6 +80,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         // GET: /rating/GetRatingsByIssueId/10
         // --------------------------------------------------
 
+        // Anyone can view Ratings for an Issue.
+        [AllowAnonymous]
         [HttpGet("GetRatingsByIssueId/{issueId}")]
         public IActionResult GetRatingsByIssueId(
             [FromRoute] int issueId
@@ -126,7 +133,7 @@ namespace OmanCommunityServicesPlatform.Controllers
                     dto,
                     userId.Value
                 );
-            if (createdRating = null)
+            if (createdRating == null)
             {
                 return BadRequest(new
                 {
