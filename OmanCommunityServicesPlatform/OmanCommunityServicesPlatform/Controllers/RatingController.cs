@@ -248,28 +248,24 @@ namespace OmanCommunityServicesPlatform.Controllers
         // GET AUTHENTICATED USER ID
         // --------------------------------------------------
 
-        // Reads the logged-in User ID from the JWT token.
+        /// Reads the "userId" claim from the JWT token.
+        //
+        // AuthService.GenerateToken() stores the ID using:
+        // new Claim("userId", ...)
         private int? GetAuthenticatedUserId()
         {
-            // Search for the standard User ID claim.
+            // JWT claim values are stored as strings.
             string? userIdValue =
-                User.FindFirstValue(
-                    ClaimTypes.NameIdentifier
-                );
+                User.FindFirstValue("userId");
 
-            // Some projects store the claim using "userId".
-            if (string.IsNullOrWhiteSpace(userIdValue))
-            {
-                userIdValue =
-                    User.FindFirstValue("userId");
-            }
-            // Convert the claim value from string to integer.
+            // Convert the claim value from string to int.
             bool converted = int.TryParse(
                 userIdValue,
                 out int userId
             );
-            // The claim is missing or does not contain
-            // a valid integer.
+
+            // Return null when the claim is missing
+            // or does not contain a valid integer.
             if (!converted)
             {
                 return null;
