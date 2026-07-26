@@ -5,7 +5,8 @@ using OmanCommunityServicesPlatform.Services;
 namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
-    [Route("api/rating")]
+    [Route("rating")]
+
     public class RatingController : ControllerBase
     {
         // Service used for Rating business logic.
@@ -13,7 +14,6 @@ namespace OmanCommunityServicesPlatform.Controllers
 
 
         // Constructor Dependency Injection.
-        // ASP.NET Core provides RatingService automatically.
         public RatingController(RatingService ratingService)
         {
             this.ratingService = ratingService;
