@@ -63,7 +63,7 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            bool validPassword = Argon2.Verify(dto.password, user.passwordHash);
+            bool validPassword = Argon2.Verify(user.passwordHash, dto.password);
 
             if (!validPassword)
             {
