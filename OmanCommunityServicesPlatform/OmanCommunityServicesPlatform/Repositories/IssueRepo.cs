@@ -42,6 +42,13 @@ namespace OmanCommunityServicesPlatform.Repositories
         {
             context.SaveChanges();
         }
+
+        // Check Issue Exists
+        public bool Exists(int id)
+        {
+            return context.Issues.Any(i => i.issueId == id);
+        }
+
         // Delete issue
         public void Delete(Issue issue)
         {
