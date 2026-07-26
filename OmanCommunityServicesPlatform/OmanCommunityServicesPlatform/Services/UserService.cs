@@ -49,7 +49,7 @@ namespace OmanCommunityServicesPlatform.Services
             return Response(newUser);
         }
 
-        public string LoginUser(LoginDto dto)
+        public UserLoginDto LoginUser(LoginDto dto)
         {
             User user = userRepo.GetByEmail(dto.email);
             
@@ -70,7 +70,15 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            return authService.GenerateToken(user);
+            string token = authService.GenerateToken(user);
+
+            UserLoginDto response = new UserLoginDto();
+            response.Token = token;
+            response.userId = user.userId;
+            response.name = user.fullName;
+            response.role = user.role;
+
+            return response;
         }
 
         public UpdateProfileDto UpdateUserProfile(int id, UpdateProfileDto dto)
