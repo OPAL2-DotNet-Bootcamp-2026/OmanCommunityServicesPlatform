@@ -261,6 +261,14 @@ namespace OmanCommunityServicesPlatform.Controllers
                 userIdValue,
                 out int userId
             );
+            // The claim is missing or does not contain
+            // a valid integer.
+            if (!converted)
+            {
+                return null;
+            }
+
+            return userId;
         }
     }
 }
