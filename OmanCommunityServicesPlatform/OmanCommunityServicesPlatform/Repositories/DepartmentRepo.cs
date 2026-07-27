@@ -1,4 +1,5 @@
-﻿using OmanCommunityServicesPlatform.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using OmanCommunityServicesPlatform.Models;
 
 namespace OmanCommunityServicesPlatform.Repositories
 {
@@ -11,11 +12,11 @@ namespace OmanCommunityServicesPlatform.Repositories
         }
         public List<Department> GetAllDepartments()
         {
-            return context.Departments.ToList();
+            return context.Departments.Include(d => d.Categories).Include(d => d.Issues).Include(d => d.Users).ToList();
         }
         public Department GetDepartmentById(int id)
         {
-            return context.Departments.FirstOrDefault(d => d.departmentId == id);
+            return context.Departments.Include(d => d.Categories).Include(d => d.Issues).Include(d => d.Users).Include(d => d.region).FirstOrDefault(d => d.departmentId == id);
         }
         public void Add(Department department)
         {

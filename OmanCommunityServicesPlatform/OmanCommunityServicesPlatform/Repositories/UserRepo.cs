@@ -1,4 +1,5 @@
-﻿using OmanCommunityServicesPlatform.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using OmanCommunityServicesPlatform.Models;
 
 namespace OmanCommunityServicesPlatform.Repositories
 {
@@ -45,6 +46,11 @@ namespace OmanCommunityServicesPlatform.Repositories
         public void Update()
         {
             context.SaveChanges();
+        }
+
+        public bool Exists(int id)
+        {
+            return context.Users.Any(u => u.userId == id);
         }
 
         public bool EmailExists(string email)
