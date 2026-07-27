@@ -28,16 +28,28 @@ namespace OmanCommunityServicesPlatform.Controllers
                 return Unauthorized();
             }
 
-            AttachmentResponseDto? created =
-                attachmentService.Create(dto, uploadedById);
+            AttachmentResponseDto? created = attachmentService.Create(dto, uploadedById);
 
             if (created == null)
             {
-                return NotFound(new
-                {
-                    message = $"Issue with ID {dto.issueId} was not found."
-                });
+                return NotFound(new {message = $"Issue with ID {dto.issueId} was not found." });
             }
+            return Ok(created);
+        }
+
+        // Get attachment by ID
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Citizen,Staff,Admin")]
+        public IActionResult GetById(int id)
+        {
+            AttachmentResponseDto? attachment = attachmentService.GetById(id);
+
+            if (attachment == null)
+            {
+                return NotFound(new { message = $"Attachment with ID {id} was not found." });
+            }
+
+            return Ok(attachment);
         }
     }
 
