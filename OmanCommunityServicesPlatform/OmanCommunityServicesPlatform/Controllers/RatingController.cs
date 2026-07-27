@@ -29,7 +29,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // Anyone can view all Ratings without logging in.
         [AllowAnonymous]
-        [HttpGet("GetAllRatings")]
+        [HttpGet("GetAll")]
         public IActionResult GetAllRatings()
         {
             // Ask the Service to return all Ratings.
@@ -54,7 +54,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // Anyone can view one Rating without logging in.
         [AllowAnonymous]
-        [HttpGet("GetRatingById/{ratingId}")]
+        [HttpGet("GetById/{ratingId}")]
         public IActionResult GetRatingById(
             [FromRoute] int ratingId
         )
@@ -82,7 +82,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // Anyone can view Ratings for an Issue.
         [AllowAnonymous]
-        [HttpGet("GetRatingsByIssueId/{issueId}")]
+        [HttpGet("GetByIssueId/{issueId}")]
         public IActionResult GetRatingsByIssueId(
             [FromRoute] int issueId
         )
