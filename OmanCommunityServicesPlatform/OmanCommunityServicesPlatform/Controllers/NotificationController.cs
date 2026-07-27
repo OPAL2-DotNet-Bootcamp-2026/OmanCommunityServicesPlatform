@@ -189,7 +189,29 @@ namespace OmanCommunityServicesPlatform.Controllers
             return Ok(notifications);
         }
 
-    }
+        // --------------------------------------------------
+        // CREATE NOTIFICATION
+        // POST: /notification/user/5
+        // --------------------------------------------------
+
+        // Normally Notifications are created by the system
+        // or an Admin, not manually by a Citizen.
+        [Authorize(Roles = "Admin")]
+        [HttpPost("user/{userId}")]
+        public IActionResult CreateNotification(
+            [FromRoute] int userId,
+            [FromBody] CreateNotificationDTO dto
+        )
+        {
+            // Ask the Service to create a Notification
+            // for the User specified in the route.
+            NotificationResponseDto? createdNotification =
+                notificationService.CreateNotification(
+                    dto,
+                    userId
+                );
+
+        }
 }
 
     
