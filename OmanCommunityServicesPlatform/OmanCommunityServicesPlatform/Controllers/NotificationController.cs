@@ -253,6 +253,25 @@ namespace OmanCommunityServicesPlatform.Controllers
                     notificationId,
                     dto
                 );
+            // False means:
+            // 1. The Notification does not exist.
+            // 2. The update would create a duplicate.
+            if (!updated)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The Notification could not be updated. " +
+                        "It may not exist, or another identical " +
+                        "Notification may already exist."
+                });
+            }
+
+            return Ok(new
+            {
+                message =
+                    "Notification updated successfully."
+            });
         }
     }
 
