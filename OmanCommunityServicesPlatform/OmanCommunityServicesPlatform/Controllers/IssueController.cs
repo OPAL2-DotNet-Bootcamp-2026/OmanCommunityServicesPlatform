@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Services;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -21,10 +22,16 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // POST issue/CreateIssue
         // Citizen reports a new issue
-        [HttpPost("CreateIssue/{reportedById}")]
+        [HttpPost("CreateIssue")]
         [Authorize(Roles = "Citizen")]
-        public IActionResult CreateIssue([FromRoute] int reportedById, [FromBody] CreateIssueDto dto)
+        public IActionResult CreateIssue([FromBody] CreateIssueDto dto)
         {
+            var claim = User.FindFirst("userId");
+
+            if (claim == null || !int.TryParse(claim.Value, out int reportedById))
+            {
+                return Unauthorized();
+            }
             IssueResponseDto created = issueService.Create(dto, reportedById);
 
             if (created == null)
@@ -36,16 +43,27 @@ namespace OmanCommunityServicesPlatform.Controllers
         }
 
         // Citizen views all issues they reported
-        [HttpGet("GetMyIssues/{reportedById}")]
+        [HttpGet("GetMyIssues")]
         [Authorize(Roles = "Citizen")]
-        public IActionResult GetMyIssues([FromRoute] int reportedById)
+        public IActionResult GetMyIssues()
         {
+            // Get the logged-in citizen ID from the token
+            var claim = User.FindFirst("userId");
+
+            if (claim == null || !int.TryParse(claim.Value, out int reportedById))
+            {
+                return Unauthorized();
+            }
             List<IssueResponseDto> issues = issueService.GetByReportedById(reportedById);
             if (issues.Count == 0)
+            {
                 return NoContent();
 
+            }
+            
             return Ok(issues);
         }
+
         // Admin and Staff views all reported issues
         [HttpGet("GetAllIssues")]
         [Authorize(Roles = "Admin,Staff")]
@@ -62,7 +80,25 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Citizen,Admin,Staff")]
         public IActionResult GetIssueById([FromRoute] int id)
         {
-            IssueResponseDto issue = issueService.GetById(id);
+            IssueResponseDto? issue;
+
+            // If the logged-in user is a Citizen,
+            // only allow them to view their own issues.
+            if (User.IsInRole("Citizen"))
+            {
+                var claim = User.FindFirst("userId");
+
+                if (claim == null || !int.TryParse(claim.Value, out int reportedById))
+                {
+                    return Unauthorized();
+                }
+                issue = issueService.GetMyIssueById(id, reportedById);
+            }
+            else {
+                // Admin and Staff can view any issue.
+                issue = issueService.GetById(id);
+            }
+
             if (issue == null)
             {
                 return NotFound(new { Message = $"Issue with ID {id} was not found." });
@@ -76,8 +112,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             var claim = User.FindFirst("userId");
 
-            if (claim == null ||
-                !int.TryParse(claim.Value, out int userId))
+            if (claim == null || !int.TryParse(claim.Value, out int userId))
             {
                 return Unauthorized();
             }
@@ -88,10 +123,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (result == null)
             {
-                return NotFound(new
-                {
-                    message = $"Issue with ID {id} was not found."
-                });
+                return NotFound(new { message = $"Issue with ID {id} was not found." });
             }
 
             return Ok(result);

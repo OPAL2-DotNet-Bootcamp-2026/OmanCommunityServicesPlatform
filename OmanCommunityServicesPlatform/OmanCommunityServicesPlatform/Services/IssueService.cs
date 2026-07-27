@@ -10,7 +10,7 @@ namespace OmanCommunityServicesPlatform.Services
         private IssueRepo issueRepo;
         private CategoryRepo categoryRepo;
         private RegionRepo regionRepo;
-        //private StatusUpdateRepo statusUpdateRepo;
+        private StatusUpdateRepo statusUpdateRepo;
         public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, StatusUpdateRepo _statusUpdateRepo, RegionRepo _regionRepo)
         {
             issueRepo = _issueRepo;
@@ -121,6 +121,35 @@ namespace OmanCommunityServicesPlatform.Services
             response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
             return response;
         }
+        // Citizen gets only an issue that belongs to them
+        public IssueResponseDto? GetMyIssueById(int issueId, int reportedById)
+        {
+            Issue? issue = issueRepo.GetById(issueId);
+
+            if (issue == null)
+                return null;
+
+            // The citizen can only view their own issue
+            if (issue.reportedById != reportedById)
+                return null;
+
+            IssueResponseDto response = new IssueResponseDto();
+
+            response.issueId = issue.issueId;
+            response.title = issue.title;
+            response.description = issue.description;
+            response.location = issue.location;
+            response.latitude = issue.latitude;
+            response.longitude = issue.longitude;
+            response.priority = issue.priority;
+            response.currentStatus = issue.currentStatus;
+            response.reportedDate = issue.reportedDate;
+            response.categoryName = issue.category?.categoryName;
+            response.regionName = issue.region?.regionName;
+            response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+
+            return response;
+        }
         //  Change Issue Status
         //public IssueResponseDto ChangeStatus(int id, ChangeIssueStatusDto dto)
         //{
@@ -188,6 +217,7 @@ namespace OmanCommunityServicesPlatform.Services
             }
             return response;
         }
+
         // Resolve Issue 
         //public bool ResolveIssue(int id)
         //{
