@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
 
 namespace OmanCommunityServicesPlatform.Controllers
@@ -21,6 +22,34 @@ namespace OmanCommunityServicesPlatform.Controllers
         )
         {
             this.notificationService = notificationService;
+        }
+    
+
+
+        // --------------------------------------------------
+        // GET ALL NOTIFICATIONS
+        // GET: /notification
+        // --------------------------------------------------
+
+        // Only an Admin should be able to view
+        // every User's Notifications.
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult GetAllNotifications()
+        {
+            // Ask the Service to return all Notifications
+            // as NotificationResponseDto objects.
+            List<NotificationResponseDto> notifications =
+                notificationService.GetAllNotifications();
+
+            // Return 204 when no Notifications exist.
+            if (notifications.Count == 0)
+            {
+                return NoContent();
+            }
+
+            // Return 200 with the Notifications.
+            return Ok(notifications);
         }
     }
 }
