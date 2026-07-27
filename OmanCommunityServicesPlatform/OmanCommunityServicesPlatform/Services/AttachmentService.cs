@@ -94,11 +94,15 @@ namespace OmanCommunityServicesPlatform.Services
 
         }
         // Update attachment
-        public AttachmentResponseDto? Update(int id, UpdateAttachmentDto dto)
+        public AttachmentResponseDto? Update(int id, UpdateAttachmentDto dto, int uploadedById)
         {
             Attachment? attachment = attachmentRepo.GetById(id);
 
             if (attachment == null)
+                return null;
+
+            // Ensure the logged-in Citizen owns this attachment
+            if (attachment.uploadedById != uploadedById)
                 return null;
 
             if (attachment.fileUrl != dto.fileUrl)
@@ -126,12 +130,17 @@ namespace OmanCommunityServicesPlatform.Services
             return response;
         }
 
-        public bool Delete(int id)
+        public bool Delete(int id, int uploadedById, string role)
         {
             Attachment? attachment = attachmentRepo.GetById(id);
 
             if (attachment == null)
                 return false;
+            // Admin can delete any attachment.
+            // Citizen can delete only their own attachment.
+            if (role != "Admin" && attachment.uploadedById != uploadedById)
+                return false;
+            
 
             attachmentRepo.Delete(attachment);
 
