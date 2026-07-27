@@ -220,6 +220,16 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "or an identical Notification may already exist."
                 });
             }
+            // Return 201 Created with the created Notification.
+            return CreatedAtAction(
+                nameof(GetNotificationById),
+                new
+                {
+                    notificationId =
+                        createdNotification.notificationId
+                },
+                createdNotification
+            );
 
         }
     }
