@@ -29,7 +29,7 @@ namespace OmanCommunityServicesPlatform
             builder.Services.AddScoped<RatingRepo>();
             builder.Services.AddScoped<RegionRepo>();
             builder.Services.AddScoped<StatusUpdateRepo>();
-            //builder.Services.AddScoped<CommentRepo>();
+            builder.Services.AddScoped<CommentRepo>();
 
             // Services
             builder.Services.AddScoped<UserService>();
@@ -41,7 +41,7 @@ namespace OmanCommunityServicesPlatform
             builder.Services.AddScoped<RatingService>();
             builder.Services.AddScoped<RegionService>();
             builder.Services.AddScoped<StatusUpdateService>();
-            //builder.Services.AddScoped<CommentService>();
+            builder.Services.AddScoped<CommentService>();
 
             // Register AuthService 
             builder.Services.AddScoped<AuthService>();
