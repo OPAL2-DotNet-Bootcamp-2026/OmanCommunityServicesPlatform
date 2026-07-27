@@ -17,9 +17,9 @@ namespace OmanCommunityServicesPlatform.Controllers
             commentService = _commentService;
         }
 
-        // Any authenticated user (Citizen or Staff) can comment on an issue.
+        // Any authenticated user can comment on an issue.
         // isStaffComment is derived server-side from the caller's role.
-        [HttpPost]
+        [HttpPost("newComment")]
         public IActionResult Create([FromBody] CreateCommentDto dto)
         {
             var claim = User.FindFirst("userId");
