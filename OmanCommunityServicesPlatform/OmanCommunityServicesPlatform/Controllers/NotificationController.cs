@@ -23,7 +23,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             this.notificationService = notificationService;
         }
-    
+
 
 
         // --------------------------------------------------
@@ -74,5 +74,21 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The authenticated User ID was not found."
                 });
             }
+
+            // Ask the Service to find the Notification.
+            NotificationResponseDto? notification =
+                notificationService.GetNotificationById(
+                    notificationId
+                );
+
+            // Return 404 when the Notification does not exist.
+            if (notification == null)
+            {
+                return NotFound(new
+                {
+                    message = "Notification was not found."
+                });
+            }
         }
+    }
 }
