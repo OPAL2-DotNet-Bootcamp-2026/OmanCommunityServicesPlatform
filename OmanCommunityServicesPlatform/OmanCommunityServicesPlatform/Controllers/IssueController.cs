@@ -22,7 +22,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // POST issue/CreateIssue
         // Citizen reports a new issue
-        [HttpPost("CreateIssue")]
+        [HttpPost("CreateIssue/{reportedById}")]
         [Authorize(Roles = "Citizen")]
         public IActionResult CreateIssue([FromBody] CreateIssueDto dto)
         {
