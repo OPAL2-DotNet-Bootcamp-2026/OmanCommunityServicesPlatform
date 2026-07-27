@@ -335,6 +335,11 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "could not be updated."
                 });
             }
+            return Ok(new
+            {
+                message =
+                    "Notification read status updated successfully."
+            });
 
         }
     }     
