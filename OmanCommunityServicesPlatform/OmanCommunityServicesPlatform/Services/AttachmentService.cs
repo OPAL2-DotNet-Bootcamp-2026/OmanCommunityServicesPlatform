@@ -130,15 +130,17 @@ namespace OmanCommunityServicesPlatform.Services
             return response;
         }
 
-        public bool Delete(int id, int uploadedById)
+        public bool Delete(int id, int uploadedById, string role)
         {
             Attachment? attachment = attachmentRepo.GetById(id);
 
             if (attachment == null)
                 return false;
-
-            if (attachment.uploadedById != uploadedById)
+            // Admin can delete any attachment.
+            // Citizen can delete only their own attachment.
+            if (role != "Admin" && attachment.uploadedById != uploadedById)
                 return false;
+            
 
             attachmentRepo.Delete(attachment);
 

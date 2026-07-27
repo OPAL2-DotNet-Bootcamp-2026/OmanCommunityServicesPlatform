@@ -90,13 +90,16 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
            // Get the logged-in user ID from the JWT token
             var claim = User.FindFirst("userId");
-
-            if (claim == null || !int.TryParse(claim.Value, out int uploadedById))
+            // Get the logged-in user's role
+            var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role);
+            if (claim == null || roleClaim == null || !int.TryParse(claim.Value, out int uploadedById))
             {
                 return Unauthorized();
             }
+            // Get the role value
+            string role = roleClaim.Value;
 
-            bool deleted = attachmentService.Delete(id, uploadedById);
+            bool deleted = attachmentService.Delete(id, uploadedById, role);
 
             if (!deleted)
             {
