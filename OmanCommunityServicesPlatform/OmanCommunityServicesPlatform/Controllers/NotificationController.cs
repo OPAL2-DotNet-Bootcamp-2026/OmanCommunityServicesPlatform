@@ -273,7 +273,32 @@ namespace OmanCommunityServicesPlatform.Controllers
                     "Notification updated successfully."
             });
         }
-    }
+
+        // --------------------------------------------------
+        // UPDATE READ STATUS
+        // PATCH: /notification/5/read-status
+        // --------------------------------------------------
+
+        [HttpPatch("{notificationId}/read-status")]
+        public IActionResult UpdateNotificationReadStatus(
+            [FromRoute] int notificationId,
+            [FromBody] UpdateNotificationReadStatusDTO dto
+        )
+        {
+            // Read the logged-in User ID from JWT.
+            int? userId = GetAuthenticatedUserId();
+
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+
+            }
+        }
+    }     
 
 }
 
