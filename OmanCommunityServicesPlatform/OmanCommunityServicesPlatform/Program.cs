@@ -1,6 +1,10 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using OmanCommunityServicesPlatform.Repositories;
 using OmanCommunityServicesPlatform.Services;
+using System.Text;
 
 namespace OmanCommunityServicesPlatform
 {
@@ -17,15 +21,87 @@ namespace OmanCommunityServicesPlatform
 
             // Repositories
             builder.Services.AddScoped<UserRepo>();
+            builder.Services.AddScoped<AttachmentRepo>();
+            builder.Services.AddScoped<CategoryRepo>();
+            builder.Services.AddScoped<DepartmentRepo>();
+            builder.Services.AddScoped<IssueRepo>();
+            builder.Services.AddScoped<NotificationRepo>();
+            builder.Services.AddScoped<RatingRepo>();
+            builder.Services.AddScoped<RegionRepo>();
+            builder.Services.AddScoped<StatusUpdateRepo>();
+            //builder.Services.AddScoped<CommentRepo>();
 
             // Services
             builder.Services.AddScoped<UserService>();
+            builder.Services.AddScoped<AttachmentService>();
+            builder.Services.AddScoped<CategoryService>();
+            builder.Services.AddScoped<DepartmentService>();
+            builder.Services.AddScoped<IssueService>();
+            builder.Services.AddScoped<NotificationService>();
+            builder.Services.AddScoped<RatingService>();
+            builder.Services.AddScoped<RegionService>();
+            builder.Services.AddScoped<StatusUpdateService>();
+            //builder.Services.AddScoped<CommentService>();
 
+            // Register AuthService 
+            builder.Services.AddScoped<AuthService>();
+            // Read JWT settings from appsettings.json 
+            var jwtKey = builder.Configuration["JwtSettings:SecretKey"];
+            var jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
+            var jwtAudience = builder.Configuration["JwtSettings:Audience"];
+            // Configure how incoming tokens are validated
+            builder.Services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true, // reject expired tokens
+                    ValidateIssuerSigningKey = true, // verify the signature
+                    ValidIssuer = jwtIssuer,
+                    ValidAudience = jwtAudience,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtKey))
+                };
+            });
+            builder.Services.AddAuthorization();
+
+            // Register Controllers
             builder.Services.AddControllers();
 
             // Swagger
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            //builder.Services.AddSwaggerGen();
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter your JWT token in the box below"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id   = "Bearer"
+                            }
+                        },
+                        new List<string>()
+                    }
+                });
+            });
 
             var app = builder.Build();
 
@@ -39,6 +115,8 @@ namespace OmanCommunityServicesPlatform
 
             app.UseHttpsRedirection();
 
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

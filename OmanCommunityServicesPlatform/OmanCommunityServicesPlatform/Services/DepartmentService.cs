@@ -7,9 +7,11 @@ namespace OmanCommunityServicesPlatform.Services
     public class DepartmentService
     {
         private DepartmentRepo departmentRepo;
-        public DepartmentService(DepartmentRepo _departmentRepo)
+        private RegionRepo regionRepo;
+        public DepartmentService(DepartmentRepo _departmentRepo, RegionRepo _regionRepo)
         {
             departmentRepo = _departmentRepo;
+            regionRepo = _regionRepo;
         }
         //Get all departments
         public List<ResponseDepartmentDTO> GetAllDepartments()
@@ -27,11 +29,13 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.regionId = department.regionId;
 
                 if (department.region != null)
+                {
                     dto.regionName = department.region.regionName;
-                    dto.categoryCount = department.Categories.Count;
-                    dto.issueCount = department.Issues.Count;
-                    dto.userCount = department.Users.Count;
-                    response.Add(dto);
+                }
+                dto.categoryCount = department.Categories.Count;
+                dto.issueCount = department.Issues.Count;
+                dto.userCount = department.Users.Count;
+                response.Add(dto);
             }
             return response;
         }
@@ -70,6 +74,11 @@ namespace OmanCommunityServicesPlatform.Services
             department.departmentName = dto.departmentName;
             department.description = dto.description;
             department.contactEmail = dto.contactEmail;
+            // Check region exists
+            if (dto.regionId.HasValue && !regionRepo.Exists(dto.regionId.Value))
+            {
+                return null;
+            }
             department.regionId = dto.regionId;
             departmentRepo.Add(department);
             ResponseDepartmentDTO response = new ResponseDepartmentDTO();
@@ -99,6 +108,10 @@ namespace OmanCommunityServicesPlatform.Services
             department.departmentName = dto.departmentName;
             department.description = dto.description;
             department.contactEmail = dto.contactEmail;
+            if (dto.regionId.HasValue && !regionRepo.Exists(dto.regionId.Value))
+            {
+                return null;
+            }
             department.regionId = dto.regionId;
 
             departmentRepo.Update();

@@ -1,4 +1,6 @@
-﻿using OmanCommunityServicesPlatform.Models;
+﻿using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Models;
+using OmanCommunityServicesPlatform.Repositories;
 
 namespace OmanCommunityServicesPlatform.Services
 {
@@ -33,7 +35,7 @@ namespace OmanCommunityServicesPlatform.Services
         //Get category response by Id 
         public ResponseCategoryDTO GetById(int id)
         {
-            Category category = categoryRepo.GetById(id);
+            Category category = categoryRepo.GetCategoryById(id);
             if (category == null)
                 return null;
             ResponseCategoryDTO response = new ResponseCategoryDTO();
@@ -57,8 +59,8 @@ namespace OmanCommunityServicesPlatform.Services
             Category category = new Category();
             category.categoryName = dto.categoryName;
             category.description = dto.description;
-            category.department = dto.department;
-            categoryRepo.Add(category)
+            category.departmentId = dto.departmentId;
+            categoryRepo.Add(category);
             ResponseCategoryDTO response = new ResponseCategoryDTO();
             response.categoryId = category.categoryId;
             response.categoryName = dto.categoryName;
@@ -70,11 +72,11 @@ namespace OmanCommunityServicesPlatform.Services
         //Update C
         public ResponseCategoryDTO Update(int id, UpdateCategoryDTO dto)
         {
-            Category category = categoryRepo.GetCategoryId(id);
+            Category category = categoryRepo.GetCategoryById(id);
 
             if (category == null)
                 return null;
-            if (category.categoryName != dto.categoryName && categoryRepo.IsCategoryNameExit(dto.categoryName))
+            if (category.categoryName != dto.categoryName && categoryRepo.IsCategoryNameExist(dto.categoryName))
             {
                 return null;
             }
@@ -85,21 +87,20 @@ namespace OmanCommunityServicesPlatform.Services
 
             ResponseCategoryDTO response = new ResponseCategoryDTO();
 
-            response.CategoryId = category.categoryId;
+            response.categoryId = category.categoryId;
             response.categoryName = category.categoryName;
             response.description = category.description;
             response.departmentId = category.departmentId;
-
-            if (category.departmentId != null)
-                response.departmentName = category.department.departmentName;
+            response.departmentName = category.department.departmentName;
             response.issueCount = category.Issues.Count;
+            
             return response;
         }
 
         //Delete category
         public bool Delete(int id)
         {
-            Category category = categoryRepo.GetCategoryId(id);
+            Category category = categoryRepo.GetCategoryById(id);
             if (category == null)
                 return false;
             categoryRepo.Delete(category);
