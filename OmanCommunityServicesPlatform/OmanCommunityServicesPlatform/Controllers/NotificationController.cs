@@ -363,6 +363,21 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The authenticated User ID was not found."
                 });
             }
+
+            // Find the Notification before changing it.
+            NotificationResponseDto? notification =
+                notificationService.GetNotificationById(
+                    notificationId
+                );
+
+            if (notification == null)
+            {
+                return NotFound(new
+                {
+                    message = "Notification was not found."
+                });
+            }
+
         }
     }
 
