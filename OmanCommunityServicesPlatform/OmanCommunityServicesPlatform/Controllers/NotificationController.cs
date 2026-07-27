@@ -166,8 +166,31 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The authenticated User ID was not found."
                 });
             }
+            // Get only unread Notifications for this User.
+            List<NotificationResponseDto>? notifications =
+                notificationService
+                    .GetUnreadNotificationsByUserId(
+                        userId.Value
+                    );
+
+            if (notifications == null)
+            {
+                return NotFound(new
+                {
+                    message = "User was not found."
+                });
+            }
+
+            if (notifications.Count == 0)
+            {
+                return NoContent();
+            }
+
+            return Ok(notifications);
         }
+
     }
+}
 
     
-}
+
