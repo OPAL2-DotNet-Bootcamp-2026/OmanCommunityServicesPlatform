@@ -465,6 +465,11 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The Notification could not be deleted."
                 });
             }
+            return Ok(new
+            {
+                message =
+                   "Notification deleted successfully."
+            });
         }
     }
 
