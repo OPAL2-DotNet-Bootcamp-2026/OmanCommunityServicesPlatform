@@ -12,14 +12,16 @@ namespace OmanCommunityServicesPlatform.Controllers
     public class IssueController : ControllerBase
     {
         private IssueService issueService;
-        public IssueController(IssueService _issueService)
+        private readonly StatusUpdateService statusUpdateService;
+        public IssueController(IssueService _issueService, StatusUpdateService _statusUpdateService)
         {
             issueService = _issueService;
+            statusUpdateService = _statusUpdateService;
         }
 
         // POST issue/CreateIssue
         // Citizen reports a new issue
-        [HttpPost("CreateIssue")]
+        [HttpPost("CreateIssue/{reportedById}")]
         [Authorize(Roles = "Citizen")]
         public IActionResult CreateIssue([FromRoute] int reportedById, [FromBody] CreateIssueDto dto)
         {
@@ -44,9 +46,9 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(issues);
         }
-        // Admin views all reported issues
+        // Admin and Staff views all reported issues
         [HttpGet("GetAllIssues")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult GetAllIssues()
         {
             List<IssueResponseDto> issues = issueService.GetAll();
@@ -55,9 +57,9 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(issues);
         }
-        // Admin or citizen views the details of one issue
+        // Admin or citizen or Staff views the details of one issue
         [HttpGet("GetIssueById/{id}")]
-        [Authorize(Roles = "Citizen,Admin")]
+        [Authorize(Roles = "Citizen,Admin,Staff")]
         public IActionResult GetIssueById([FromRoute] int id)
         {
             IssueResponseDto issue = issueService.GetById(id);
@@ -67,32 +69,46 @@ namespace OmanCommunityServicesPlatform.Controllers
             }
             return Ok(issue);
         }
-        // Admin changes the issue status
+        // Admin and Staff changes the issue status
         [HttpPut("ChangeIssueStatus/{id}")]
-        [Authorize(Roles = "Admin")]
-        public IActionResult ChangeIssueStatus([FromRoute] int id, [FromBody] ChangeIssueStatusDto dto)
+        [Authorize(Roles = "Admin,Staff")]
+        public IActionResult ChangeIssueStatus([FromRoute] int id, [FromBody] CreateStatusUpdateDto dto)
         {
-            IssueResponseDto updated = issueService.ChangeStatus(id, dto);
-            if (updated == null)
-            {
-                return NotFound(new { message = $"Issue with ID {id} was not found." });
+            var claim = User.FindFirst("userId");
 
+            if (claim == null ||
+                !int.TryParse(claim.Value, out int userId))
+            {
+                return Unauthorized();
             }
 
-            return Ok(updated);
-        }
-        // Admin marks the issue as resolved
-        [HttpPut("ResolveIssue/{id}")]
-        [Authorize(Roles = "Admin")]
-        public IActionResult ResolveIssue([FromRoute] int id)
-        {
-            bool resolved = issueService.ResolveIssue(id);
+            dto.issueId = id;
 
-            if (!resolved)
+            StatusUpdateResponseDto? result = statusUpdateService.Create(dto, userId);
+
+            if (result == null)
             {
-                return NotFound(new { message = $"Issue with ID {id} was not found." });
+                return NotFound(new
+                {
+                    message = $"Issue with ID {id} was not found."
+                });
             }
-            return Ok(new { message = "Issue resolved successfully." });
+
+            return Ok(result);
         }
     }
+    // Admin marks the issue as resolved
+    //[HttpPut("ResolveIssue/{id}")]
+    //[Authorize(Roles = "Admin")]
+    //public IActionResult ResolveIssue([FromRoute] int id)
+    //{
+    //    bool resolved = issueService.ResolveIssue(id);
+
+    //    if (!resolved)
+    //    {
+    //        return NotFound(new { message = $"Issue with ID {id} was not found." });
+    //    }
+    //    return Ok(new { message = "Issue resolved successfully." });
+    //}
+
 }
