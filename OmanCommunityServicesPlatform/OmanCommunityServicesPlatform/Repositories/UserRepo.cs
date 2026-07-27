@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using OmanCommunityServicesPlatform.Models;
+﻿using OmanCommunityServicesPlatform.Models;
 
 namespace OmanCommunityServicesPlatform.Repositories
 {

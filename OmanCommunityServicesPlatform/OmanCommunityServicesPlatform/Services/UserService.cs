@@ -11,12 +11,14 @@ namespace OmanCommunityServicesPlatform.Services
         private UserRepo userRepo;
         private DepartmentRepo departmentRepo;
         private RegionRepo regionRepo;
+        private AuthService authService;
 
-        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo)
+        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo, AuthService _authService)
         {
             userRepo = _repo;
             departmentRepo = _departmentRepo;
             regionRepo = _regionRepo;
+            authService = _authService;
         }
 
         public UserSummaryDto RegisterUser(RegisterUserDto dto)
@@ -47,7 +49,7 @@ namespace OmanCommunityServicesPlatform.Services
             return Response(newUser);
         }
 
-        public UserSummaryDto LoginUser(LoginDto dto)
+        public LoginResponseDto LoginUser(LoginDto dto)
         {
             User user = userRepo.GetByEmail(dto.email);
             
@@ -61,14 +63,22 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            bool validPassword = Argon2.Verify(dto.password, user.passwordHash);
+            bool validPassword = Argon2.Verify(user.passwordHash, dto.password);
 
             if (!validPassword)
             {
                 return null;
             }
 
-            return Response(user);
+            string token = authService.GenerateToken(user);
+
+            LoginResponseDto response = new LoginResponseDto();
+            response.Token = token;
+            response.userId = user.userId;
+            response.name = user.fullName;
+            response.role = user.role;
+
+            return response;
         }
 
         public UpdateProfileDto UpdateUserProfile(int id, UpdateProfileDto dto)
@@ -183,7 +193,7 @@ namespace OmanCommunityServicesPlatform.Services
         }
 
         // Authorization Level must be Admin
-        public bool DeactivateUser(int userId)
+        public bool DeactivateUser(int userId, int requestingAdminId)
         {
             User user = userRepo.GetById(userId);
 
@@ -192,8 +202,13 @@ namespace OmanCommunityServicesPlatform.Services
                 return false;
             }
 
-            user.isActive = false;
+            // Prevent an Admin from deactivating their own account
+            if (userId == requestingAdminId)
+            {
+                return false;
+            }
 
+            user.isActive = false;
             userRepo.Update();
 
             return true;
