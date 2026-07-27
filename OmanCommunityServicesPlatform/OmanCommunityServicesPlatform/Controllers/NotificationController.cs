@@ -124,6 +124,28 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The authenticated User ID was not found."
                 });
             }
+            // The Service may return null when the User
+            // does not exist.
+            List<NotificationResponseDto>? notifications =
+                notificationService.GetNotificationsByUserId(
+                    userId.Value
+                );
+
+            if (notifications == null)
+            {
+                return NotFound(new
+                {
+                    message = "User was not found."
+                });
+            }
+
+            if (notifications.Count == 0)
+            {
+                return NoContent();
+            }
+
+            return Ok(notifications);
         }
     }
+    
 }
