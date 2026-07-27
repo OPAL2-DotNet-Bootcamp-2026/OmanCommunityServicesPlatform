@@ -146,6 +146,28 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(notifications);
         }
+
+        // --------------------------------------------------
+        // GET MY UNREAD NOTIFICATIONS
+        // GET: /notification/my/unread
+        // --------------------------------------------------
+
+        [HttpGet("my/unread")]
+        public IActionResult GetMyUnreadNotifications()
+        {
+            // Read the logged-in User ID from JWT.
+            int? userId = GetAuthenticatedUserId();
+
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+        }
     }
+
     
 }
