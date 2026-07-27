@@ -61,6 +61,7 @@ namespace OmanCommunityServicesPlatform.Services
             response.priority = issue.priority;
             response.currentStatus = issue.currentStatus;
             response.reportedDate = issue.reportedDate;
+            response.reportedById = issue.reportedById;
 
             response.categoryName = category.categoryName;
             response.regionName = region.regionName;
