@@ -98,7 +98,6 @@ namespace OmanCommunityServicesPlatform.Controllers
                 return Unauthorized();
             }
 
-
             bool deleted = attachmentService.Delete(id, uploadedById);
 
             if (!deleted)
@@ -109,7 +108,5 @@ namespace OmanCommunityServicesPlatform.Controllers
             return Ok(new { message = "Attachment deleted successfully." });
         }
 
-    }
-
-       
+    } 
 }
