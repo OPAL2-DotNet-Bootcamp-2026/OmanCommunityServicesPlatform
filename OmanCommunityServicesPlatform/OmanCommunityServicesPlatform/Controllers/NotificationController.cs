@@ -377,6 +377,27 @@ namespace OmanCommunityServicesPlatform.Controllers
                     message = "Notification was not found."
                 });
             }
+            // Prevent a User from marking another User's
+            // Notification as read.
+            if (notification.userId != userId.Value)
+            {
+                return Forbid();
+            }
+
+            // Ask the Service to mark the Notification as read.
+            bool markedAsRead =
+                notificationService.MarkNotificationAsRead(
+                    notificationId
+                );
+
+            if (!markedAsRead)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The Notification could not be marked as read."
+                });
+            }
 
         }
     }
