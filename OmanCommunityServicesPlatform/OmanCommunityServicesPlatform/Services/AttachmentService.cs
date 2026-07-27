@@ -130,11 +130,14 @@ namespace OmanCommunityServicesPlatform.Services
             return response;
         }
 
-        public bool Delete(int id)
+        public bool Delete(int id, int uploadedById)
         {
             Attachment? attachment = attachmentRepo.GetById(id);
 
             if (attachment == null)
+                return false;
+
+            if (attachment.uploadedById != uploadedById)
                 return false;
 
             attachmentRepo.Delete(attachment);

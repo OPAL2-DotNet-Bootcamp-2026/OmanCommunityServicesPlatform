@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Services;
 
 namespace OmanCommunityServicesPlatform.Controllers
@@ -88,7 +89,17 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Citizen,Admin")]
         public IActionResult Delete(int id)
         {
-            bool deleted = attachmentService.Delete(id);
+           // Get the logged-in user ID from the JWT token
+            var claim = User.FindFirst("userId");
+
+            if (claim == null ||
+                !int.TryParse(claim.Value, out int uploadedById))
+            {
+                return Unauthorized();
+            }
+
+
+            bool deleted = attachmentService.Delete(id, uploadedById);
 
             if (!deleted)
             {
