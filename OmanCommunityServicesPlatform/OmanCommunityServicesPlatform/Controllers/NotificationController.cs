@@ -342,7 +342,29 @@ namespace OmanCommunityServicesPlatform.Controllers
             });
 
         }
-    }     
+        // --------------------------------------------------
+        // MARK NOTIFICATION AS READ
+        // PATCH: /notification/5/read
+        // --------------------------------------------------
+
+        [HttpPatch("{notificationId}/read")]
+        public IActionResult MarkNotificationAsRead(
+            [FromRoute] int notificationId
+        )
+        {
+            // Read the logged-in User ID.
+            int? userId = GetAuthenticatedUserId();
+
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+        }
+    }
 
 }
 
