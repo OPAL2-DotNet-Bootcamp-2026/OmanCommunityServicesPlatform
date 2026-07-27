@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
 
@@ -6,6 +7,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
     [Route("category")]
+    [Authorize]
     public class CategoryController : ControllerBase
     {
         private CategoryService categoryService;
@@ -34,7 +36,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(category);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPost("Add")]
         public IActionResult Add([FromBody] CreateCategoryDTO category)
         {
@@ -45,7 +47,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(result);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPut("Update/{id}")]
         public IActionResult Update([FromRoute] int id, [FromBody] UpdateCategoryDTO category)
         {
@@ -53,9 +55,9 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (result == null)
                 return NotFound();
-
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
         [HttpDelete("Delete/{id}")]
         public IActionResult Delete([FromRoute] int id)
         {
