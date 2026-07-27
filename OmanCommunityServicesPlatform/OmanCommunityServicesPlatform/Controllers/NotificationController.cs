@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
+using System.Security.Claims;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -470,6 +471,32 @@ namespace OmanCommunityServicesPlatform.Controllers
                 message =
                    "Notification deleted successfully."
             });
+        }
+        // --------------------------------------------------
+        // GET AUTHENTICATED USER ID
+        // --------------------------------------------------
+
+        // Reads the "userId" claim from the JWT token.
+        private int? GetAuthenticatedUserId()
+        {
+            // JWT claim values are stored as strings.
+            string? userIdValue =
+                User.FindFirstValue("userId");
+
+            // Convert the claim from string to integer.
+            bool converted = int.TryParse(
+                userIdValue,
+                out int userId
+            );
+
+            // Return null when the claim is missing
+            // or does not contain a valid integer.
+            if (!converted)
+            {
+                return null;
+            }
+
+            return userId;
         }
     }
 
