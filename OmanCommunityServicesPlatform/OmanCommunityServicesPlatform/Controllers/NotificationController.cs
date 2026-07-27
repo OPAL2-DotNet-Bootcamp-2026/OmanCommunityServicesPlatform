@@ -232,6 +232,28 @@ namespace OmanCommunityServicesPlatform.Controllers
             );
 
         }
+
+        // --------------------------------------------------
+        // UPDATE NOTIFICATION MESSAGE AND TYPE
+        // PUT: /notification/5
+        // --------------------------------------------------
+
+        // Changing the Notification message and type
+        // should normally be restricted to Admin.
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{notificationId}")]
+        public IActionResult UpdateNotification(
+            [FromRoute] int notificationId,
+            [FromBody] UpdateNotificationDTO dto
+        )
+        {
+            // Ask the Service to update the Notification.
+            bool updated =
+                notificationService.UpdateNotification(
+                    notificationId,
+                    dto
+                );
+        }
     }
 
 }
