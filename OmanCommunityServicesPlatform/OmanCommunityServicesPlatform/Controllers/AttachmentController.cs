@@ -65,7 +65,16 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Citizen")]
         public IActionResult Update(int id, [FromBody] UpdateAttachmentDto dto)
         {
-            AttachmentResponseDto? updated = attachmentService.Update(id, dto);
+            // Get the logged-in Citizen ID from the JWT token
+            var claim = User.FindFirst("userId");
+
+            if (claim == null ||
+                !int.TryParse(claim.Value, out int uploadedById))
+            {
+                return Unauthorized();
+            }
+
+            AttachmentResponseDto? updated = attachmentService.Update(id,dto ,uploadedById);
 
             if (updated == null)
             {
@@ -74,7 +83,21 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(updated);
         }
-    
+        // Delete attachment
+        [HttpDelete("Delete/{id}")]
+        [Authorize(Roles = "Citizen,Admin")]
+        public IActionResult Delete(int id)
+        {
+            bool deleted = attachmentService.Delete(id);
+
+            if (!deleted)
+            {
+                return NotFound(new {  message = $"Attachment with ID {id} was not found." });
+            }
+
+            return Ok(new { message = "Attachment deleted successfully." });
+        }
+
     }
 
        

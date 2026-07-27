@@ -94,11 +94,15 @@ namespace OmanCommunityServicesPlatform.Services
 
         }
         // Update attachment
-        public AttachmentResponseDto? Update(int id, UpdateAttachmentDto dto)
+        public AttachmentResponseDto? Update(int id, UpdateAttachmentDto dto, int uploadedById)
         {
             Attachment? attachment = attachmentRepo.GetById(id);
 
             if (attachment == null)
+                return null;
+
+            // Ensure the logged-in Citizen owns this attachment
+            if (attachment.uploadedById != uploadedById)
                 return null;
 
             if (attachment.fileUrl != dto.fileUrl)
