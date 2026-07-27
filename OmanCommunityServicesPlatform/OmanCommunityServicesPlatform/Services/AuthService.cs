@@ -17,10 +17,10 @@ namespace OmanCommunityServicesPlatform.Services
         // Called by UserService.LoginUser() after credentials are validated
         public string GenerateToken(User user)
         {
-            string secretKey = config["JwtSettings: SecretKey"];
-            string issuer = config["JwtSettings: Issuer"];
-            string audience = config["JwtSettings: Audience"];
-            int hours = int.Parse(config["JwtSettings: ExpiryHours"]);
+            string secretKey = config["JwtSettings:SecretKey"];
+            string issuer = config["JwtSettings:Issuer"];
+            string audience = config["JwtSettings:Audience"];
+            int hours = int.Parse(config["JwtSettings:ExpiryHours"]);
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             // Claims — the data embedded inside the token payload
