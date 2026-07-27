@@ -89,6 +89,20 @@ namespace OmanCommunityServicesPlatform.Controllers
                     message = "Notification was not found."
                 });
             }
+            // A User must not view another User's Notification.
+            //
+            // Admins may view any Notification.
+            bool isAdmin = User.IsInRole("Admin");
+
+            if (
+                notification.userId != authenticatedUserId.Value &&
+                !isAdmin
+            )
+            {
+                return Forbid();
+            }
+
+            return Ok(notification);
         }
     }
 }
