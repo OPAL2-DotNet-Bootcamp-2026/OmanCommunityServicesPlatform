@@ -439,6 +439,32 @@ namespace OmanCommunityServicesPlatform.Controllers
                     message = "Notification was not found."
                 });
             }
+            // The owner or an Admin can delete
+            // the Notification.
+            bool isAdmin = User.IsInRole("Admin");
+
+            if (
+                notification.userId != userId.Value &&
+                !isAdmin
+            )
+            {
+                return Forbid();
+            }
+
+            // Ask the Service to delete the Notification.
+            bool deleted =
+                notificationService.DeleteNotification(
+                    notificationId
+                );
+
+            if (!deleted)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The Notification could not be deleted."
+                });
+            }
         }
     }
 
