@@ -60,7 +60,21 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(attachments);
         }
+        // Update attachment
+        [HttpPut("Update/{id}")]
+        [Authorize(Roles = "Citizen")]
+        public IActionResult Update(int id, [FromBody] UpdateAttachmentDto dto)
+        {
+            AttachmentResponseDto? updated = attachmentService.Update(id, dto);
 
+            if (updated == null)
+            {
+                return NotFound(new{ message = $"Attachment with ID {id} was not found." });
+            }
+
+            return Ok(updated);
+        }
+    
     }
 
        
