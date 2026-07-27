@@ -297,6 +297,27 @@ namespace OmanCommunityServicesPlatform.Controllers
                 });
 
             }
+            // Find the Notification first so the Controller
+            // can verify ownership.
+            NotificationResponseDto? notification =
+                notificationService.GetNotificationById(
+                    notificationId
+                );
+
+            if (notification == null)
+            {
+                return NotFound(new
+                {
+                    message = "Notification was not found."
+                });
+            }
+
+            // A User can change only their own
+            // Notification's read status.
+            if (notification.userId != userId.Value)
+            {
+                return Forbid();
+            }
         }
     }     
 
