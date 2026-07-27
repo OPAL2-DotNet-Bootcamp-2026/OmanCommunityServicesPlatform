@@ -398,6 +398,11 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The Notification could not be marked as read."
                 });
             }
+            return Ok(new
+            {
+                message =
+                   "Notification marked as read successfully."
+            });
 
         }
     }
