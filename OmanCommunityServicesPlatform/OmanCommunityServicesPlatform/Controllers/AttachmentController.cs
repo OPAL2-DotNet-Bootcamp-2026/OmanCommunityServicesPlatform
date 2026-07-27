@@ -51,6 +51,16 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             return Ok(attachment);
         }
+        // Get all attachments for an issue
+        [HttpGet("Issue/{issueId}")]
+        [Authorize(Roles = "Citizen,Staff,Admin")]
+        public IActionResult GetByIssueId(int issueId)
+        {
+            List<AttachmentResponseDto> attachments = attachmentService.GetByIssueId(issueId);
+
+            return Ok(attachments);
+        }
+
     }
 
        
