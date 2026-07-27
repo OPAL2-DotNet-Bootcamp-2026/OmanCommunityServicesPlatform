@@ -51,5 +51,28 @@ namespace OmanCommunityServicesPlatform.Controllers
             // Return 200 with the Notifications.
             return Ok(notifications);
         }
-    }
+
+        // --------------------------------------------------
+        // GET ONE NOTIFICATION BY ID
+        // GET: /notification/5
+        // --------------------------------------------------
+
+        [HttpGet("{notificationId}")]
+        public IActionResult GetNotificationById(
+            [FromRoute] int notificationId
+        )
+        {
+            // Get the authenticated User ID from the JWT token.
+            int? authenticatedUserId =
+                GetAuthenticatedUserId();
+
+            if (authenticatedUserId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+        }
 }
