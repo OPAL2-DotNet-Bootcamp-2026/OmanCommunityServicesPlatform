@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
-
         [ApiController]
         [Route("region")]
-        public class RegionController : ControllerBase
+        [Authorize]
+    public class RegionController : ControllerBase
         {
             private readonly RegionService regionService;
             public RegionController(RegionService _regionService)
@@ -16,6 +17,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             }
             // Create Region
             [HttpPost("Add")]
+            [Authorize(Roles = "Admin")]
             public IActionResult Add([FromBody] CreateRegionDto dto)
             {
                 RegionResponseDto? result = regionService.Create(dto);
@@ -46,6 +48,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             // Update Region
             [HttpPut("Update/{id}")]
+            [Authorize(Roles = "Admin")]
             public IActionResult Update(int id, [FromBody] UpdateRegionDto dto)
             {
                 RegionResponseDto? result = regionService.Update(id, dto);
@@ -56,6 +59,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             // Delete Region
             [HttpDelete("Delete/{id}")]
+            [Authorize(Roles = "Admin")]    
             public IActionResult Delete(int id)
             {
                 bool result = regionService.Delete(id);
