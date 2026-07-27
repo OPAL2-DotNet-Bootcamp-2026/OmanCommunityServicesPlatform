@@ -46,9 +46,9 @@ namespace OmanCommunityServicesPlatform
             // Register AuthService 
             builder.Services.AddScoped<AuthService>();
             // Read JWT settings from appsettings.json 
-            var jwtKey = builder.Configuration["JwtSettings: SecretKey"];
-            var jwtIssuer = builder.Configuration["JwtSettings: Issuer"];
-            var jwtAudience = builder.Configuration["JwtSettings: Audience"];
+            var jwtKey = builder.Configuration["JwtSettings:SecretKey"];
+            var jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
+            var jwtAudience = builder.Configuration["JwtSettings:Audience"];
             // Configure how incoming tokens are validated
             builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
