@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
 
@@ -37,7 +36,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             ResponseDepartmentDTO result = departmentService.Create(department);
             if (result == null)
-                return BadRequest("Department name already exists");
+                return BadRequest("Department name already exists or Region does not exist");
             return Ok(result);
         }
         [HttpPut("Update/{id}")]
@@ -45,7 +44,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             ResponseDepartmentDTO result = departmentService.Update(id, department);
             if (result == null)
-                return NotFound();
+                return BadRequest("Department not found, department name already exists, or Region does not exist");
             return Ok(result);
         }
 
