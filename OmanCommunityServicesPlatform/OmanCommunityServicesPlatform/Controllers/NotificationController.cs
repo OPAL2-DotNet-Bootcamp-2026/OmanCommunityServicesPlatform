@@ -318,6 +318,24 @@ namespace OmanCommunityServicesPlatform.Controllers
             {
                 return Forbid();
             }
+            // Update isRead using the value from the DTO.
+            bool updated =
+                notificationService
+                    .UpdateNotificationReadStatus(
+                        notificationId,
+                        dto
+                    );
+
+            if (!updated)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The Notification read status " +
+                        "could not be updated."
+                });
+            }
+
         }
     }     
 
