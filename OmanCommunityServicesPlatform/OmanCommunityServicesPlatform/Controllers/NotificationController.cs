@@ -405,6 +405,28 @@ namespace OmanCommunityServicesPlatform.Controllers
             });
 
         }
+        // --------------------------------------------------
+        // DELETE NOTIFICATION
+        // DELETE: /notification/5
+        // --------------------------------------------------
+
+        [HttpDelete("{notificationId}")]
+        public IActionResult DeleteNotification(
+            [FromRoute] int notificationId
+        )
+        {
+            // Read the logged-in User's ID.
+            int? userId = GetAuthenticatedUserId();
+
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+        }
     }
 
 }
