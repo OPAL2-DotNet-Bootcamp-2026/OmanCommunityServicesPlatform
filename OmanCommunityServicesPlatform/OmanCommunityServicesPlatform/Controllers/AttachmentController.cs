@@ -69,8 +69,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             // Get the logged-in Citizen ID from the JWT token
             var claim = User.FindFirst("userId");
 
-            if (claim == null ||
-                !int.TryParse(claim.Value, out int uploadedById))
+            if (claim == null || !int.TryParse(claim.Value, out int uploadedById))
             {
                 return Unauthorized();
             }
@@ -92,8 +91,7 @@ namespace OmanCommunityServicesPlatform.Controllers
            // Get the logged-in user ID from the JWT token
             var claim = User.FindFirst("userId");
 
-            if (claim == null ||
-                !int.TryParse(claim.Value, out int uploadedById))
+            if (claim == null || !int.TryParse(claim.Value, out int uploadedById))
             {
                 return Unauthorized();
             }
