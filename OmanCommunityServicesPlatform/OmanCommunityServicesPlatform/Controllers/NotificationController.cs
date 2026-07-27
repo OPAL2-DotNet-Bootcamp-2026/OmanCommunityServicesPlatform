@@ -210,8 +210,20 @@ namespace OmanCommunityServicesPlatform.Controllers
                     dto,
                     userId
                 );
+            if (createdNotification == null)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "The Notification could not be created. " +
+                        "The User or Issue may not exist, " +
+                        "or an identical Notification may already exist."
+                });
+            }
 
         }
+    }
+
 }
 
     
