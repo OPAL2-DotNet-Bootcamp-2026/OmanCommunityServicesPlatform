@@ -94,7 +94,8 @@ namespace OmanCommunityServicesPlatform.Controllers
                 }
                 issue = issueService.GetMyIssueById(id, reportedById);
             }
-            else {
+            else 
+            {
                 // Admin and Staff can view any issue.
                 issue = issueService.GetById(id);
             }
