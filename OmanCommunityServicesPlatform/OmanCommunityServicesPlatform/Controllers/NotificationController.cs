@@ -6,7 +6,7 @@ namespace OmanCommunityServicesPlatform.Controllers
     [ApiController]
     [Route("notification")]
     [Authorize]
-    public class NotificationController
+    public class NotificationController : ControllerBase
     {
     }
 }
