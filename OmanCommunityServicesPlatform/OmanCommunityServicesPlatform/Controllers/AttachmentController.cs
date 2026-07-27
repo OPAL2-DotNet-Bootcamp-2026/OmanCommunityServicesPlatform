@@ -1,0 +1,45 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Services;
+
+namespace OmanCommunityServicesPlatform.Controllers
+{
+    [ApiController]
+    [Route("attachment")]
+    [Authorize]
+    public class AttachmentController : ControllerBase
+    {
+        private readonly AttachmentService attachmentService;
+        public AttachmentController(AttachmentService _attachmentService)
+        {
+            attachmentService = _attachmentService;
+        }
+        // Citizen uploads an attachment to an issue
+        [HttpPost("Create")]
+        [Authorize(Roles = "Citizen")]
+        public IActionResult Create([FromBody] CreateAttachmentDto dto)
+        {
+            // Get the logged-in Citizen ID from the JWT token
+            var claim = User.FindFirst("userId");
+
+            if (claim == null || !int.TryParse(claim.Value, out int uploadedById))
+            {
+                return Unauthorized();
+            }
+
+            AttachmentResponseDto? created =
+                attachmentService.Create(dto, uploadedById);
+
+            if (created == null)
+            {
+                return NotFound(new
+                {
+                    message = $"Issue with ID {dto.issueId} was not found."
+                });
+            }
+        }
+    }
+
+       
+}
