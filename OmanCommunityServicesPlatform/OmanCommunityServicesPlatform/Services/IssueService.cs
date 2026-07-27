@@ -10,13 +10,12 @@ namespace OmanCommunityServicesPlatform.Services
         private IssueRepo issueRepo;
         private CategoryRepo categoryRepo;
         private RegionRepo regionRepo;
-        private StatusUpdateRepo statusUpdateRepo;
-        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, StatusUpdateRepo _statusUpdateRepo, RegionRepo _regionRepo)
+        
+        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, RegionRepo _regionRepo)
         {
             issueRepo = _issueRepo;
-            categoryRepo = _categoryRepo;
-            //statusUpdateRepo = _statusUpdateRepo;
-           regionRepo = _regionRepo;
+            categoryRepo = _categoryRepo;    
+            regionRepo = _regionRepo;
         }
 
         //create Issue 
@@ -62,7 +61,6 @@ namespace OmanCommunityServicesPlatform.Services
             response.currentStatus = issue.currentStatus;
             response.reportedDate = issue.reportedDate;
             response.reportedById = issue.reportedById;
-
             response.categoryName = category.categoryName;
             response.regionName = region.regionName;
             response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
@@ -89,7 +87,7 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.priority = issue.priority;
                 dto.currentStatus = issue.currentStatus;
                 dto.reportedDate = issue.reportedDate;
-
+                dto.reportedById = issue.reportedById;
                 dto.categoryName = issue.category?.categoryName;
                 dto.regionName = issue.region?.regionName;
                 dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
@@ -117,6 +115,7 @@ namespace OmanCommunityServicesPlatform.Services
             response.priority = issue.priority;
             response.currentStatus = issue.currentStatus;
             response.reportedDate = issue.reportedDate;
+            response.reportedById = issue.reportedById;
             response.categoryName = issue.category?.categoryName;
             response.regionName = issue.region?.regionName;
             response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
@@ -145,6 +144,7 @@ namespace OmanCommunityServicesPlatform.Services
             response.priority = issue.priority;
             response.currentStatus = issue.currentStatus;
             response.reportedDate = issue.reportedDate;
+            response.reportedById = issue.reportedById;
             response.categoryName = issue.category?.categoryName;
             response.regionName = issue.region?.regionName;
             response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
@@ -210,6 +210,7 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.priority = issue.priority;
                 dto.currentStatus = issue.currentStatus;
                 dto.reportedDate = issue.reportedDate;
+                dto.reportedById = issue.reportedById;
                 dto.categoryName = issue.category?.categoryName;
                 dto.regionName = issue.region?.regionName;
                 dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
