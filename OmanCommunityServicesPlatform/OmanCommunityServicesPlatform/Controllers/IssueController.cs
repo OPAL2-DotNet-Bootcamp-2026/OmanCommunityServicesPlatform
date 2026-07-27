@@ -20,9 +20,9 @@ namespace OmanCommunityServicesPlatform.Controllers
             statusUpdateService = _statusUpdateService;
         }
 
-        // POST issue/CreateIssue
+        // POST issue/Create
         // Citizen reports a new issue
-        [HttpPost("CreateIssue/{reportedById}")]
+        [HttpPost("Create")]
         [Authorize(Roles = "Citizen")]
         public IActionResult CreateIssue([FromBody] CreateIssueDto dto)
         {
