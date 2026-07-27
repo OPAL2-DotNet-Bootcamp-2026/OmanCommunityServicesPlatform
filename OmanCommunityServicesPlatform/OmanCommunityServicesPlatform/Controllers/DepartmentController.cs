@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
     [Route("department")]
+    [Authorize]
     public class DepartmentController : ControllerBase
     {
         private DepartmentService departmentService;
@@ -14,6 +16,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             departmentService = _departmentService;
 
         }
+        [Authorize(Roles = "Admin,Staff")]
         [HttpGet("GetAllDepartments")]
         public IActionResult GetAllDepartments()
         {
@@ -23,6 +26,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             return NoContent();
 
         }
+        [Authorize(Roles = "Admin,Staff")]
         [HttpGet("GetDepartmentById/{id}")]
         public IActionResult GetDepartmentById([FromRoute] int id)
         {
@@ -31,7 +35,8 @@ namespace OmanCommunityServicesPlatform.Controllers
                 return NotFound();
             return Ok(department);
         }
-       [HttpPost("Add")]
+        [Authorize(Roles = "Admin")]
+        [HttpPost("Add")]
         public IActionResult Add([FromBody]CreateDepartmentDTO department)
         {
             ResponseDepartmentDTO result = departmentService.Create(department);
@@ -39,6 +44,7 @@ namespace OmanCommunityServicesPlatform.Controllers
                 return BadRequest("Department name already exists or Region does not exist");
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
         [HttpPut("Update/{id}")]
         public IActionResult Update([FromRoute] int id, [FromBody] UpdateDepartmentDTO department)
         {
@@ -47,7 +53,7 @@ namespace OmanCommunityServicesPlatform.Controllers
                 return BadRequest("Department not found, department name already exists, or Region does not exist");
             return Ok(result);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("Delete/{id}")]
         public IActionResult Delete([FromRoute] int id)
         {
