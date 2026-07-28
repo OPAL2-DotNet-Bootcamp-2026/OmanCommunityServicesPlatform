@@ -35,7 +35,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            Task<LoginResponseDto?> result = userService.LoginUser(dto);
+            LoginResponseDto? result = await userService.LoginUser(dto);
 
             if (result == null)
             {
