@@ -80,6 +80,12 @@ namespace OmanCommunityServicesPlatform.Services
 
             string token = authService.GenerateToken(user);
 
+            await emailService.SendEmailAsync(
+                user.email,
+                "New Sign-In Detected",
+                $"Hi {user.fullName}, we noticed a new sign-in to your account at {DateTime.UtcNow:u} UTC."
+            );
+
             LoginResponseDto response = new LoginResponseDto();
             response.Token = token;
             response.userId = user.userId;

@@ -33,9 +33,9 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginDto dto)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            LoginResponseDto result = userService.LoginUser(dto);
+            Task<LoginResponseDto?> result = userService.LoginUser(dto);
 
             if (result == null)
             {
