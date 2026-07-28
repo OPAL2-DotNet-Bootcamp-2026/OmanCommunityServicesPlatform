@@ -119,9 +119,7 @@ namespace OmanCommunityServicesPlatform.Controllers
                 return Unauthorized();
             }
 
-            dto.issueId = id;
-
-            StatusUpdateResponseDto? result = await statusUpdateService.Create(dto, userId);
+            StatusUpdateResponseDto? result = await statusUpdateService.Create(id, userId, dto);
 
             if (result == null)
             {
