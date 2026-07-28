@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
-using static System.Net.Mime.MediaTypeNames;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace OmanCommunityServicesPlatform.Controllers
