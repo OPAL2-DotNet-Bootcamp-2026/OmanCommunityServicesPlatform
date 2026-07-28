@@ -8,11 +8,13 @@ namespace OmanCommunityServicesPlatform.Services
     {
         private readonly CommentRepo commentRepo;
         private readonly IssueRepo issueRepo;
+        private readonly UserRepo userRepo;
 
-        public CommentService(CommentRepo _commentRepo, IssueRepo _issueRepo)
+        public CommentService(CommentRepo _commentRepo, IssueRepo _issueRepo, UserRepo _userRepo)
         {
             commentRepo = _commentRepo;
             issueRepo = _issueRepo;
+            this.userRepo = _userRepo;
         }
 
         // userId and isStaff both come from the Controller, extracted from the JWT —
@@ -21,6 +23,12 @@ namespace OmanCommunityServicesPlatform.Services
         {
             Issue? issue = issueRepo.GetById(dto.issueId);
             if (issue == null)
+            {
+                return null;
+            }
+
+            User? user = userRepo.GetById(userId);
+            if (user == null)
             {
                 return null;
             }
@@ -36,7 +44,16 @@ namespace OmanCommunityServicesPlatform.Services
 
             commentRepo.Add(comment);
 
-            return MapToDto(comment);
+            return new CommentResponseDto
+            {
+                commentId = comment.commentId,
+                issueId = comment.issueId,
+                userId = comment.userId,
+                userName = user.fullName,
+                content = comment.content,
+                isStaffComment = comment.isStaffComment,
+                commentDate = comment.commentDate
+            };
         }
 
         public List<CommentResponseDto> GetByIssueId(int issueId)
