@@ -44,6 +44,7 @@ namespace OmanCommunityServicesPlatform
             builder.Services.AddScoped<RegionService>();
             builder.Services.AddScoped<StatusUpdateService>();
             builder.Services.AddScoped<CommentService>();
+            builder.Services.AddScoped<EmailService>();
 
             // Register AuthService 
             builder.Services.AddScoped<AuthService>();

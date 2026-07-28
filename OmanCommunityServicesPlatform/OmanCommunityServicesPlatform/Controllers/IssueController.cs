@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
-using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Services;
 using static System.Net.Mime.MediaTypeNames;
 using Microsoft.AspNetCore.RateLimiting;
@@ -26,7 +25,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         [EnableRateLimiting("CreatePolicy")]
         [HttpPost("Create")]
         [Authorize(Roles = "Citizen")]
-        public IActionResult CreateIssue([FromBody] CreateIssueDto dto)
+        public async Task<IActionResult> CreateIssue([FromBody] CreateIssueDto dto)
         {
             var claim = User.FindFirst("userId");
 
@@ -34,7 +33,8 @@ namespace OmanCommunityServicesPlatform.Controllers
             {
                 return Unauthorized();
             }
-            IssueResponseDto created = issueService.Create(dto, reportedById);
+            
+            IssueResponseDto? created = await issueService.Create(dto, reportedById);
 
             if (created == null)
             {
@@ -111,7 +111,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         // Admin and Staff changes the issue status
         [HttpPut("ChangeIssueStatus/{id}")]
         [Authorize(Roles = "Admin,Staff")]
-        public IActionResult ChangeIssueStatus([FromRoute] int id, [FromBody] CreateStatusUpdateDto dto)
+        public async Task<IActionResult> ChangeIssueStatus([FromRoute] int id, [FromBody] CreateStatusUpdateDto dto)
         {
             var claim = User.FindFirst("userId");
 
@@ -122,7 +122,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             dto.issueId = id;
 
-            StatusUpdateResponseDto? result = statusUpdateService.Create(dto, userId);
+            StatusUpdateResponseDto? result = await statusUpdateService.Create(dto, userId);
 
             if (result == null)
             {

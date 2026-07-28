@@ -12,16 +12,18 @@ namespace OmanCommunityServicesPlatform.Services
         private DepartmentRepo departmentRepo;
         private RegionRepo regionRepo;
         private AuthService authService;
+        private EmailService emailService;
 
-        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo, AuthService _authService)
+        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo, AuthService _authService, EmailService _emailService)
         {
             userRepo = _repo;
             departmentRepo = _departmentRepo;
             regionRepo = _regionRepo;
             authService = _authService;
+            emailService = _emailService;
         }
 
-        public UserSummaryDto RegisterUser(RegisterUserDto dto)
+        public async Task<UserSummaryDto?> RegisterUser(RegisterUserDto dto)
         {
             // Business Rule: Email must be unique
             if (userRepo.EmailExists(dto.email))
@@ -46,10 +48,16 @@ namespace OmanCommunityServicesPlatform.Services
 
             userRepo.Add(newUser);
 
+            await emailService.SendEmailAsync(
+            newUser.email,
+            "Welcome to Oman Community Services",
+            $"Hi {newUser.fullName}, your account has been created."
+            );
+
             return Response(newUser);
         }
 
-        public LoginResponseDto LoginUser(LoginDto dto)
+        public async Task<LoginResponseDto?> LoginUser(LoginDto dto)
         {
             User user = userRepo.GetByEmail(dto.email);
             
@@ -71,6 +79,12 @@ namespace OmanCommunityServicesPlatform.Services
             }
 
             string token = authService.GenerateToken(user);
+
+            await emailService.SendEmailAsync(
+                user.email,
+                "New Sign-In Detected",
+                $"Hi {user.fullName}, we noticed a new sign-in to your account at {DateTime.UtcNow:u} UTC."
+            );
 
             LoginResponseDto response = new LoginResponseDto();
             response.Token = token;

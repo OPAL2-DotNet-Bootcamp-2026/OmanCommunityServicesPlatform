@@ -19,9 +19,9 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterUserDto dto)
+        public async Task<IActionResult> Register([FromBody] RegisterUserDto dto)
         {
-            UserSummaryDto created = userService.RegisterUser(dto);
+            UserSummaryDto? created = await userService.RegisterUser(dto);
 
             if (created == null)
             {
@@ -33,9 +33,9 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginDto dto)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            LoginResponseDto result = userService.LoginUser(dto);
+            LoginResponseDto? result = await userService.LoginUser(dto);
 
             if (result == null)
             {
