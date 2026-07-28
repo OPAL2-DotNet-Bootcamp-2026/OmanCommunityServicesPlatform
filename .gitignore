@@ -429,5 +429,4 @@ FodyWeavers.xsd
 *.msp
 
 # App Settings
-appsettings.Development
 /OmanCommunityServicesPlatform/OmanCommunityServicesPlatform/appsettings.Development.json
