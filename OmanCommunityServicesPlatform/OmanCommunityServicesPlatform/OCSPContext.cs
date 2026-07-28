@@ -19,5 +19,32 @@ namespace OmanCommunityServicesPlatform
         public OCSPContext(DbContextOptions<OCSPContext> options) : base(options)
         {
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .Property(u => u.role)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Issue>()
+                .Property(i => i.currentStatus)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Issue>()
+                .Property(i => i.priority)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Region>()
+                .Property(r => r.governorate)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.type)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.type)
+                .HasConversion<string>();
+        }
     }
 }
