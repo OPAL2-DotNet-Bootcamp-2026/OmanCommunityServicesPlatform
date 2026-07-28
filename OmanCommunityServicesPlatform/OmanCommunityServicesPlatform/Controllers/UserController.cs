@@ -19,9 +19,9 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public IActionResult Register([FromBody] RegisterUserDto dto)
+        public async Task<IActionResult> Register([FromBody] RegisterUserDto dto)
         {
-            UserSummaryDto created = userService.RegisterUser(dto);
+            Task<UserSummaryDto?> created = userService.RegisterUser(dto);
 
             if (created == null)
             {
