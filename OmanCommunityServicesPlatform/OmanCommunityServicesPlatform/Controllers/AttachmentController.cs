@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Services;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -18,8 +17,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             attachmentService = _attachmentService;
         }
         // Citizen uploads an attachment to an issue
-
-        [EnableRateLimiting("CreatePolicy")]
+      
         [HttpPost("Create")]
         [Authorize(Roles = "Citizen")]
         public IActionResult Create([FromBody] CreateAttachmentDto dto)
