@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OmanCommunityServicesPlatform.Repositories;
 using OmanCommunityServicesPlatform.Services;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace OmanCommunityServicesPlatform
 {
@@ -71,6 +73,21 @@ namespace OmanCommunityServicesPlatform
             // Register Controllers
             builder.Services.AddControllers();
 
+            // Register Rate Limiter 
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.AddFixedWindowLimiter("IssuePolicy", limiterOptions =>
+                {
+                    limiterOptions.PermitLimit = 2; 
+                    limiterOptions.Window = TimeSpan.FromMinutes(1);
+
+                    limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    limiterOptions.QueueLimit = 0;
+                });
+
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            });
+
             // Swagger
             builder.Services.AddEndpointsApiExplorer();
             //builder.Services.AddSwaggerGen();
@@ -119,6 +136,7 @@ namespace OmanCommunityServicesPlatform
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseRateLimiter();
 
             app.MapControllers();
 
