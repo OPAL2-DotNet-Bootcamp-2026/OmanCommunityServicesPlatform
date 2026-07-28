@@ -33,7 +33,7 @@ namespace OmanCommunityServicesPlatform.Controllers
                 return Unauthorized();
             }
             
-            Task<IssueResponseDto?> created = issueService.Create(dto, reportedById);
+            IssueResponseDto? created = await issueService.Create(dto, reportedById);
 
             if (created == null)
             {
