@@ -6,103 +6,135 @@ namespace OmanCommunityServicesPlatform.Services
 {
     public class CategoryService
     {
-        private CategoryRepo categoryRepo;
-        public CategoryService(CategoryRepo _categoryRepo)
+        private readonly CategoryRepo categoryRepo;
+        private readonly DepartmentRepo departmentRepo;
+
+        public CategoryService(CategoryRepo _categoryRepo, DepartmentRepo _departmentRepo)
         {
             categoryRepo = _categoryRepo;
+            departmentRepo = _departmentRepo;
         }
-        //Get all categories 
+
+        // Get all categories 
         public List<ResponseCategoryDTO> GetAllCategories()
         {
             List<Category> categories = categoryRepo.GetAllCategories();
             List<ResponseCategoryDTO> response = new List<ResponseCategoryDTO>();
+
             foreach (Category category in categories)
             {
-                ResponseCategoryDTO dto = new ResponseCategoryDTO();
-                dto.categoryId = category.categoryId;
-                dto.categoryName = category.categoryName;
-                dto.description = category.description;
-                dto.departmentId = category.departmentId;
+                ResponseCategoryDTO dto = new ResponseCategoryDTO
+                {
+                    categoryId = category.categoryId,
+                    categoryName = category.categoryName,
+                    description = category.description,
+                    departmentId = category.departmentId,
+                    departmentName = category.department?.departmentName,
+                    issueCount = category.Issues?.Count ?? 0
+                };
 
-                if (category.department != null)
-                    dto.departmentName = category.department.departmentName;
-
-                dto.issueCount = category.Issues.Count;
                 response.Add(dto);
             }
             return response;
         }
-        //Get category response by Id 
+
+        // Get category response by Id 
         public ResponseCategoryDTO GetById(int id)
         {
             Category category = categoryRepo.GetCategoryById(id);
             if (category == null)
                 return null;
-            ResponseCategoryDTO response = new ResponseCategoryDTO();
-            response.categoryId = category.categoryId;
-            response.categoryName = category.categoryName;
-            response.description = category.description;
-            response.departmentId = category.departmentId;
 
-            if (category.department != null)
-                response.departmentName = category.department.departmentName;
-            response.issueCount = category.Issues.Count;
-            return response;
-
+            return new ResponseCategoryDTO
+            {
+                categoryId = category.categoryId,
+                categoryName = category.categoryName,
+                description = category.description,
+                departmentId = category.departmentId,
+                departmentName = category.department?.departmentName,
+                issueCount = category.Issues?.Count ?? 0
+            };
         }
-        //Create category
+
+        // Create category
         public ResponseCategoryDTO Create(CreateCategoryDTO dto)
         {
-            //category name must be unique
+            // 1. Category name must be unique
             if (categoryRepo.IsCategoryNameExist(dto.categoryName))
                 return null;
-            Category category = new Category();
-            category.categoryName = dto.categoryName;
-            category.description = dto.description;
-            category.departmentId = dto.departmentId;
+
+            // 2. Validate department exists and fetch its name
+            var department = departmentRepo.GetDepartmentById(dto.departmentId);
+            if (department == null)
+            {
+                return null; // Invalid departmentId
+            }
+
+            Category category = new Category
+            {
+                categoryName = dto.categoryName,
+                description = dto.description,
+                departmentId = dto.departmentId
+            };
+
             categoryRepo.Add(category);
-            ResponseCategoryDTO response = new ResponseCategoryDTO();
-            response.categoryId = category.categoryId;
-            response.categoryName = dto.categoryName;
-            response.description = dto.description;
-            response.departmentId = dto.departmentId;
-            response.issueCount = 0;
-            return response;
+
+            // 3. Return DTO with departmentName populated
+            return new ResponseCategoryDTO
+            {
+                categoryId = category.categoryId,
+                categoryName = category.categoryName,
+                description = category.description,
+                departmentId = category.departmentId,
+                departmentName = department.departmentName, // Populated from validated department
+                issueCount = 0
+            };
         }
-        //Update C
+
+        // Update category
         public ResponseCategoryDTO Update(int id, UpdateCategoryDTO dto)
         {
             Category category = categoryRepo.GetCategoryById(id);
-
             if (category == null)
                 return null;
+
+            // Unique category name check
             if (category.categoryName != dto.categoryName && categoryRepo.IsCategoryNameExist(dto.categoryName))
             {
                 return null;
             }
+
+            // Validate new department exists and fetch its name
+            var department = departmentRepo.GetDepartmentById(dto.departmentId);
+            if (department == null)
+            {
+                return null;
+            }
+
             category.categoryName = dto.categoryName;
             category.description = dto.description;
             category.departmentId = dto.departmentId;
+
             categoryRepo.Update();
 
-            ResponseCategoryDTO response = new ResponseCategoryDTO();
-
-            response.categoryId = category.categoryId;
-            response.categoryName = category.categoryName;
-            response.description = category.description;
-            response.departmentId = category.departmentId;
-            response.departmentName = category.department.departmentName;
-            response.issueCount = category.Issues.Count;
-            
-            return response;
+            return new ResponseCategoryDTO
+            {
+                categoryId = category.categoryId,
+                categoryName = category.categoryName,
+                description = category.description,
+                departmentId = category.departmentId,
+                departmentName = department.departmentName,
+                issueCount = category.Issues?.Count ?? 0
+            };
         }
 
-        //Delete category
+        // Delete category
         public bool Delete(int id)
         {
             Category category = categoryRepo.GetCategoryById(id);
             if (category == null)
                 return false;
+
             categoryRepo.Delete(category);
             return true;
         }
