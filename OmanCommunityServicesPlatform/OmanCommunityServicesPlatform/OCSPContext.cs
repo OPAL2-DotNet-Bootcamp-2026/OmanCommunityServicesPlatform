@@ -42,8 +42,8 @@ namespace OmanCommunityServicesPlatform
                 .Property(n => n.type)
                 .HasConversion<string>();
 
-            modelBuilder.Entity<Notification>()
-                .Property(n => n.type)
+            modelBuilder.Entity<Attachment>()
+                .Property(a => a.fileType)
                 .HasConversion<string>();
         }
     }
