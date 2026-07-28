@@ -1,5 +1,7 @@
 ﻿using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
+using OmanCommunityServicesPlatform.Models.Enums;
 using OmanCommunityServicesPlatform.Repositories;
 
 namespace OmanCommunityServicesPlatform.Services
@@ -8,15 +10,21 @@ namespace OmanCommunityServicesPlatform.Services
     {
         private StatusUpdateRepo statusUpdateRepo;
         private IssueRepo issueRepo;
+        private UserRepo userRepo;
+        private EmailService emailService;
+        private NotificationService notificationService;
 
-        public StatusUpdateService(StatusUpdateRepo _statusUpdateRepo, IssueRepo _issueRepo)
+        public StatusUpdateService(StatusUpdateRepo _statusUpdateRepo, IssueRepo _issueRepo, UserRepo _userRepo, EmailService _emailService, NotificationService _notificationService)
         {
             statusUpdateRepo = _statusUpdateRepo;
             issueRepo = _issueRepo;
+            userRepo = _userRepo;
+            emailService = _emailService;
+            notificationService = _notificationService;
         }
 
         // Create Status Update
-        public StatusUpdateResponseDto Create(CreateStatusUpdateDto dto , int userId)
+        public async Task<StatusUpdateResponseDto?> Create(CreateStatusUpdateDto dto , int userId)
         {
             Issue? issue = issueRepo.GetById(dto.issueId);
 
@@ -37,6 +45,29 @@ namespace OmanCommunityServicesPlatform.Services
 
             statusUpdateRepo.Add(statusUpdate);
             issueRepo.Update();
+
+            User? reporter = userRepo.GetById(issue.reportedById);
+
+            string message = dto.newStatus == IssueStatus.Resolved
+                ? "Your issue was resolved. Please rate the resolution."
+                : $"Your issue status changed to {dto.newStatus}.";
+
+            notificationService.CreateNotification(new CreateNotificationDTO
+            {
+                issueId = issue.issueId,
+                message = message,
+                type = NotificationType.StatusChange
+            }, issue.reportedById);
+
+            if (reporter != null)
+            {
+                await emailService.SendEmailAsync(
+                    reporter.email,
+                    "Issue Status Updated",
+                    $"Hi {reporter.fullName}, your issue \"{issue.title}\" status changed to {dto.newStatus}." +
+                    (dto.newStatus == IssueStatus.Resolved ? " Please rate the resolution when you have a moment." : "")
+                );
+            }
 
             StatusUpdateResponseDto response = new StatusUpdateResponseDto();
 

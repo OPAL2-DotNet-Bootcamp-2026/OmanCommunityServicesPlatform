@@ -121,7 +121,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             dto.issueId = id;
 
-            StatusUpdateResponseDto? result = statusUpdateService.Create(dto, userId);
+            Task<StatusUpdateResponseDto?> result = statusUpdateService.Create(dto, userId);
 
             if (result == null)
             {
