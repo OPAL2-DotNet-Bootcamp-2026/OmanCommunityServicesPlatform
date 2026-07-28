@@ -24,62 +24,69 @@ namespace OmanCommunityServicesPlatform.Services
         }
 
         // Create Status Update
-        public async Task<StatusUpdateResponseDto?> Create(CreateStatusUpdateDto dto , int userId)
+        public async Task<StatusUpdateResponseDto?> Create(int issueId, int updatedById, CreateStatusUpdateDto dto )
         {
-            Issue? issue = issueRepo.GetById(dto.issueId);
-
+            Issue? issue = issueRepo.GetById(issueId);
             if (issue == null)
                 return null;
 
-            StatusUpdate statusUpdate = new StatusUpdate();
+            IssueStatus previousStatus = issue.currentStatus;
 
-            statusUpdate.issueId = issue.issueId;
-            statusUpdate.updatedById = userId;
-            statusUpdate.previousStatus = issue.currentStatus;
-            statusUpdate.newStatus = dto.newStatus;
-            statusUpdate.notes = dto.notes;
-            statusUpdate.updatedAt = DateTime.UtcNow;
-
-            // Update issue current status
+            // 1. Update the issue status
             issue.currentStatus = dto.newStatus;
-
-            statusUpdateRepo.Add(statusUpdate);
             issueRepo.Update();
 
-            User? reporter = userRepo.GetById(issue.reportedById);
+            // 2. Create the StatusUpdate record
+            StatusUpdate statusUpdate = new StatusUpdate
+            {
+                issueId = issueId,
+                previousStatus = previousStatus,
+                newStatus = dto.newStatus,
+                notes = dto.notes,
+                updatedAt = DateTime.UtcNow,
+                updatedById = updatedById
+            };
+            statusUpdateRepo.Add(statusUpdate);
 
-            string message = dto.newStatus == IssueStatus.Resolved
-                ? "Your issue was resolved. Please rate the resolution."
-                : $"Your issue status changed to {dto.newStatus}.";
-
+            // 3. Send In-App Notification to the Citizen who reported the issue
             notificationService.CreateNotification(new CreateNotificationDTO
             {
                 issueId = issue.issueId,
-                message = message,
+                message = $"Your issue '{issue.title}' status changed to {dto.newStatus}.",
                 type = NotificationType.StatusChange
             }, issue.reportedById);
 
-            if (reporter != null)
+            // 4. Send Email Notification to the Citizen
+            User? reporter = userRepo.GetById(issue.reportedById);
+            
+            // Fire-and-forget or safety wrapper for email so external email failures don't break status updates
+            try
             {
-                await emailService.SendEmailAsync(
-                    reporter.email,
-                    "Issue Status Updated",
-                    $"Hi {reporter.fullName}, your issue \"{issue.title}\" status changed to {dto.newStatus}." +
-                    (dto.newStatus == IssueStatus.Resolved ? " Please rate the resolution when you have a moment." : "")
-                );
+                if (reporter != null)
+                {
+                    await emailService.SendEmailAsync(
+                        reporter.email,
+                        $"Issue Status Updated: {issue.title}",
+                        $"Hi {reporter.fullName}, the status of your issue \"{issue.title}\" has been updated from {previousStatus} to {dto.newStatus}."
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log exception (e.g., logger.LogError) without breaking the response
             }
 
-            StatusUpdateResponseDto response = new StatusUpdateResponseDto();
-
-            response.statusUpdateId = statusUpdate.statusUpdateId;
-            response.issueId = statusUpdate.issueId;
-            response.updatedById = statusUpdate.updatedById;
-            response.previousStatus = statusUpdate.previousStatus;
-            response.newStatus = statusUpdate.newStatus;
-            response.notes = statusUpdate.notes;
-            response.updatedAt = statusUpdate.updatedAt;
-
-            return response;
+            // 5. Return Response DTO
+            return new StatusUpdateResponseDto
+            {
+                statusUpdateId = statusUpdate.statusUpdateId,
+                issueId = issue.issueId,
+                updatedById = statusUpdate.updatedById,
+                previousStatus = previousStatus,
+                newStatus = dto.newStatus,
+                notes = dto.notes,
+                updatedAt = statusUpdate.updatedAt
+            };
         }
 
         // Get All Status Updates
