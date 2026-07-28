@@ -46,31 +46,6 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpGet("issue/{issueId}")]
         public IActionResult GetByIssueId(int issueId)
         {
-            var claim = User.FindFirst("userId");
-            if (claim == null || !int.TryParse(claim.Value, out int userId))
-            {
-                return Unauthorized();
-            }
-
-            bool isStaffOrAdmin = User.IsInRole("Staff") || User.IsInRole("Admin");
-
-            if (!isStaffOrAdmin)
-            {
-                // Citizens can only view comments on issues they reported
-                IssueResponseDto? issue = issueService.GetById(issueId);
-
-                if (issue == null)
-                {
-                    return NotFound(new { message = $"Issue with ID {issueId} was not found." });
-                }
-
-                // Requires IssueResponseDto to expose reportedById — add it if it doesn't already
-                if (issue.reportedById != userId)
-                {
-                    return Forbid();
-                }
-            }
-
             List<CommentResponseDto> comments = commentService.GetByIssueId(issueId);
 
             if (comments.Count == 0)
