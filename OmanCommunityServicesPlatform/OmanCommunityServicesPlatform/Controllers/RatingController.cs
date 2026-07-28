@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
 using System.Security.Claims;
@@ -108,6 +109,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // [Authorize] is inherited from the controller,
         // so the User must send a valid JWT.
+        [EnableRateLimiting("CreatePolicy")]
         [HttpPost("Create")]
         public IActionResult CreateRating(
             [FromBody] CreateRatingDto dto

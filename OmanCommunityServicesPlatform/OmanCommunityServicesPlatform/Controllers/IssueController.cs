@@ -4,6 +4,7 @@ using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Services;
 using static System.Net.Mime.MediaTypeNames;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -22,6 +23,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // POST issue/Create
         // Citizen reports a new issue
+        [EnableRateLimiting("CreatePolicy")]
         [HttpPost("Create")]
         [Authorize(Roles = "Citizen")]
         public IActionResult CreateIssue([FromBody] CreateIssueDto dto)

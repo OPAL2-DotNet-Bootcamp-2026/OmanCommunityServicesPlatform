@@ -17,6 +17,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             attachmentService = _attachmentService;
         }
         // Citizen uploads an attachment to an issue
+      
         [HttpPost("Create")]
         [Authorize(Roles = "Citizen")]
         public IActionResult Create([FromBody] CreateAttachmentDto dto)
