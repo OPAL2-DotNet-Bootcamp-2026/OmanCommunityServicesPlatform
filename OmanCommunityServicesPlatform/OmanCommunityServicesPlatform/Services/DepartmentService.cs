@@ -8,12 +8,14 @@ namespace OmanCommunityServicesPlatform.Services
     {
         private DepartmentRepo departmentRepo;
         private RegionRepo regionRepo;
+
         public DepartmentService(DepartmentRepo _departmentRepo, RegionRepo _regionRepo)
         {
             departmentRepo = _departmentRepo;
             regionRepo = _regionRepo;
         }
-        //Get all departments
+
+        // Get all departments
         public List<ResponseDepartmentDTO> GetAllDepartments()
         {
             List<Department> departments = departmentRepo.GetAllDepartments();
@@ -21,116 +23,142 @@ namespace OmanCommunityServicesPlatform.Services
 
             foreach (Department department in departments)
             {
-                ResponseDepartmentDTO dto = new ResponseDepartmentDTO();
-                dto.departmentId = department.departmentId;
-                dto.departmentName = department.departmentName;
-                dto.description = department.description;
-                dto.contactEmail = department.contactEmail;
-                dto.regionId = department.regionId;
-
-                if (department.region != null)
+                ResponseDepartmentDTO dto = new ResponseDepartmentDTO
                 {
-                    dto.regionName = department.region.regionName;
-                }
-                dto.categoryCount = department.Categories.Count;
-                dto.issueCount = department.Issues.Count;
-                dto.userCount = department.Users.Count;
+                    departmentId = department.departmentId,
+                    departmentName = department.departmentName,
+                    description = department.description,
+                    contactEmail = department.contactEmail,
+                    regionId = department.regionId,
+                    regionName = department.region?.regionName,
+                    categoryCount = department.Categories?.Count ?? 0,
+                    issueCount = department.Issues?.Count ?? 0,
+                    userCount = department.Users?.Count ?? 0
+                };
+
                 response.Add(dto);
             }
             return response;
         }
-        //Get department by id
+
+        // Get department by id
         public ResponseDepartmentDTO GetById(int id)
         {
             Department department = departmentRepo.GetDepartmentById(id);
             if (department == null)
                 return null;
 
-            ResponseDepartmentDTO response = new ResponseDepartmentDTO();
-
-            response.departmentId = department.departmentId;
-            response.departmentName = department.departmentName;
-            response.description = department.description;
-            response.contactEmail = department.contactEmail;
-            response.regionId = department.regionId;
-
-            if (department.region != null)
-                response.regionName = department.region.regionName;
-
-            response.categoryCount = department.Categories.Count;
-            response.issueCount = department.Issues.Count;
-            response.userCount = department.Users.Count;
-            return response;
+            return new ResponseDepartmentDTO
+            {
+                departmentId = department.departmentId,
+                departmentName = department.departmentName,
+                description = department.description,
+                contactEmail = department.contactEmail,
+                regionId = department.regionId,
+                regionName = department.region?.regionName,
+                categoryCount = department.Categories?.Count ?? 0,
+                issueCount = department.Issues?.Count ?? 0,
+                userCount = department.Users?.Count ?? 0
+            };
         }
-        //Create department
+
+        // Create department
         public ResponseDepartmentDTO Create(CreateDepartmentDTO dto)
         {
-
-            // department name must be unique
+            // Unique department name rule
             if (departmentRepo.IsDepartmentNameExist(dto.departmentName))
                 return null;
 
-            Department department = new Department();
-            department.departmentName = dto.departmentName;
-            department.description = dto.description;
-            department.contactEmail = dto.contactEmail;
-            // Check region exists
-            if (dto.regionId.HasValue && !regionRepo.Exists(dto.regionId.Value))
-            {
-                return null;
-            }
-            department.regionId = dto.regionId;
-            departmentRepo.Add(department);
-            ResponseDepartmentDTO response = new ResponseDepartmentDTO();
-            response.departmentId = department.departmentId;
-            response.departmentName = department.departmentName;
-            response.description = department.description;
-            response.contactEmail = department.contactEmail;
-            response.regionId = department.regionId;
+            string regionName = null;
 
-            return response;
+            // Validate region and get regionName before saving
+            if (dto.regionId.HasValue)
+            {
+                var region = regionRepo.GetById(dto.regionId.Value);
+                if (region == null)
+                {
+                    return null; // Invalid Region ID
+                }
+                regionName = region.regionName;
+            }
+
+            Department department = new Department
+            {
+                departmentName = dto.departmentName,
+                description = dto.description,
+                contactEmail = dto.contactEmail,
+                regionId = dto.regionId
+            };
+
+            departmentRepo.Add(department);
+
+            return new ResponseDepartmentDTO
+            {
+                departmentId = department.departmentId,
+                departmentName = department.departmentName,
+                description = department.description,
+                contactEmail = department.contactEmail,
+                regionId = department.regionId,
+                regionName = regionName,
+                categoryCount = 0,
+                issueCount = 0,
+                userCount = 0
+            };
         }
-        //Update department
+
+        // Update department
         public ResponseDepartmentDTO Update(int id, UpdateDepartmentDTO dto)
         {
-
             Department department = departmentRepo.GetDepartmentById(id);
-
             if (department == null)
                 return null;
 
-            // department name must not duplicate another department
+            // Duplicate name check
             if (department.departmentName != dto.departmentName && departmentRepo.IsDepartmentNameExist(dto.departmentName))
             {
                 return null;
             }
 
+            string regionName = null;
+
+            if (dto.regionId.HasValue)
+            {
+                var region = regionRepo.GetById(dto.regionId.Value);
+                if (region == null)
+                {
+                    return null;
+                }
+                regionName = region.regionName;
+            }
+
             department.departmentName = dto.departmentName;
             department.description = dto.description;
             department.contactEmail = dto.contactEmail;
-            if (dto.regionId.HasValue && !regionRepo.Exists(dto.regionId.Value))
-            {
-                return null;
-            }
             department.regionId = dto.regionId;
 
             departmentRepo.Update();
 
-            ResponseDepartmentDTO response = new ResponseDepartmentDTO();
-            response.departmentId = department.departmentId;
-            response.departmentName = department.departmentName;
-            response.description = department.description;
-            response.contactEmail = department.contactEmail;
-            response.regionId = department.regionId;
-
-            return response;
+            return new ResponseDepartmentDTO
+            {
+                departmentId = department.departmentId,
+                departmentName = department.departmentName,
+                description = department.description,
+                contactEmail = department.contactEmail,
+                regionId = department.regionId,
+                regionName = regionName,
+                categoryCount = department.Categories?.Count ?? 0,
+                issueCount = department.Issues?.Count ?? 0,
+                userCount = department.Users?.Count ?? 0
+            };
         }
-        //Delete department
+
+        // Delete department
         public bool Delete(int id)
         {
             Department department = departmentRepo.GetDepartmentById(id);
             if (department == null)
                 return false;
+
             departmentRepo.Delete(department);
             return true;
         }
