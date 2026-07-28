@@ -110,7 +110,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         // Admin and Staff changes the issue status
         [HttpPut("ChangeIssueStatus/{id}")]
         [Authorize(Roles = "Admin,Staff")]
-        public IActionResult ChangeIssueStatus([FromRoute] int id, [FromBody] CreateStatusUpdateDto dto)
+        public async Task<IActionResult> ChangeIssueStatus([FromRoute] int id, [FromBody] CreateStatusUpdateDto dto)
         {
             var claim = User.FindFirst("userId");
 
@@ -121,7 +121,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             dto.issueId = id;
 
-            Task<StatusUpdateResponseDto?> result = statusUpdateService.Create(dto, userId);
+            StatusUpdateResponseDto? result = await statusUpdateService.Create(dto, userId);
 
             if (result == null)
             {
