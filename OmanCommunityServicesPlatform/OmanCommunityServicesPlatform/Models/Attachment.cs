@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OmanCommunityServicesPlatform.Models.Enums;
+using OmanCommunityServicesPlatform.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

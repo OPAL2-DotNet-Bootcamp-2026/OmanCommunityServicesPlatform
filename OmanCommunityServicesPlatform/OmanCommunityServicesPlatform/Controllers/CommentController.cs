@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
 
@@ -21,6 +22,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // Any authenticated user can comment on an issue.
         // isStaffComment is derived server-side from the caller's role.
+        [EnableRateLimiting("CreatePolicy")]
         [HttpPost("newComment")]
         public IActionResult Create([FromBody] CreateCommentDto dto)
         {
