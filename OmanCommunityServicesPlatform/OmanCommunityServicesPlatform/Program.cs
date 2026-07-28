@@ -76,10 +76,10 @@ namespace OmanCommunityServicesPlatform
             // Register Rate Limiter 
             builder.Services.AddRateLimiter(options =>
             {
-                options.AddFixedWindowLimiter("IssuePolicy", limiterOptions =>
+                options.AddFixedWindowLimiter("CreatePolicy", limiterOptions =>
                 {
                     limiterOptions.PermitLimit = 2; 
-                    limiterOptions.Window = TimeSpan.FromMinutes(1);
+                    limiterOptions.Window = TimeSpan.FromSeconds(30);
 
                     limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                     limiterOptions.QueueLimit = 0;

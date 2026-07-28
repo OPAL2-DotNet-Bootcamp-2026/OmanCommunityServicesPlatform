@@ -23,7 +23,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // POST issue/Create
         // Citizen reports a new issue
-        [EnableRateLimiting("IssuePolicy")]
+        [EnableRateLimiting("CreatePolicy")]
         [HttpPost("Create")]
         [Authorize(Roles = "Citizen")]
         public IActionResult CreateIssue([FromBody] CreateIssueDto dto)
