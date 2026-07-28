@@ -18,7 +18,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         // Admin and Staff change the status of an issue
         [HttpPost("Create")]
         [Authorize(Roles = "Admin,Staff")]
-        public IActionResult Create([FromBody] CreateStatusUpdateDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateStatusUpdateDto dto)
         {
             // Get the logged-in Admin or Staff ID from the JWT token
             var claim = User.FindFirst("userId");
@@ -28,7 +28,7 @@ namespace OmanCommunityServicesPlatform.Controllers
                 return Unauthorized();
             }
 
-            StatusUpdateResponseDto? created = statusUpdateService.Create(dto, updatedById);
+            StatusUpdateResponseDto? created = await statusUpdateService.Create(dto, updatedById);
 
             if (created == null)
             {
