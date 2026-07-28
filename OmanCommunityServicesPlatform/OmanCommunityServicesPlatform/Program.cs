@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using OmanCommunityServicesPlatform.Repositories;
 using OmanCommunityServicesPlatform.Services;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
 namespace OmanCommunityServicesPlatform
@@ -72,7 +73,11 @@ namespace OmanCommunityServicesPlatform
             builder.Services.AddAuthorization();
 
             // Register Controllers
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
 
             // Register Rate Limiter 
             builder.Services.AddRateLimiter(options =>
