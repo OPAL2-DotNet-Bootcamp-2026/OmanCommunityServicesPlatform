@@ -24,7 +24,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         // Citizen reports a new issue
         [HttpPost("Create")]
         [Authorize(Roles = "Citizen")]
-        public IActionResult CreateIssue([FromBody] CreateIssueDto dto)
+        public async Task<IActionResult> CreateIssue([FromBody] CreateIssueDto dto)
         {
             var claim = User.FindFirst("userId");
 
@@ -32,7 +32,8 @@ namespace OmanCommunityServicesPlatform.Controllers
             {
                 return Unauthorized();
             }
-            IssueResponseDto created = issueService.Create(dto, reportedById);
+            
+            Task<IssueResponseDto?> created = issueService.Create(dto, reportedById);
 
             if (created == null)
             {

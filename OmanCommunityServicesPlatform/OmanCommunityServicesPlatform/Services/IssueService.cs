@@ -1,6 +1,7 @@
 ﻿using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
+using OmanCommunityServicesPlatform.Models.Enums;
 using OmanCommunityServicesPlatform.Repositories;
 
 namespace OmanCommunityServicesPlatform.Services
@@ -10,16 +11,22 @@ namespace OmanCommunityServicesPlatform.Services
         private IssueRepo issueRepo;
         private CategoryRepo categoryRepo;
         private RegionRepo regionRepo;
+        private UserRepo userRepo;
+        private EmailService emailService;
+        private NotificationService notificationService;
         
-        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, RegionRepo _regionRepo)
+        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, RegionRepo _regionRepo, UserRepo _userRepo, EmailService _emailService, NotificationService _notificationService)
         {
             issueRepo = _issueRepo;
             categoryRepo = _categoryRepo;    
             regionRepo = _regionRepo;
+            userRepo = _userRepo;
+            emailService = _emailService;
+            notificationService = _notificationService;
         }
 
         //create Issue 
-        public IssueResponseDto? Create(CreateIssueDto dto, int reportedById)
+        public async Task<IssueResponseDto?> Create(CreateIssueDto dto, int reportedById)
         {
             // Validate user-chosen references before touching the entity
             Category? category = categoryRepo.GetCategoryById(dto.categoryId);
@@ -48,6 +55,24 @@ namespace OmanCommunityServicesPlatform.Services
             issue.reportedDate = DateTime.UtcNow;
 
             issueRepo.Add(issue);
+
+            User? reporter = userRepo.GetById(reportedById);
+
+            notificationService.CreateNotification(new CreateNotificationDTO
+            {
+                issueId = issue.issueId,
+                message = "Your issue report was received and is now Open.",
+                type = NotificationType.Assignment
+            }, reportedById);
+
+            if (reporter != null)
+            {
+                await emailService.SendEmailAsync(
+                    reporter.email,
+                    "Issue Received",
+                    $"Hi {reporter.fullName}, your issue \"{issue.title}\" was received and is now Open."
+                );
+            }
 
             IssueResponseDto response = new IssueResponseDto();
 
