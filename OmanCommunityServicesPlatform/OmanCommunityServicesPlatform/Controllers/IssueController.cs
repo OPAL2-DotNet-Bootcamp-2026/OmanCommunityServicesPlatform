@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
-using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Services;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
