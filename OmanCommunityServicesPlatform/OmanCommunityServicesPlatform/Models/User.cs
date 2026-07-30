@@ -7,6 +7,7 @@ namespace OmanCommunityServicesPlatform.Models
 {
     [Table("Users")]
     [Index(nameof(email), IsUnique = true)]
+    [Index(nameof(phoneNumber), IsUnique = true)]
     public class User
     {
         [Key]
