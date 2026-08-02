@@ -126,6 +126,17 @@ namespace OmanCommunityServicesPlatform
                 });
             });
 
+            // CORS Allow requests from different origin (different port => e.g Frontend)
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200") // your Angular dev server
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -138,6 +149,7 @@ namespace OmanCommunityServicesPlatform
 
             app.UseHttpsRedirection();
 
+            app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
             app.UseAuthorization();
