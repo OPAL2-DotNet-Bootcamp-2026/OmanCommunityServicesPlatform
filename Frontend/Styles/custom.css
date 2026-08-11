@@ -155,7 +155,7 @@ body {
       rgba(251, 249, 248, 0.85) 92%,
       rgba(251, 249, 248, 1) 100%
     ),
-    url("hero-bg.png");
+    url("../assets/images/hero-bg.png");
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
