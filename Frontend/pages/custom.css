@@ -1,0 +1,437 @@
+/* ==========================================================================
+   OCSP — Shared Design System
+   Tokens below are taken directly from the original design so every page
+   (navbar, footer, home, and future pages) stays visually identical.
+   ========================================================================== */
+
+:root {
+  /* Core palette */
+  --ocsp-primary: #005796;
+  --ocsp-primary-container: #1d70b8;
+  --ocsp-on-primary: #ffffff;
+  --ocsp-secondary: #475aa3;
+
+  /* Status colors */
+  --ocsp-status-resolved: #00703C;
+  --ocsp-status-progress: #D97706;
+  --ocsp-status-open: #567189;
+
+  /* Surfaces */
+  --ocsp-background: #fbf9f8;
+  --ocsp-surface-bright: #fbf9f8;
+  --ocsp-surface-muted: #F3F2F1;
+  --ocsp-surface-container: #efeded;
+  --ocsp-surface-container-low: #f5f3f2;
+  --ocsp-surface-container-lowest: #ffffff;
+  --ocsp-surface-warm: #F6F4EE;
+
+  /* Text */
+  --ocsp-on-surface: #1b1c1c;
+  --ocsp-on-surface-variant: #414751;
+
+  /* Lines */
+  --ocsp-outline: #717782;
+  --ocsp-outline-variant: #c1c7d2;
+
+  /* Error / danger (used for notification badge) */
+  --ocsp-error: #ba1a1a;
+
+  /* Type */
+  --ocsp-font: "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  font-family: var(--ocsp-font);
+  background-color: var(--ocsp-background);
+  color: var(--ocsp-on-surface);
+}
+
+/* ==========================================================================
+   Navbar
+   ========================================================================== */
+
+.ocsp-navbar {
+  background-color: var(--ocsp-surface-bright);
+  border-bottom: 1px solid var(--ocsp-outline-variant);
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.ocsp-brand {
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--ocsp-primary) !important;
+  text-decoration: none;
+}
+
+.ocsp-navbar .nav-link {
+  color: var(--ocsp-on-surface-variant);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0.5rem 0.75rem;
+}
+
+.ocsp-navbar .nav-link:hover,
+.ocsp-navbar .nav-link:focus {
+  color: var(--ocsp-primary);
+}
+
+.ocsp-navbar .nav-link.active {
+  color: var(--ocsp-primary);
+}
+
+.btn-ocsp-primary {
+  background-color: var(--ocsp-primary);
+  color: var(--ocsp-on-primary) !important;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.25rem;
+  border: 2px solid var(--ocsp-primary);
+  text-decoration: none;
+  display: inline-block;
+  transition: opacity 0.2s ease;
+}
+
+.btn-ocsp-primary:hover {
+  opacity: 0.9;
+  color: var(--ocsp-on-primary);
+}
+
+.btn-ocsp-outline {
+  background-color: transparent;
+  color: var(--ocsp-primary) !important;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0.6rem 1.25rem;
+  border-radius: 0.25rem;
+  border: 2px solid var(--ocsp-primary);
+  text-decoration: none;
+  display: inline-block;
+  transition: background-color 0.2s ease;
+}
+
+.btn-ocsp-outline:hover {
+  background-color: var(--ocsp-surface-muted);
+  color: var(--ocsp-primary) !important;
+}
+
+.ocsp-badge {
+  font-size: 10px;
+  padding: 0.2em 0.45em;
+  position: relative;
+  top: -8px;
+  left: -2px;
+}
+
+/* ==========================================================================
+   Hero
+   ========================================================================== */
+
+.ocsp-hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--ocsp-surface-bright);
+  min-height: 620px;
+  display: flex;
+  align-items: center;
+  padding-top: 72px;
+  padding-bottom: 72px;
+}
+
+/* Right-side background image */
+.ocsp-hero::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 52%;
+  height: 100%;
+  background-image:
+    linear-gradient(
+      to left,
+      rgba(251, 249, 248, 0.06) 0%,
+      rgba(251, 249, 248, 0.18) 18%,
+      rgba(251, 249, 248, 0.85) 92%,
+      rgba(251, 249, 248, 1) 100%
+    ),
+    url("hero-bg.png");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+/* Optional soft wave feeling like Tajawob */
+.ocsp-hero::before {
+  content: "";
+  position: absolute;
+  right: -8%;
+  top: 10%;
+  width: 48%;
+  height: 80%;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ocsp-hero .container-xxl {
+  position: relative;
+  z-index: 1;
+}
+
+.ocsp-hero-content {
+  max-width: 560px;
+}
+
+.ocsp-hero-logo {
+  display: block;
+  height: 52px;
+  width: auto;
+  margin-bottom: 1rem;
+  background: transparent;
+}
+
+.ocsp-hero-title {
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 40px;
+  color: var(--ocsp-on-surface);
+}
+
+@media (min-width: 768px) {
+  .ocsp-hero-title {
+    font-size: 56px;
+    line-height: 64px;
+    letter-spacing: -0.02em;
+  }
+}
+
+.ocsp-hero-subtitle {
+  max-width: 620px;
+  font-size: 18px;
+  line-height: 30px;
+  color: var(--ocsp-on-surface-variant);
+}
+
+/* old image card no longer used */
+.ocsp-hero-image {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  .ocsp-hero {
+    min-height: auto;
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+
+  .ocsp-hero::after {
+    width: 100%;
+    opacity: 0.18;
+    background-image:
+      linear-gradient(
+        to bottom,
+        rgba(251, 249, 248, 0.95),
+        rgba(251, 249, 248, 0.92)
+      ),
+      url("../img/hero-bg.jpg");
+  }
+
+  .ocsp-hero-content {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   How it works
+   ========================================================================== */
+
+.ocsp-section-muted {
+  background-color: var(--ocsp-surface-muted);
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+
+.ocsp-section-title {
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 40px;
+  color: var(--ocsp-on-surface);
+}
+
+.ocsp-step-card {
+  background-color: var(--ocsp-surface-container-lowest);
+  border-radius: 0.5rem;
+  padding: 32px;
+  box-shadow: 0 16px 32px -12px rgba(29, 112, 184, 0.08);
+  transition: transform 0.25s ease;
+  height: 100%;
+}
+
+.ocsp-step-card:hover {
+  transform: translateY(-4px);
+}
+
+.ocsp-step-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  font-size: 24px;
+}
+
+.ocsp-step-icon-1 {
+  background-color: rgba(29, 112, 184, 0.1);
+  color: var(--ocsp-primary);
+}
+
+.ocsp-step-icon-2 {
+  background-color: rgba(217, 119, 6, 0.1);
+  color: var(--ocsp-status-progress);
+}
+
+.ocsp-step-icon-3 {
+  background-color: rgba(0, 112, 60, 0.1);
+  color: var(--ocsp-status-resolved);
+}
+
+.ocsp-step-title {
+  font-weight: 600;
+  font-size: 24px;
+  color: var(--ocsp-on-surface);
+  margin-bottom: 8px;
+}
+
+.ocsp-step-text {
+  color: var(--ocsp-on-surface-variant);
+}
+
+/* ==========================================================================
+   Stats bar
+   ========================================================================== */
+
+.ocsp-stats {
+  background-color: var(--ocsp-surface-container);
+  border-top: 1px solid rgba(193, 199, 210, 0.5);
+  border-bottom: 1px solid rgba(193, 199, 210, 0.5);
+  padding-top: 48px;
+  padding-bottom: 48px;
+}
+
+.ocsp-stat-value {
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 40px;
+}
+
+@media (min-width: 768px) {
+  .ocsp-stat-value {
+    font-size: 48px;
+    line-height: 56px;
+  }
+}
+
+.ocsp-stat-value--primary { color: var(--ocsp-primary); }
+.ocsp-stat-value--resolved { color: var(--ocsp-status-resolved); }
+.ocsp-stat-value--secondary { color: var(--ocsp-secondary); }
+
+.ocsp-stat-label {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: var(--ocsp-on-surface);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* Stat item dividers: a horizontal rule between stacked stats on mobile,
+   switching to a vertical rule between side-by-side stats on desktop. */
+.ocsp-stat-item {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.ocsp-stat-item:first-child {
+  padding-top: 0;
+}
+
+.ocsp-stat-item:last-child {
+  padding-bottom: 0;
+}
+
+.ocsp-stat-item + .ocsp-stat-item {
+  border-top: 1px solid rgba(193, 199, 210, 0.5);
+}
+
+@media (min-width: 768px) {
+  .ocsp-stat-item {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .ocsp-stat-item + .ocsp-stat-item {
+    border-top: none;
+    border-left: 1px solid rgba(193, 199, 210, 0.5);
+  }
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.ocsp-footer {
+  background-color: var(--ocsp-surface-container-low);
+  border-top: 1px solid var(--ocsp-outline-variant);
+}
+
+.ocsp-footer-title {
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--ocsp-primary);
+}
+
+.ocsp-footer-text {
+  color: var(--ocsp-on-surface-variant);
+}
+
+.ocsp-footer-link {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ocsp-on-surface-variant);
+  text-decoration: underline;
+}
+
+.ocsp-footer-link:hover {
+  color: var(--ocsp-primary);
+}
+
+.ocsp-footer-divider {
+  border-color: var(--ocsp-outline-variant);
+  opacity: 1;
+}
+
+.ocsp-footer-copy {
+  font-size: 12px;
+  color: var(--ocsp-on-surface-variant);
+}
+
+/* ==========================================================================
+   Component preview labels (used only in pieces/navbar.html and
+   pieces/footer.html to separate stacked states when previewing —
+   not part of the navbar/footer markup itself)
+   ========================================================================== */
+
+.ocsp-preview-label {
+  font-family: var(--ocsp-font);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ocsp-on-surface-variant);
+  padding: 12px 16px 0;
+}
