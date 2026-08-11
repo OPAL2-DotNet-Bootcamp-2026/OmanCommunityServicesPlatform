@@ -1,0 +1,53 @@
+<!-- Shell (logo, height, spacing, collapse/hamburger) is identical for every
+     state, matching the "shell never changes" rule from navbar.html. Only
+     the <ul> contents switch on userState. -->
+<nav class="navbar navbar-expand-lg ocsp-navbar sticky-top">
+  <div class="container-xxl px-3 px-md-4">
+    <a class="navbar-brand ocsp-brand" routerLink="/home">OCSP</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#ocspNav" aria-controls="ocspNav"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="ocspNav">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
+
+        <!-- Guest -->
+        <ng-container *ngIf="userState === 'guest'">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/home" routerLinkActive="active">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/login" routerLinkActive="active">Login</a>
+          </li>
+          <li class="nav-item ms-lg-2 mb-2 mb-lg-0">
+            <a class="btn-ocsp-primary" routerLink="/register">Register</a>
+          </li>
+        </ng-container>
+
+        <!-- Citizen / Staff share the same link set today -->
+        <ng-container *ngIf="userState === 'citizen' || userState === 'staff'">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/home" routerLinkActive="active">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/notifications" routerLinkActive="active">
+              Notifications
+              <span *ngIf="notificationCount > 0"
+                    class="badge rounded-pill bg-danger ocsp-badge">{{ notificationCount }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/login">Logout</a>
+          </li>
+        </ng-container>
+
+      </ul>
+    </div>
+  </div>
+</nav>
