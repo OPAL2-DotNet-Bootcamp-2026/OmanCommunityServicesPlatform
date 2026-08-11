@@ -1,0 +1,127 @@
+<!-- pieces/staff-issue-card.html -->
+<div class="accordion-item border-0 shadow-sm rounded overflow-hidden issue-card priority-{priority.ToLower()}">
+    
+    <!-- SUMMARY ROW WITH STRICT GRID ALIGNMENT -->
+    <h2 class="accordion-header" id="heading-{issueId}">
+        <button class="accordion-button collapsed px-4 py-3 bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{issueId}" aria-expanded="false" aria-controls="collapse-{issueId}">
+            <div class="row align-items-center w-100 me-2 g-2 text-start">
+                
+                <div class="col-12 col-md-3">
+                    <h6 class="mb-0 fw-bold text-dark text-truncate">{title}</h6>
+                    <small class="text-muted">REQ-{issueId}</small>
+                </div>
+                
+                <div class="col-6 col-md-2 text-dark small">
+                    User ID: {reportedById}
+                </div>
+                
+                <div class="col-12 col-md-3 text-muted small">
+                    <span class="fw-semibold text-dark">{departmentName}</span><br>
+                    <span class="text-secondary">{categoryName} • {regionName}</span>
+                </div>
+                
+                <div class="col-6 col-md-2 text-md-center">
+                    <span class="badge rounded-pill px-3 py-2 badge-status-{currentStatus.ToLower()}">
+                        <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i> {currentStatus}
+                    </span>
+                </div>
+                
+                <div class="col-12 col-md-2 text-md-end text-muted small">
+                    {reportedDate}
+                </div>
+            </div>
+        </button>
+    </h2>
+
+    <!-- EXPANDED VIEW -->
+    <div id="collapse-{issueId}" class="accordion-collapse collapse" aria-labelledby="heading-{issueId}" data-bs-parent="#issuesAccordion">
+        <div class="accordion-body bg-white p-4 border-top">
+            <div class="row">
+                
+                <!-- LEFT COLUMN: Details & Action Panel -->
+                <div class="col-md-7 pe-md-4 border-end">
+                    <p class="mb-2"><strong>Description:</strong> {description}</p>
+                    <p class="mb-3 text-muted small"><i class="bi bi-geo-alt-fill me-1"></i> {location}</p>
+
+                    <div class="mb-4 rounded overflow-hidden border bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            style="border:0"
+                            loading="lazy"
+                            allowfullscreen
+                            referrerpolicy="no-referrer-when-downgrade"
+                            src="https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q={latitude},{longitude}">
+                        </iframe>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Staff Action Panel / Resolution Block -->
+                    <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.8rem; letter-spacing: 0.5px;">Staff Action Panel</h6>
+                    
+                    <!-- DISPLAY IF IN-PROGRESS / OPEN -->
+                    <!-- 
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-dark">Next Status</label>
+                            <select class="form-select bg-light">
+                                <option>In Progress</option>
+                                <option>Resolved</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Internal Notes</label>
+                        <textarea class="form-control bg-light" rows="3" placeholder="Add resolution steps..."></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-light border">Cancel</button>
+                        <button type="button" class="btn btn-primary-custom px-4">Update Status</button>
+                    </div>
+                    -->
+
+                    <!-- DISPLAY IF RESOLVED (Shows Citizen Rating) -->
+                    <div class="alert alert-success bg-opacity-10 border-success-subtle text-success small mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i> This issue has been successfully resolved and closed.
+                    </div>
+
+                    <!-- Citizen Rating Component -->
+                    <div class="card border-0 bg-light p-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-bold small text-dark">Citizen Feedback & Rating</span>
+                            <div class="text-warning small">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <span class="fw-bold text-dark ms-1">5.0 / 5</span>
+                            </div>
+                        </div>
+                        <p class="mb-0 small text-muted">"{citizenFeedback}"</p>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN: Comments Section -->
+                <div class="col-md-5 ps-md-4 d-flex flex-column">
+                    <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-chat-text me-2"></i>Comments
+                    </h6>
+                    
+                    <div class="d-flex flex-column gap-3 mb-3 flex-grow-1 overflow-y-auto pe-1" style="height: 0; min-height: 300px;">
+                        <!-- Comment loop goes here -->
+                    </div>
+
+                    <div class="input-group mt-auto pt-2">
+                        <input type="text" class="form-control rounded-start" placeholder="Add a public comment...">
+                        <button class="btn btn-outline-secondary px-3" type="button">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
