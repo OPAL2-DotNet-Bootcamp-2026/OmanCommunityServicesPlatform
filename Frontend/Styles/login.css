@@ -60,7 +60,7 @@ body {
 
 /* Form */
 
-form {
+#loginForm {
     display: flex;
     flex-direction: column;
 }
@@ -146,6 +146,20 @@ form {
 
 .sign-in-button:hover {
     background-color: #176ba9;
+}
+/* Error Message */
+.error-message {
+    margin: -6px 0 16px;
+    padding: 10px 12px;
+
+    color: #b42318;
+    background-color: #fff4f2;
+
+    border: 1px solid #f0c7c3;
+    border-radius: 4px;
+
+    font-size: 12px;
+    line-height: 18px;
 }
 
 

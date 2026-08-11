@@ -64,7 +64,7 @@ body {
 
 /* Form */
 
-form {
+#registerForm {
     display: flex;
     flex-direction: column;
 }

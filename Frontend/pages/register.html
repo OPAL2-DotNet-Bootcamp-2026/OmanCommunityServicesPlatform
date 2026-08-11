@@ -36,16 +36,16 @@
             </div>
 
             <!-- Registration Form -->
-            <form action="#" method="post">
+            <form id="registerForm" action="#" method="post">
 
                 <!-- Full Name -->
                 <div class="form-group">
 
-                    <label for="fullName">
+                    <label for="name">
                         Full Name
                     </label>
 
-                    <input type="text" id="fullName" name="fullName" placeholder="e.g. Ahmed Al Harthi" required>
+                    <input type="text" id="name" name="name" placeholder="e.g. Ahmed Al Harthi" maxlength="50" required>
 
                 </div>
 
@@ -56,18 +56,20 @@
                         Email
                     </label>
 
-                    <input type="email" id="email" name="email" placeholder="ahmed@example.com" required>
+                    <input type="email" id="email" name="email" placeholder="ahmed@example.com" maxlength="150"
+                        required>
 
                 </div>
 
                 <!-- Phone Number -->
                 <div class="form-group">
 
-                    <label for="phone">
+                    <label for="phoneNumber">
                         Phone Number
                     </label>
 
-                    <input type="tel" id="phone" name="phone" placeholder="+968 9123 4567" required>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="+968 9123 4567" minlength="8"
+                        maxlength="20">
 
                 </div>
 
@@ -78,67 +80,31 @@
                         Password
                     </label>
 
-                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    <input type="password" id="password" name="password" minlength="6" maxlength="256"  placeholder="Enter your password" required>
 
                 </div>
 
                 <!-- Region -->
                 <div class="form-group">
 
-                    <label for="region">
+                    <label for="regionId">
                         Region
                     </label>
 
-                    <select id="region" name="region" required>
+                    <select id="regionId" name="regionId">
+                        <option value="" selected>Select your region</option>
 
-                        <option value="" disabled selected>
-                            Select your region
-                        </option>
-
-                        <option value="muscat">
-                            Muscat Governorate
-                        </option>
-
-                        <option value="dhofar">
-                            Dhofar Governorate
-                        </option>
-
-                        <option value="musandam">
-                            Musandam Governorate
-                        </option>
-
-                        <option value="buraimi">
-                            Al Buraimi Governorate
-                        </option>
-
-                        <option value="dakhiliyah">
-                            Al Dakhiliyah Governorate
-                        </option>
-
-                        <option value="batinah-north">
-                            Al Batinah North Governorate
-                        </option>
-
-                        <option value="batinah-south">
-                            Al Batinah South Governorate
-                        </option>
-
-                        <option value="sharqiyah-north">
-                            Al Sharqiyah North Governorate
-                        </option>
-
-                        <option value="sharqiyah-south">
-                            Al Sharqiyah South Governorate
-                        </option>
-
-                        <option value="dhahirah">
-                            Al Dhahirah Governorate
-                        </option>
-
-                        <option value="wusta">
-                            Al Wusta Governorate
-                        </option>
-
+                        <option>Muscat </option>
+                        <option>Dhofar </option>
+                        <option>Musandam </option>
+                        <option>Al Buraimi </option>
+                        <option>Ad Dakhiliyah </option>
+                        <option>Al Batinah North </option>
+                        <option>Al Batinah South </option>
+                        <option>Ash Sharqiyah North </option>
+                        <option>Ash Sharqiyah South </option>
+                        <option>Adh Dhahirah </option>
+                        <option>Al Wusta </option>
                     </select>
 
                 </div>
