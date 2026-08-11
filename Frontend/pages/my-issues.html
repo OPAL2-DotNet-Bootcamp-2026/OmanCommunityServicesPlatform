@@ -220,7 +220,7 @@
                 </div>
                 <div class="col-lg-8">
                   <span class="content-label">
-                    Updates &amp; comments
+                    Comments
                   </span>
                   <div aria-label="Issue updates and comments" class="comment-thread" role="list">
                     <article class="comment-card" role="listitem">
@@ -362,7 +362,7 @@
                 </div>
                 <div class="col-lg-8">
                   <span class="content-label">
-                    Updates &amp; comments
+                    Comments
                   </span>
                   <div aria-label="Issue updates and comments" class="comment-thread" role="list">
                     <article class="comment-card" role="listitem">
@@ -569,7 +569,7 @@
                 </div>
                 <div class="col-lg-8">
                   <span class="content-label">
-                    Updates &amp; comments
+                    Comments
                   </span>
                   <div aria-label="Issue updates and comments" class="comment-thread" role="list">
                     <article class="comment-card comment-card--highlighted" role="listitem">
@@ -813,7 +813,7 @@
                 </div>
                 <div class="col-lg-8">
                   <span class="content-label">
-                    Updates &amp; comments
+                    Comments
                   </span>
                   <div aria-label="Issue updates and comments" class="comment-thread" role="list">
                     <article class="comment-card comment-card--highlighted" role="listitem">
@@ -1171,86 +1171,6 @@
       </div>
     </div>
   </section>
-  <!-- Geolocation needs JavaScript, kept inline so the prototype remains only HTML + CSS files. -->
-  <script>
-    (() => {
-      const locationButton = document.getElementById("useCurrentLocation");
-      const locationStatus = document.getElementById("locationStatus");
-      const locationInput = document.getElementById("issueLocation");
-      const latitudeInput = document.getElementById("issueLatitude");
-      const longitudeInput = document.getElementById("issueLongitude");
-
-      if (!locationButton || !locationStatus || !latitudeInput || !longitudeInput) {
-        return;
-      }
-
-      const setStatus = (message, state = "") => {
-        locationStatus.textContent = message;
-        locationStatus.className = `location-capture__status${state ? ` is-${state}` : ""}`;
-      };
-
-      locationButton.addEventListener("click", () => {
-        if (!("geolocation" in navigator)) {
-          setStatus("Location is not supported by this browser.", "error");
-          return;
-        }
-
-        if (!window.isSecureContext) {
-          setStatus("For location access, preview this page through localhost or HTTPS.", "error");
-          return;
-        }
-
-        const originalMarkup = locationButton.innerHTML;
-        locationButton.classList.remove("is-captured", "btn-outline-success", "btn-success");
-        locationButton.classList.add("btn-outline-primary");
-        locationButton.disabled = true;
-        locationButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Finding location...';
-        setStatus("Waiting for browser permission...", "loading");
-
-        navigator.geolocation.getCurrentPosition(
-          ({ coords }) => {
-            const latitude = coords.latitude.toFixed(6);
-            const longitude = coords.longitude.toFixed(6);
-
-            latitudeInput.value = latitude;
-            longitudeInput.value = longitude;
-
-            if (!locationInput.value.trim()) {
-              locationInput.value = `Current device location (${latitude}, ${longitude})`;
-            }
-
-            const accuracy = Number.isFinite(coords.accuracy)
-              ? ` Accuracy: approximately ±${Math.round(coords.accuracy)} metres.`
-              : "";
-
-            setStatus(`Current location captured.${accuracy}`, "success");
-            locationButton.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Location Captured';
-            locationButton.classList.remove("btn-outline-success", "btn-success");
-            locationButton.classList.add("btn-outline-primary", "is-captured");
-            locationButton.disabled = false;
-          },
-          (error) => {
-            const messages = {
-              1: "Location permission was denied. You can still enter the street or landmark manually.",
-              2: "Your current location could not be determined. Please try again or enter it manually.",
-              3: "The location request timed out. Please try again."
-            };
-
-            setStatus(messages[error.code] || "The location could not be captured.", "error");
-            locationButton.innerHTML = originalMarkup;
-            locationButton.classList.remove("is-captured", "btn-outline-success", "btn-success");
-            locationButton.classList.add("btn-outline-primary");
-            locationButton.disabled = false;
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 12000,
-            maximumAge: 60000
-          }
-        );
-      });
-    })();
-  </script>
 </body>
 
 </html>
