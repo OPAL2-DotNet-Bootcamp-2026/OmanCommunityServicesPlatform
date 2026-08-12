@@ -51,8 +51,8 @@ body {
    ========================================================================== */
 
 .ocsp-navbar {
-background-color: var(--ocsp-primary);
-border-bottom: 1px solid var(--ocsp-primary-container);
+  background-color: var(--ocsp-primary);
+  border-bottom: 1px solid var(--ocsp-primary-container);
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
@@ -60,12 +60,12 @@ border-bottom: 1px solid var(--ocsp-primary-container);
 .ocsp-brand {
   font-weight: 700;
   font-size: 24px;
-  color: var(--ocsp-on-primary) !important;
+  color: var(--ocsp-on-primary);
   text-decoration: none;
 }
 
 .ocsp-navbar .nav-link {
-color: var(--ocsp-on-primary);
+  color: var(--ocsp-on-primary);
   font-weight: 600;
   font-size: 14px;
   padding: 0.5rem 0.75rem;
@@ -73,24 +73,24 @@ color: var(--ocsp-on-primary);
 
 .ocsp-navbar .nav-link:hover,
 .ocsp-navbar .nav-link:focus {
-color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .ocsp-navbar .nav-link.active {
-  color: var(--ocsp-on-primary) !important;
+  color: var(--ocsp-on-primary);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
 .ocsp-navbar .btn-ocsp-primary {
   background-color: var(--ocsp-on-primary);
-  color: var(--ocsp-primary) !important;
+  color: var(--ocsp-primary);
   border-color: var(--ocsp-on-primary);
 }
 
 .ocsp-navbar .btn-ocsp-primary:hover {
   opacity: 0.9;
-  color: var(--ocsp-primary) !important;
+  color: var(--ocsp-primary);
 }
 
 .ocsp-navbar .navbar-toggler {
@@ -100,9 +100,10 @@ color: rgba(255, 255, 255, 0.75);
 .ocsp-navbar .navbar-toggler-icon {
   filter: invert(1) brightness(2);
 }
+
 .btn-ocsp-primary {
   background-color: var(--ocsp-primary);
-  color: var(--ocsp-on-primary) !important;
+  color: var(--ocsp-on-primary);
   font-weight: 600;
   font-size: 14px;
   padding: 0.6rem 1.25rem;
@@ -120,7 +121,7 @@ color: rgba(255, 255, 255, 0.75);
 
 .btn-ocsp-outline {
   background-color: transparent;
-  color: var(--ocsp-primary) !important;
+  color: var(--ocsp-primary);
   font-weight: 600;
   font-size: 14px;
   padding: 0.6rem 1.25rem;
@@ -133,7 +134,7 @@ color: rgba(255, 255, 255, 0.75);
 
 .btn-ocsp-outline:hover {
   background-color: var(--ocsp-surface-muted);
-  color: var(--ocsp-primary) !important;
+  color: var(--ocsp-primary);
 }
 
 .ocsp-badge {
@@ -170,13 +171,11 @@ color: rgba(255, 255, 255, 0.75);
   width: 52%;
   height: 100%;
   background-image:
-    linear-gradient(
-      to left,
+    linear-gradient(to left,
       rgba(251, 249, 248, 0.06) 0%,
       rgba(251, 249, 248, 0.18) 18%,
       rgba(251, 249, 248, 0.85) 92%,
-      rgba(251, 249, 248, 1) 100%
-    ),
+      rgba(251, 249, 248, 1) 100%),
     url("../assets/images/hero-bg.png");
   background-size: cover;
   background-position: center center;
@@ -196,7 +195,7 @@ color: rgba(255, 255, 255, 0.75);
   width: 48%;
   height: 80%;
   background:
-    radial-gradient(circle at center, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%);
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 70%);
   z-index: 0;
   pointer-events: none;
 }
@@ -256,11 +255,9 @@ color: rgba(255, 255, 255, 0.75);
     width: 100%;
     opacity: 0.18;
     background-image:
-      linear-gradient(
-        to bottom,
+      linear-gradient(to bottom,
         rgba(251, 249, 248, 0.95),
-        rgba(251, 249, 248, 0.92)
-      ),
+        rgba(251, 249, 248, 0.92)),
       url("../img/hero-bg.jpg");
   }
 
@@ -361,9 +358,17 @@ color: rgba(255, 255, 255, 0.75);
   }
 }
 
-.ocsp-stat-value--primary { color: var(--ocsp-primary); }
-.ocsp-stat-value--resolved { color: var(--ocsp-status-resolved); }
-.ocsp-stat-value--secondary { color: var(--ocsp-secondary); }
+.ocsp-stat-value--primary {
+  color: var(--ocsp-primary);
+}
+
+.ocsp-stat-value--resolved {
+  color: var(--ocsp-status-resolved);
+}
+
+.ocsp-stat-value--secondary {
+  color: var(--ocsp-secondary);
+}
 
 .ocsp-stat-label {
   font-weight: 600;
@@ -389,7 +394,7 @@ color: rgba(255, 255, 255, 0.75);
   padding-bottom: 0;
 }
 
-.ocsp-stat-item + .ocsp-stat-item {
+.ocsp-stat-item+.ocsp-stat-item {
   border-top: 1px solid rgba(193, 199, 210, 0.5);
 }
 
@@ -399,7 +404,7 @@ color: rgba(255, 255, 255, 0.75);
     padding-bottom: 0;
   }
 
-  .ocsp-stat-item + .ocsp-stat-item {
+  .ocsp-stat-item+.ocsp-stat-item {
     border-top: none;
     border-left: 1px solid rgba(193, 199, 210, 0.5);
   }
