@@ -51,8 +51,8 @@ body {
    ========================================================================== */
 
 .ocsp-navbar {
-  background-color: var(--ocsp-surface-bright);
-  border-bottom: 1px solid var(--ocsp-outline-variant);
+background-color: var(--ocsp-primary);
+border-bottom: 1px solid var(--ocsp-primary-container);
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
@@ -60,12 +60,12 @@ body {
 .ocsp-brand {
   font-weight: 700;
   font-size: 24px;
-  color: var(--ocsp-primary) !important;
+  color: var(--ocsp-on-primary) !important;
   text-decoration: none;
 }
 
 .ocsp-navbar .nav-link {
-  color: var(--ocsp-on-surface-variant);
+color: var(--ocsp-on-primary);
   font-weight: 600;
   font-size: 14px;
   padding: 0.5rem 0.75rem;
@@ -73,13 +73,33 @@ body {
 
 .ocsp-navbar .nav-link:hover,
 .ocsp-navbar .nav-link:focus {
-  color: var(--ocsp-primary);
+color: rgba(255, 255, 255, 0.75);
 }
 
 .ocsp-navbar .nav-link.active {
-  color: var(--ocsp-primary);
+  color: var(--ocsp-on-primary) !important;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
+.ocsp-navbar .btn-ocsp-primary {
+  background-color: var(--ocsp-on-primary);
+  color: var(--ocsp-primary) !important;
+  border-color: var(--ocsp-on-primary);
+}
+
+.ocsp-navbar .btn-ocsp-primary:hover {
+  opacity: 0.9;
+  color: var(--ocsp-primary) !important;
+}
+
+.ocsp-navbar .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.ocsp-navbar .navbar-toggler-icon {
+  filter: invert(1) brightness(2);
+}
 .btn-ocsp-primary {
   background-color: var(--ocsp-primary);
   color: var(--ocsp-on-primary) !important;
@@ -124,6 +144,8 @@ body {
   left: -2px;
 }
 
+
+
 /* ==========================================================================
    Hero
    ========================================================================== */
@@ -161,6 +183,9 @@ body {
   background-repeat: no-repeat;
   z-index: 0;
 }
+
+
+
 
 /* Optional soft wave feeling like Tajawob */
 .ocsp-hero::before {
