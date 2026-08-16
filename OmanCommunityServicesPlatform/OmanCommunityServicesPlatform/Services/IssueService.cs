@@ -244,19 +244,133 @@ namespace OmanCommunityServicesPlatform.Services
             }
             return response;
         }
+        // Get Issues By Status
+        public List<IssueResponseDto> GetIssueByStatus(IssueStatus status)
+        {
+            List<Issue> issues = issueRepo.GetIssueByStatus(status);
 
-        // Resolve Issue 
-        //public bool ResolveIssue(int id)
-        //{
-        //    Issue issue = issueRepo.GetById(id);
+            List<IssueResponseDto> response = new List<IssueResponseDto>();
 
-        //    if (issue == null)
-        //        return false;
+            foreach (Issue issue in issues)
+            {
+                IssueResponseDto dto = new IssueResponseDto();
 
-        //    issue.currentStatus = IssueStatus.Resolved;
-        //    issueRepo.Update();
+                dto.issueId = issue.issueId;
+                dto.title = issue.title;
+                dto.description = issue.description;
+                dto.location = issue.location;
+                dto.latitude = issue.latitude;
+                dto.longitude = issue.longitude;
+                dto.priority = issue.priority;
+                dto.currentStatus = issue.currentStatus;
+                dto.reportedDate = issue.reportedDate;
+                dto.reportedById = issue.reportedById;
+                dto.categoryName = issue.category?.categoryName;
+                dto.regionName = issue.region?.regionName;
+                dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
 
-        //    return true;
-        //}
+                response.Add(dto);
+            }
+
+            return response;
+        }
+
+
+        // Get Issues By Priority
+        public List<IssueResponseDto> GetIssueByPriority(IssuePriority priority)
+        {
+            List<Issue> issues = issueRepo.GetIssueByPriority(priority);
+
+            List<IssueResponseDto> response = new List<IssueResponseDto>();
+
+            foreach (Issue issue in issues)
+            {
+                IssueResponseDto dto = new IssueResponseDto();
+
+                dto.issueId = issue.issueId;
+                dto.title = issue.title;
+                dto.description = issue.description;
+                dto.location = issue.location;
+                dto.latitude = issue.latitude;
+                dto.longitude = issue.longitude;
+                dto.priority = issue.priority;
+                dto.currentStatus = issue.currentStatus;
+                dto.reportedDate = issue.reportedDate;
+                dto.reportedById = issue.reportedById;
+                dto.categoryName = issue.category?.categoryName;
+                dto.regionName = issue.region?.regionName;
+                dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+
+                response.Add(dto);
+            }
+
+            return response;
+        }
+
+
+        // Get Issues By Category
+        public List<IssueResponseDto> GetIssueByCategory(int categoryId)
+        {
+            List<Issue> issues = issueRepo.GetIssueByCategory(categoryId);
+
+            List<IssueResponseDto> response = new List<IssueResponseDto>();
+
+            foreach (Issue issue in issues)
+            {
+                IssueResponseDto dto = new IssueResponseDto();
+
+                dto.issueId = issue.issueId;
+                dto.title = issue.title;
+                dto.description = issue.description;
+                dto.location = issue.location;
+                dto.latitude = issue.latitude;
+                dto.longitude = issue.longitude;
+                dto.priority = issue.priority;
+                dto.currentStatus = issue.currentStatus;
+                dto.reportedDate = issue.reportedDate;
+                dto.reportedById = issue.reportedById;
+                dto.categoryName = issue.category?.categoryName;
+                dto.regionName = issue.region?.regionName;
+                dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+
+                response.Add(dto);
+            }
+
+            return response;
+        }
+
+
+        // Get Issues By Department
+        public List<IssueResponseDto> GetIssueByDepartment(int departmentId)
+        {
+            List<Issue> issues = issueRepo.GetIssueByDepartment(departmentId);
+
+            List<IssueResponseDto> response = new List<IssueResponseDto>();
+
+            foreach (Issue issue in issues)
+            {
+                IssueResponseDto dto = new IssueResponseDto();
+
+                dto.issueId = issue.issueId;
+                dto.title = issue.title;
+                dto.description = issue.description;
+                dto.location = issue.location;
+                dto.latitude = issue.latitude;
+                dto.longitude = issue.longitude;
+                dto.priority = issue.priority;
+                dto.currentStatus = issue.currentStatus;
+                dto.reportedDate = issue.reportedDate;
+                dto.reportedById = issue.reportedById;
+                dto.categoryName = issue.category?.categoryName;
+                dto.regionName = issue.region?.regionName;
+                dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+
+                response.Add(dto);
+            }
+
+            return response;
+        }
+
+
     }
 }

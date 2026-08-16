@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
 
 namespace OmanCommunityServicesPlatform.Repositories
@@ -64,6 +65,49 @@ namespace OmanCommunityServicesPlatform.Repositories
         {
             context.Issues.Remove(issue);
             context.SaveChanges();
+        }
+        // Get Issues By Status
+        public List<Issue> GetIssueByStatus(IssueStatus status)
+        {
+            return context.Issues
+                .Include(i => i.category)
+                .Include(i => i.region)
+                .Include(i => i.assignedDepartment)
+                .Where(i => i.currentStatus == status)
+                .ToList();
+        }
+
+        // Get Issues By Priority
+        public List<Issue> GetIssueByPriority(IssuePriority priority)
+        {
+            return context.Issues
+                .Include(i => i.category)
+                .Include(i => i.region)
+                .Include(i => i.assignedDepartment)
+                .Where(i => i.priority == priority)
+                .ToList();
+        }
+
+        // Get Issues By Category
+        public List<Issue> GetIssueByCategory(int categoryId)
+        {
+            return context.Issues
+                .Include(i => i.category)
+                .Include(i => i.region)
+                .Include(i => i.assignedDepartment)
+                .Where(i => i.categoryId == categoryId)
+                .ToList();
+        }
+
+        // Get Issues By Department
+        public List<Issue> GetIssueByDepartment(int departmentId)
+        {
+            return context.Issues
+                .Include(i => i.category)
+                .Include(i => i.region)
+                .Include(i => i.assignedDepartment)
+                .Where(i => i.assignedDepartmentId == departmentId)
+                .ToList();
         }
     }
 }
