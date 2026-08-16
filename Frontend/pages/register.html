@@ -3,141 +3,157 @@
 
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="description" content="Create an Oman Community Services Platform account to access civic services.">
     <title>OCSP - Create Account</title>
 
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <!-- CSS File -->
-    <link rel="stylesheet" href="/Styles/register.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="Styles/ocsp-site.css">
 </head>
 
-<body>
+<body class="site-page">
+    <a class="skip-link" href="#registerForm">Skip to registration form</a>
 
-    <!-- Main Content -->
-    <main class="main-content">
-
-        <!-- Register Card -->
-        <section class="register-card">
-
-            <!-- Register Header -->
-            <div class="register-header">
-
-                <h1>Create Your Account</h1>
-
-                <p>
-                    Join the Oman Community Services Platform
-                    to access civic services.
-                </p>
-
-            </div>
-
-            <!-- Registration Form -->
-            <form id="registerForm" action="#" method="post">
-
-                <!-- Full Name -->
-                <div class="form-group">
-
-                    <label for="name">
-                        Full Name
-                    </label>
-
-                    <input type="text" id="name" name="name" placeholder="e.g. Ahmed Al Harthi" maxlength="50" required>
-
-                </div>
-
-                <!-- Email -->
-                <div class="form-group">
-
-                    <label for="email">
-                        Email
-                    </label>
-
-                    <input type="email" id="email" name="email" placeholder="ahmed@example.com" maxlength="150"
-                        required>
-
-                </div>
-
-                <!-- Phone Number -->
-                <div class="form-group">
-
-                    <label for="phoneNumber">
-                        Phone Number
-                    </label>
-
-                    <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="+968 9123 4567" minlength="8"
-                        maxlength="20">
-
-                </div>
-
-                <!-- Password -->
-                <div class="form-group">
-
-                    <label for="password">
-                        Password
-                    </label>
-
-                    <input type="password" id="password" name="password" minlength="6" maxlength="256"  placeholder="Enter your password" required>
-
-                </div>
-
-                <!-- Region -->
-                <div class="form-group">
-
-                    <label for="regionId">
-                        Region
-                    </label>
-
-                    <select id="regionId" name="regionId">
-                        <option value="" selected>Select your region</option>
-
-                        <option>Muscat </option>
-                        <option>Dhofar </option>
-                        <option>Musandam </option>
-                        <option>Al Buraimi </option>
-                        <option>Ad Dakhiliyah </option>
-                        <option>Al Batinah North </option>
-                        <option>Al Batinah South </option>
-                        <option>Ash Sharqiyah North </option>
-                        <option>Ash Sharqiyah South </option>
-                        <option>Adh Dhahirah </option>
-                        <option>Al Wusta </option>
-                    </select>
-
-                </div>
-
-                <!-- Register Button -->
-                <button class="register-button" type="submit">
-
-                    Register
-
-                </button>
-
-            </form>
-
-            <!-- Divider -->
-            <div class="divider"></div>
-
-            <!-- Sign In -->
-            <div class="sign-in">
-
+    <nav class="site-nav" aria-label="Primary navigation">
+        <div class="container-xxl px-3 px-md-4 site-nav__inner">
+            <a class="site-brand" href="home.html" aria-label="OCSP home">
+                <span class="site-brand__mark" aria-hidden="true"><i class="bi bi-buildings"></i></span>
                 <span>
-                    Already have an account?
+                    <span class="site-brand__name">OCSP</span>
+                    <span class="site-brand__subtitle">Oman Community Services Platform</span>
                 </span>
+            </a>
 
-                <a href="login.html">
-                    Sign In
+            <input class="nav-switch" type="checkbox" id="registerNavToggle" aria-label="Toggle navigation menu"
+                aria-controls="registerNavMenu">
+            <label class="nav-toggle" for="registerNavToggle" aria-label="Open or close navigation">
+                <i class="bi bi-list"></i>
+            </label>
+
+            <div class="nav-menu" id="registerNavMenu">
+                <a class="nav-link-ocsp" href="home.html">Home</a>
+                <a class="nav-link-ocsp" href="my-issues.html">My Issues</a>
+                <a class="nav-link-ocsp" href="dashboard.html">Dashboard</a>
+                <a class="nav-link-ocsp" href="notifications.html">
+                    Notifications <span class="nav-count" aria-label="2 unread notifications">2</span>
                 </a>
-
+                <a class="user-chip" href="register.html" aria-current="page">
+                    <span class="user-chip__avatar" aria-hidden="true">AH</span>
+                    <span>Register</span>
+                    <i class="bi bi-person-plus" aria-hidden="true"></i>
+                </a>
             </div>
+        </div>
+    </nav>
 
-        </section>
+    <main class="auth-shell">
+        <div class="container-xxl px-3 px-md-4">
+            <div class="auth-card auth-card--register">
+                <section class="auth-visual" aria-labelledby="registerWelcomeTitle">
+                    <div>
+                        <p class="mb-2 text-uppercase fw-bold"><i class="bi bi-people me-2"></i>Built for Oman's
+                            communities</p>
+                        <p class="auth-visual__title" id="registerWelcomeTitle">A direct line to local services.</p>
+                        <p>Create your account to share community concerns and see how municipal teams are responding.
+                        </p>
+                        <ul class="auth-benefits">
+                            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Submit civic reports in a few
+                                simple steps</li>
+                            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Keep all your reports in one
+                                secure account</li>
+                            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Follow updates through to
+                                resolution</li>
+                        </ul>
+                    </div>
+                </section>
 
+                <section class="auth-form-panel" aria-labelledby="registerTitle">
+                    <div class="auth-form-panel__header">
+                        <p class="mb-2 text-uppercase fw-bold text-primary"><i
+                                class="bi bi-person-plus me-2"></i>Citizen registration</p>
+                        <h1 id="registerTitle">Create Your Account</h1>
+                        <p>Join the Oman Community Services Platform to access civic services.</p>
+                    </div>
+
+                    <form id="registerForm" action="login.html" method="get" tabindex="-1">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="name">Full Name <span class="required-mark"
+                                        aria-hidden="true">*</span></label>
+                                <input class="form-control" type="text" id="name" placeholder="e.g. Ahmed Al Harthi"
+                                    maxlength="50" autocomplete="name" required>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="email">Email <span class="required-mark"
+                                        aria-hidden="true">*</span></label>
+                                <input class="form-control" type="email" id="email" placeholder="ahmed@example.com"
+                                    maxlength="150" autocomplete="email" required>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="phoneNumber">Phone Number <span
+                                        class="fw-normal text-secondary">(optional)</span></label>
+                                <input class="form-control" type="tel" id="phoneNumber" placeholder="+968 9123 4567"
+                                    minlength="8" maxlength="20" autocomplete="tel">
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label" for="regionId">Region <span
+                                        class="fw-normal text-secondary">(optional)</span></label>
+                                <select class="form-select" id="regionId" autocomplete="address-level1">
+                                    <option value="" selected>Select your region</option>
+                                    <option>Muscat</option>
+                                    <option>Dhofar</option>
+                                    <option>Musandam</option>
+                                    <option>Al Buraimi</option>
+                                    <option>Ad Dakhiliyah</option>
+                                    <option>Al Batinah North</option>
+                                    <option>Al Batinah South</option>
+                                    <option>Ash Sharqiyah North</option>
+                                    <option>Ash Sharqiyah South</option>
+                                    <option>Adh Dhahirah</option>
+                                    <option>Al Wusta</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label" for="password">Password <span class="required-mark"
+                                        aria-hidden="true">*</span></label>
+                                <input class="form-control" type="password" id="password" minlength="6" maxlength="256"
+                                    placeholder="Enter your password" autocomplete="new-password"
+                                    aria-describedby="passwordHint" required>
+                                <p class="field-hint" id="passwordHint">Use at least 6 characters.</p>
+                            </div>
+                        </div>
+
+                        <p class="field-hint mt-3 mb-4">Fields marked with * are required.</p>
+
+                        <button class="btn-ocsp-primary w-100" type="submit">
+                            <i class="bi bi-person-check" aria-hidden="true"></i>Register
+                        </button>
+                    </form>
+
+                    <div class="auth-separator"></div>
+
+                    <p class="auth-switch">
+                        Already have an account?
+                        <a href="login.html">Sign In</a>
+                    </p>
+                </section>
+            </div>
+        </div>
     </main>
 
+    <footer class="site-footer">
+        <div class="container-xxl px-3 px-md-4 site-footer__inner">
+            <p class="site-footer__title">Oman Community Services Platform</p>
+            <p class="site-footer__copy">Report and track community issues across Oman.</p>
+            <hr class="my-3 border-secondary-subtle">
+            <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
+        </div>
+    </footer>
 </body>
 
 </html>
