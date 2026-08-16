@@ -17,17 +17,21 @@ namespace OmanCommunityServicesPlatform.Services
         // Used to check whether an Issue exists.
         private readonly IssueRepo issueRepo;
 
+        private readonly ILogger<NotificationService> logger;
+
 
         public NotificationService(
             NotificationRepo notificationRepo,
             UserRepo userRepo,
-            IssueRepo issueRepo
+            IssueRepo issueRepo,
+            ILogger<NotificationService> _logger
         )
         {
             // Store the repository inside the service.
             this.notificationRepo = notificationRepo;
             this.userRepo = userRepo;
             this.issueRepo = issueRepo;
+            this.logger = _logger;
         }
 
         // --------------------------------------------------
@@ -145,6 +149,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Check whether the receiving User exists.
             if (!userRepo.Exists(userId))
             {
+                logger.LogWarning("User with ID {userId} not found", userId);
                 return null;
             }
 
@@ -156,6 +161,7 @@ namespace OmanCommunityServicesPlatform.Services
                 !issueRepo.Exists(dto.issueId.Value)
             )
             {
+                logger.LogWarning("Issue with ID {issueId} not found", dto.issueId);
                 return null;
             }
 
@@ -172,6 +178,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Do not create a duplicate Notification.
             if (duplicateExists)
             {
+                logger.LogWarning("Notification with UserID {userId}, IssueID {issueId}, Type {type}, and Message {message} already exists", userId, dto.issueId, dto.type, dto.message);
                 return null;
             }
 
@@ -200,12 +207,13 @@ namespace OmanCommunityServicesPlatform.Services
 
             // Save the new Notification.
             notificationRepo.Add(notification);
+            logger.LogInformation("Notification created with ID {notificationId}", notification.notificationId);
 
             // notificationId is generated after SaveChanges().
             // Return a DTO instead of the raw entity.
             return MapToDto(notification);
 
-            }
+        }
 
 
             
@@ -233,6 +241,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Return false when it does not exist.
             if (notification == null)
             {
+                logger.LogWarning("Notification with ID {notificationId} not found", notificationId);
                 return false;
             }
 
@@ -255,6 +264,7 @@ namespace OmanCommunityServicesPlatform.Services
             // 2. Another identical Notification exists.
             if (valuesChanged && duplicateExists)
             {
+                logger.LogWarning("Another identical notification already exists for notification ID {notificationId}", notificationId);
                 return false;
             }
 
@@ -264,6 +274,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             // Save the tracked changes.
             notificationRepo.Update();
+            logger.LogInformation("Notification with ID {notificationId} updated", notificationId);
 
             return true;
 
@@ -290,6 +301,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Notification was not found.
             if (notification == null)
             {
+                logger.LogWarning("Notification with ID {notificationId} not found", notificationId);
                 return false;
             }
 
@@ -299,7 +311,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             // Save the change.
             notificationRepo.Update();
-
+            logger.LogInformation("Notification with ID {notificationId} updated", notificationId);
             return true;
         }
 
@@ -310,6 +322,11 @@ namespace OmanCommunityServicesPlatform.Services
             int notificationId
         )
         {
+            if (!notificationRepo.Exists(notificationId))
+            {
+                logger.LogWarning("Notification with ID {notificationId} not found", notificationId);
+                return false;
+            }
             return notificationRepo.MarkAsRead(notificationId);
         }
         // --------------------------------------------------
@@ -328,13 +345,14 @@ namespace OmanCommunityServicesPlatform.Services
             // Return false when it does not exist.
             if (notification == null)
             {
+                logger.LogWarning("Notification with ID {notificationId} not found", notificationId);
                 return false;
             }
 
 
             // Ask the repository to delete the entity.
             notificationRepo.Delete(notification);
-
+            logger.LogInformation("Notification with ID {notificationId} deleted", notificationId);
 
             return true;
         }

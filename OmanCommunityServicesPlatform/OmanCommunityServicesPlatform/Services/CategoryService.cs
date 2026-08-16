@@ -7,9 +7,12 @@ namespace OmanCommunityServicesPlatform.Services
     public class CategoryService
     {
         private CategoryRepo categoryRepo;
-        public CategoryService(CategoryRepo _categoryRepo)
+        private readonly ILogger<CategoryService> logger;
+
+        public CategoryService(CategoryRepo _categoryRepo, ILogger<CategoryService> _logger)
         {
             categoryRepo = _categoryRepo;
+            logger = _logger;
         }
         //Get all categories 
         public List<ResponseCategoryDTO> GetAllCategories()
@@ -55,12 +58,16 @@ namespace OmanCommunityServicesPlatform.Services
         {
             //category name must be unique
             if (categoryRepo.IsCategoryNameExist(dto.categoryName))
+            {
+                logger.LogWarning("Category name {categoryName} already exists", dto.categoryName);
                 return null;
+            }
             Category category = new Category();
             category.categoryName = dto.categoryName;
             category.description = dto.description;
             category.departmentId = dto.departmentId;
             categoryRepo.Add(category);
+            logger.LogInformation("Category {categoryName} created with ID {categoryId}", dto.categoryName, category.categoryId);
             ResponseCategoryDTO response = new ResponseCategoryDTO();
             response.categoryId = category.categoryId;
             response.categoryName = dto.categoryName;
@@ -69,24 +76,28 @@ namespace OmanCommunityServicesPlatform.Services
             response.issueCount = 0;
             return response;
         }
-        //Update C
+        //Update category
         public ResponseCategoryDTO Update(int id, UpdateCategoryDTO dto)
         {
             Category category = categoryRepo.GetCategoryById(id);
 
             if (category == null)
+            {
+                logger.LogWarning("Category with ID {categoryId} not found", id);
                 return null;
+            }
             if (category.categoryName != dto.categoryName && categoryRepo.IsCategoryNameExist(dto.categoryName))
             {
+                logger.LogWarning("Category name {categoryName} already exists", dto.categoryName);
                 return null;
             }
             category.categoryName = dto.categoryName;
             category.description = dto.description;
             category.departmentId = dto.departmentId;
             categoryRepo.Update();
-
+            logger.LogInformation("Category {categoryName} with ID {categoryId} updated", dto.categoryName, id);
+            
             ResponseCategoryDTO response = new ResponseCategoryDTO();
-
             response.categoryId = category.categoryId;
             response.categoryName = category.categoryName;
             response.description = category.description;
@@ -102,8 +113,12 @@ namespace OmanCommunityServicesPlatform.Services
         {
             Category category = categoryRepo.GetCategoryById(id);
             if (category == null)
+            {
+                logger.LogWarning("Category with ID {categoryId} not found", id);
                 return false;
+            }
             categoryRepo.Delete(category);
+            logger.LogInformation("Category {categoryName} with ID {categoryId} deleted", category.categoryName, id);
             return true;
         }
     }

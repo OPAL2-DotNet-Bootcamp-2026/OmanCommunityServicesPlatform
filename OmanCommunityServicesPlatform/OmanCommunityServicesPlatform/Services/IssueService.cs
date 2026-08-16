@@ -1,4 +1,4 @@
-﻿using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Models.Enums;
@@ -8,14 +8,22 @@ namespace OmanCommunityServicesPlatform.Services
 {
     public class IssueService
     {
-        private IssueRepo issueRepo;
-        private CategoryRepo categoryRepo;
-        private RegionRepo regionRepo;
-        private UserRepo userRepo;
-        private EmailService emailService;
-        private NotificationService notificationService;
+        private readonly IssueRepo issueRepo;
+        private readonly CategoryRepo categoryRepo;
+        private readonly RegionRepo regionRepo;
+        private readonly UserRepo userRepo;
+        private readonly EmailService emailService;
+        private readonly NotificationService notificationService;
+        private readonly ILogger<IssueService> logger;
         
-        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, RegionRepo _regionRepo, UserRepo _userRepo, EmailService _emailService, NotificationService _notificationService)
+        public IssueService(
+            IssueRepo _issueRepo,
+            CategoryRepo _categoryRepo,
+            RegionRepo _regionRepo,
+            UserRepo _userRepo,
+            EmailService _emailService,
+            NotificationService _notificationService,
+            ILogger<IssueService> _logger)
         {
             issueRepo = _issueRepo;
             categoryRepo = _categoryRepo;    
@@ -23,6 +31,7 @@ namespace OmanCommunityServicesPlatform.Services
             userRepo = _userRepo;
             emailService = _emailService;
             notificationService = _notificationService;
+            logger = _logger;
         }
 
         //create Issue 
@@ -31,10 +40,17 @@ namespace OmanCommunityServicesPlatform.Services
             // Validate user-chosen references before touching the entity
             Category? category = categoryRepo.GetCategoryById(dto.categoryId);
             if (category == null)
+            {
+                logger.LogWarning("Issue creation failed: category {CategoryId} not found", dto.categoryId);
                 return null;
+            }
+
             Region? region = regionRepo.GetById(dto.regionId);
             if (region == null)
+            {
+                logger.LogWarning("Issue creation failed: region {RegionId} not found", dto.regionId);
                 return null;
+            }
 
             Issue issue = new Issue();
             // User input
@@ -55,6 +71,7 @@ namespace OmanCommunityServicesPlatform.Services
             issue.reportedDate = DateTime.UtcNow;
 
             issueRepo.Add(issue);
+            logger.LogInformation("Issue {IssueId} created by user {ReportedById}, assigned to department {DepartmentId}", issue.issueId, reportedById, issue.assignedDepartmentId);
 
             User? reporter = userRepo.GetById(reportedById);
 

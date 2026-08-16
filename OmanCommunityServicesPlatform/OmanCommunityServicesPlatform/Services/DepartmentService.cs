@@ -1,4 +1,4 @@
-﻿using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Repositories;
 
@@ -6,12 +6,18 @@ namespace OmanCommunityServicesPlatform.Services
 {
     public class DepartmentService
     {
-        private DepartmentRepo departmentRepo;
-        private RegionRepo regionRepo;
-        public DepartmentService(DepartmentRepo _departmentRepo, RegionRepo _regionRepo)
+        private readonly DepartmentRepo departmentRepo;
+        private readonly RegionRepo regionRepo;
+        private readonly ILogger<DepartmentService> logger;
+
+        public DepartmentService(
+            DepartmentRepo _departmentRepo,
+            RegionRepo _regionRepo,
+            ILogger<DepartmentService> _logger)
         {
             departmentRepo = _departmentRepo;
             regionRepo = _regionRepo;
+            logger = _logger;
         }
         //Get all departments
         public List<ResponseDepartmentDTO> GetAllDepartments()
@@ -68,7 +74,10 @@ namespace OmanCommunityServicesPlatform.Services
 
             // department name must be unique
             if (departmentRepo.IsDepartmentNameExist(dto.departmentName))
+            {
+                logger.LogWarning("Department creation rejected: department name {DepartmentName} already exists", dto.departmentName);
                 return null;
+            }
 
             Department department = new Department();
             department.departmentName = dto.departmentName;
@@ -77,10 +86,13 @@ namespace OmanCommunityServicesPlatform.Services
             // Check region exists
             if (dto.regionId.HasValue && !regionRepo.Exists(dto.regionId.Value))
             {
+                logger.LogWarning("Department creation rejected: region {RegionId} not found", dto.regionId.Value);
                 return null;
             }
             department.regionId = dto.regionId;
             departmentRepo.Add(department);
+            logger.LogInformation("Department {DepartmentId} ({DepartmentName}) created", department.departmentId, department.departmentName);
+
             ResponseDepartmentDTO response = new ResponseDepartmentDTO();
             response.departmentId = department.departmentId;
             response.departmentName = department.departmentName;
@@ -97,11 +109,15 @@ namespace OmanCommunityServicesPlatform.Services
             Department department = departmentRepo.GetDepartmentById(id);
 
             if (department == null)
+            {
+                logger.LogWarning("Department update failed: department {DepartmentId} not found", id);
                 return null;
+            }
 
             // department name must not duplicate another department
             if (department.departmentName != dto.departmentName && departmentRepo.IsDepartmentNameExist(dto.departmentName))
             {
+                logger.LogWarning("Department update rejected: department name {DepartmentName} already exists", dto.departmentName);
                 return null;
             }
 
@@ -110,11 +126,13 @@ namespace OmanCommunityServicesPlatform.Services
             department.contactEmail = dto.contactEmail;
             if (dto.regionId.HasValue && !regionRepo.Exists(dto.regionId.Value))
             {
+                logger.LogWarning("Department update rejected: region {RegionId} not found", dto.regionId.Value);
                 return null;
             }
             department.regionId = dto.regionId;
 
             departmentRepo.Update();
+            logger.LogInformation("Department {DepartmentId} ({DepartmentName}) updated", id, dto.departmentName);
 
             ResponseDepartmentDTO response = new ResponseDepartmentDTO();
             response.departmentId = department.departmentId;
@@ -130,8 +148,12 @@ namespace OmanCommunityServicesPlatform.Services
         {
             Department department = departmentRepo.GetDepartmentById(id);
             if (department == null)
+            {
+                logger.LogWarning("Department deletion failed: department {DepartmentId} not found", id);
                 return false;
+            }
             departmentRepo.Delete(department);
+            logger.LogInformation("Department {DepartmentId} ({DepartmentName}) deleted", id, department.departmentName);
             return true;
         }
     }

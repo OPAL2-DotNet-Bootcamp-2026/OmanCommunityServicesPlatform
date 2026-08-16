@@ -1,4 +1,4 @@
-﻿using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Models.Enums;
@@ -8,19 +8,27 @@ namespace OmanCommunityServicesPlatform.Services
 {
     public class StatusUpdateService
     {
-        private StatusUpdateRepo statusUpdateRepo;
-        private IssueRepo issueRepo;
-        private UserRepo userRepo;
-        private EmailService emailService;
-        private NotificationService notificationService;
+        private readonly StatusUpdateRepo statusUpdateRepo;
+        private readonly IssueRepo issueRepo;
+        private readonly UserRepo userRepo;
+        private readonly EmailService emailService;
+        private readonly NotificationService notificationService;
+        private readonly ILogger<StatusUpdateService> logger;
 
-        public StatusUpdateService(StatusUpdateRepo _statusUpdateRepo, IssueRepo _issueRepo, UserRepo _userRepo, EmailService _emailService, NotificationService _notificationService)
+        public StatusUpdateService(
+            StatusUpdateRepo _statusUpdateRepo,
+            IssueRepo _issueRepo,
+            UserRepo _userRepo,
+            EmailService _emailService,
+            NotificationService _notificationService,
+            ILogger<StatusUpdateService> _logger)
         {
             statusUpdateRepo = _statusUpdateRepo;
             issueRepo = _issueRepo;
             userRepo = _userRepo;
             emailService = _emailService;
             notificationService = _notificationService;
+            logger = _logger;
         }
 
         // Create Status Update
@@ -29,7 +37,10 @@ namespace OmanCommunityServicesPlatform.Services
             Issue? issue = issueRepo.GetById(dto.issueId);
 
             if (issue == null)
+            {
+                logger.LogWarning("Status update failed: issue {IssueId} not found", dto.issueId);
                 return null;
+            }
 
             StatusUpdate statusUpdate = new StatusUpdate();
 
@@ -45,6 +56,10 @@ namespace OmanCommunityServicesPlatform.Services
 
             statusUpdateRepo.Add(statusUpdate);
             issueRepo.Update();
+
+            logger.LogInformation(
+                "Issue {IssueId} status changed from {PreviousStatus} to {NewStatus} by {UpdatedById}",
+                issue.issueId, statusUpdate.previousStatus, statusUpdate.newStatus, userId);
 
             User? reporter = userRepo.GetById(issue.reportedById);
 
@@ -159,9 +174,13 @@ namespace OmanCommunityServicesPlatform.Services
             StatusUpdate? statusUpdate = statusUpdateRepo.GetById(id);
 
             if (statusUpdate == null)
+            {
+                logger.LogWarning("Delete status update failed: status update {StatusUpdateId} not found", id);
                 return false;
+            }
 
             statusUpdateRepo.Delete(statusUpdate);
+            logger.LogInformation("Status update {StatusUpdateId} for issue {IssueId} deleted", id, statusUpdate.issueId);
 
             return true;
         }

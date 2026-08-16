@@ -1,4 +1,4 @@
-﻿using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Repositories;
@@ -18,16 +18,20 @@ namespace OmanCommunityServicesPlatform.Services
         // Used to retrieve and validate the Issue.
         private readonly IssueRepo issueRepo;
 
+        private readonly ILogger<RatingService> logger;
+
         // Constructor Dependency Injection.
         // OCSPContext is not used directly in the Service.
         // Database operations should happen through repositories.
         public RatingService(
             RatingRepo ratingRepo,
-            IssueRepo issueRepo
+            IssueRepo issueRepo,
+            ILogger<RatingService> logger
         )
         {
             this.ratingRepo = ratingRepo;
             this.issueRepo = issueRepo;
+            this.logger = logger;
         }
 
         // --------------------------------------------------
@@ -113,6 +117,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Return null when the Issue does not exist.
             if (issue == null)
             {
+                logger.LogWarning("Rating creation failed: issue {IssueId} not found", dto.issueId);
                 return null;
             }
 
@@ -120,18 +125,20 @@ namespace OmanCommunityServicesPlatform.Services
             // The User can only rate a resolved Issue.
             if (issue.currentStatus != IssueStatus.Resolved)
             {
+                logger.LogWarning("Rating creation rejected: issue {IssueId} is not in Resolved status (Status: {Status})", dto.issueId, issue.currentStatus);
                 return null;
             }
             // Check whether this User already rated this Issue.
             bool alreadyRated =
                 ratingRepo.UserAlreadyRated(
-                    dto.issueId,
+                     dto.issueId,
                     userId
                 );
 
             // Prevent duplicate ratings.
             if (alreadyRated)
             {
+                logger.LogWarning("Rating creation rejected: user {UserId} has already rated issue {IssueId}", userId, dto.issueId);
                 return null;
             }
 
@@ -158,6 +165,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Send the Rating entity to the repository.
             // The repository saves it in the database.
             ratingRepo.Add(rating);
+            logger.LogInformation("Rating {RatingId} created for issue {IssueId} by user {UserId} with score {Score}", rating.ratingId, rating.issueId, rating.userId, rating.score);
 
             // Convert the created entity into RatingDto.
             return MapToDto(rating);
@@ -183,6 +191,7 @@ namespace OmanCommunityServicesPlatform.Services
             // Return false when the rating does not exist.
             if (rating == null)
             {
+                logger.LogWarning("Rating update failed: rating {RatingId} not found", ratingId);
                 return false;
             }
 
@@ -190,6 +199,7 @@ namespace OmanCommunityServicesPlatform.Services
             // The logged-in user must be the owner of the rating.
             if (rating.userId != userId)
             {
+                logger.LogWarning("Rating update rejected: user {UserId} is not the owner of rating {RatingId}", userId, ratingId);
                 return false;
             }
             // Update the score.
@@ -200,6 +210,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             // Save the changes.
             ratingRepo.Update();
+            logger.LogInformation("Rating {RatingId} updated by user {UserId} with score {Score}", ratingId, userId, dto.score);
 
             return true;
 
@@ -225,17 +236,20 @@ namespace OmanCommunityServicesPlatform.Services
             // Return false when the rating does not exist.
             if (rating == null)
             {
+                logger.LogWarning("Rating deletion failed: rating {RatingId} not found", ratingId);
                 return false;
             }
 
             // Check whether the rating belongs to this user.
             if (rating.userId != userId)
             {
+                logger.LogWarning("Rating deletion rejected: user {UserId} is not the owner of rating {RatingId}", userId, ratingId);
                 return false;
                
             }
             // Delete the rating using the repository.
             ratingRepo.Delete(rating);
+            logger.LogInformation("Rating {RatingId} for issue {IssueId} deleted by user {UserId}", ratingId, rating.issueId, userId);
 
             return true;
         }
