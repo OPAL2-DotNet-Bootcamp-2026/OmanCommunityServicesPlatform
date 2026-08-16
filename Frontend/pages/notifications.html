@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Review updates about your community issue reports on the Oman Community Services Platform.">
+  <title>Notifications | Oman Community Services Platform</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="Styles/ocsp-site.css" rel="stylesheet">
+</head>
+<body class="site-page">
+  <a class="skip-link" href="#mainContent">Skip to main content</a>
+
+  <nav class="site-nav" aria-label="Primary navigation">
+    <div class="container-xxl px-3 px-md-4 site-nav__inner">
+      <a class="site-brand" href="home.html" aria-label="OCSP home">
+        <span class="site-brand__mark" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+        <span>
+          <span class="site-brand__name">OCSP</span>
+          <span class="site-brand__subtitle">Oman Community Services Platform</span>
+        </span>
+      </a>
+
+      <input class="nav-switch" type="checkbox" id="notificationsNavSwitch" aria-label="Toggle navigation menu" aria-controls="notificationsNavMenu">
+      <label class="nav-toggle" for="notificationsNavSwitch" aria-label="Open or close navigation">
+        <i class="bi bi-list" aria-hidden="true"></i>
+      </label>
+
+      <div class="nav-menu" id="notificationsNavMenu">
+        <a class="nav-link-ocsp" href="home.html">Home</a>
+        <a class="nav-link-ocsp" href="my-issues.html">My Issues</a>
+        <a class="nav-link-ocsp" href="dashboard.html">Dashboard</a>
+        <a class="nav-link-ocsp is-active" href="notifications.html" aria-current="page">
+          Notifications <span class="nav-count" aria-label="2 unread notifications">2</span>
+        </a>
+        <a class="user-chip" href="login.html" aria-label="Sign out">
+          <span class="user-chip__avatar" aria-hidden="true">AH</span>
+          <span>Ahmed</span>
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="mainContent">
+    <header class="page-hero page-hero--compact">
+      <div class="container-xxl px-3 px-md-4 py-5">
+        <div class="page-hero__grid">
+          <div>
+            <nav class="breadcrumb-ocsp" aria-label="Breadcrumb">
+              <a href="home.html">Home</a>
+              <i class="bi bi-chevron-right" aria-hidden="true"></i>
+              <span aria-current="page">Notifications</span>
+            </nav>
+            <span class="page-kicker"><i class="bi bi-bell" aria-hidden="true"></i>Your account</span>
+            <h1>Notifications</h1>
+            <p class="page-hero__copy">Follow status changes and new activity connected to your community reports.</p>
+          </div>
+
+          <aside class="hero-panel" aria-label="Unread notification summary">
+            <span class="hero-panel__label">Unread updates</span>
+            <p class="hero-panel__value">2 notifications</p>
+            <p class="hero-panel__copy">Review the latest progress on reports that matter to you.</p>
+          </aside>
+        </div>
+      </div>
+    </header>
+
+    <section class="content-shell content-shell--compact" aria-labelledby="recentActivityTitle">
+      <div class="container-xxl px-3 px-md-4">
+        <div class="row justify-content-center">
+          <div class="col-12 col-xl-9">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-between gap-3 mb-4">
+              <div>
+                <span class="section-heading__kicker">Account activity</span>
+                <h2 class="h4 mb-1" id="recentActivityTitle">Recent activity</h2>
+                <p class="small text-secondary mb-0">You have 2 unread notifications.</p>
+              </div>
+              <span class="filter-chip align-self-start align-self-sm-center">
+                <i class="bi bi-sort-down" aria-hidden="true"></i>Updates shown newest first
+              </span>
+            </div>
+
+            <div id="notificationList">
+              <section class="notification-group" aria-labelledby="todayNotifications">
+                <h3 class="group-label" id="todayNotifications">Today</h3>
+                <div class="notification-list">
+                  <a class="notification-card" href="my-issues.html#citizenIssuesGallery">
+                    <span class="notification-icon is-warning" aria-hidden="true"><i class="bi bi-arrow-repeat"></i></span>
+                    <span class="flex-grow-1">
+                      <span class="notification-card__title">Your issue “Pothole on Main St.” status changed to <strong>In Progress</strong>.</span>
+                      <span class="notification-card__time">Just now</span>
+                    </span>
+                  </a>
+
+                  <a class="notification-card is-unread" href="my-issues.html#citizenIssuesGallery">
+                    <span class="notification-icon" aria-hidden="true"><i class="bi bi-plus-circle-fill"></i></span>
+                    <span class="flex-grow-1">
+                      <span class="notification-card__title">Your issue “Damaged Guardrail on Coastal Road” has been created and is now <strong>Open</strong>.</span>
+                      <span class="notification-card__time">10 minutes ago</span>
+                    </span>
+                    <span class="unread-dot" aria-label="Unread"></span>
+                  </a>
+
+                  <a class="notification-card is-unread" href="my-issues.html#citizenIssuesGallery">
+                    <span class="notification-icon is-success" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>
+                    <span class="flex-grow-1">
+                      <span class="notification-card__title">Your issue “Broken Streetlight” status changed to <strong>Resolved</strong>.</span>
+                      <span class="notification-card__time">3 hours ago</span>
+                    </span>
+                    <span class="unread-dot" aria-label="Unread"></span>
+                  </a>
+                </div>
+              </section>
+
+              <section class="notification-group" aria-labelledby="earlierNotifications">
+                <h3 class="group-label" id="earlierNotifications">Earlier</h3>
+                <div class="notification-list">
+                  <a class="notification-card" href="my-issues.html#citizenIssuesGallery">
+                    <span class="notification-icon" aria-hidden="true"><i class="bi bi-flag-fill"></i></span>
+                    <span class="flex-grow-1">
+                      <span class="notification-card__title">A new issue “Water Leak in Public Park” was reported in your department.</span>
+                      <span class="notification-card__time">Yesterday</span>
+                    </span>
+                  </a>
+
+                  <a class="notification-card" href="dashboard.html#issuesAccordion">
+                    <span class="notification-icon is-neutral" aria-hidden="true"><i class="bi bi-arrow-repeat"></i></span>
+                    <span class="flex-grow-1">
+                      <span class="notification-card__title">Your issue “Faded Crosswalk Markings” status changed to <strong>In Progress</strong>.</span>
+                      <span class="notification-card__time">Last week</span>
+                    </span>
+                  </a>
+                </div>
+              </section>
+            </div>
+
+            <p class="small text-secondary text-center mt-4 mb-0 pt-2">
+              <i class="bi bi-check2-circle me-1" aria-hidden="true"></i>All recent notifications are shown.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="help-strip" aria-labelledby="notificationsHelpTitle">
+    <div class="container-xxl px-3 px-md-4 help-strip__inner">
+      <div class="help-strip__main">
+        <span class="help-strip__icon" aria-hidden="true"><i class="bi bi-headset"></i></span>
+        <div>
+          <h2 id="notificationsHelpTitle">Have a question about an update?</h2>
+          <p>Our support team can help you understand the progress of your report.</p>
+        </div>
+      </div>
+      <a class="help-strip__contact" href="mailto:support@ocsp.om"><i class="bi bi-envelope" aria-hidden="true"></i>Email support</a>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container-xxl px-3 px-md-4 site-footer__inner">
+      <p class="site-footer__title">Oman Community Services Platform</p>
+      <p class="site-footer__copy">Report and track community issues across Oman.</p>
+      <hr class="my-3 border-secondary-subtle">
+      <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
