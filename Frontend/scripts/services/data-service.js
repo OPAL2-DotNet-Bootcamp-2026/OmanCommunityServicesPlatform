@@ -72,6 +72,11 @@
 
   const mockState = clone(ocsp.mockData || {});
 
+  function getMockActor() {
+    const sessionUser = getStoredSessionUser();
+    return sessionUser.userId ? sessionUser : clone(mockState.currentUser);
+  }
+
   function composeMockIssue(issue) {
     const category = asArray(mockState.categories).find(
       (item) => item.categoryName === issue.categoryName
@@ -95,9 +100,7 @@
   const mockSource = {
     async getDashboardData() {
       return {
-        currentUser: getStoredSessionUser().userId
-          ? getStoredSessionUser()
-          : clone(mockState.currentUser),
+        currentUser: clone(getMockActor()),
         notifications: clone(asArray(mockState.notifications)),
         categories: clone(asArray(mockState.categories)),
         regions: clone(asArray(mockState.regions)),
@@ -141,7 +144,7 @@
         priority: payload.priority,
         currentStatus: "Open",
         reportedDate,
-        reportedById: mockState.currentUser.userId,
+        reportedById: getMockActor().userId,
         categoryName: category.categoryName,
         regionName: region.regionName,
         assignedDepartmentName: category.departmentName || null,
@@ -165,7 +168,7 @@
             1
           ),
           issueId,
-          updatedById: mockState.currentUser.userId,
+          updatedById: getMockActor().userId,
           previousStatus: null,
           newStatus: "Open",
           notes: "Issue Submitted",
@@ -183,8 +186,8 @@
       const comment = {
         commentId: nextId(allComments, "commentId", 1),
         issueId: Number(issueId),
-        userId: mockState.currentUser.userId,
-        userName: mockState.currentUser.name,
+        userId: getMockActor().userId,
+        userName: getMockActor().name,
         content,
         isStaffComment: false,
         commentDate: new Date().toISOString()
@@ -208,7 +211,7 @@
       const rating = {
         ratingId: nextId(ratings, "ratingId", 1),
         issueId: Number(issueId),
-        userId: mockState.currentUser.userId,
+        userId: getMockActor().userId,
         score: Number(score),
         feedback: feedback || null,
         ratedAt: new Date().toISOString()
@@ -219,18 +222,31 @@
     }
   };
 
+  function settledValue(result, fallback) {
+    return result.status === "fulfilled" ? result.value : fallback;
+  }
+
+  function normalizeApiAttachment(attachment) {
+    return {
+      ...attachment,
+      fileUrl: api.resolveApiAssetUrl(attachment && attachment.fileUrl)
+    };
+  }
+
   const apiSource = {
     async getDashboardData() {
-      const [issues, categories, regions, notifications] = await Promise.all([
-        api.get(api.endpoints.myIssues),
+      // The issue list is essential; lookups and notification counts may recover
+      // independently so one optional endpoint cannot blank the complete page.
+      const issues = asArray(await api.get(api.endpoints.myIssues));
+      const [categoriesResult, regionsResult, notificationsResult] = await Promise.allSettled([
         api.get(api.endpoints.categories),
         api.get(api.endpoints.regions),
         api.get(api.endpoints.myNotifications)
       ]);
-
-      const safeCategories = asArray(categories);
-      const safeRegions = asArray(regions);
-      const enrichedIssues = asArray(issues).map((issue) => {
+      const safeCategories = asArray(settledValue(categoriesResult, []));
+      const safeRegions = asArray(settledValue(regionsResult, []));
+      const notifications = asArray(settledValue(notificationsResult, []));
+      const enrichedIssues = issues.map((issue) => {
         const category = safeCategories.find(
           (item) => item.categoryName === issue.categoryName
         );
@@ -245,6 +261,7 @@
           governorate: region ? region.governorate : "",
           attachments: [],
           comments: [],
+          // Citizen status history is not exposed by the current API contract.
           statusUpdates: syntheticTimeline(issue),
           rating: null,
           ui: {}
@@ -253,7 +270,7 @@
 
       return {
         currentUser: getStoredSessionUser(),
-        notifications: asArray(notifications),
+        notifications,
         categories: safeCategories,
         regions: safeRegions,
         issues: enrichedIssues
@@ -261,19 +278,23 @@
     },
 
     async getIssueDetails(issueId) {
-      const [issue, comments, attachments, ratings] = await Promise.all([
-        api.get(api.endpoints.issueById(issueId)),
+      const issue = await api.get(api.endpoints.issueById(issueId));
+      const [commentsResult, attachmentsResult, ratingsResult] = await Promise.allSettled([
         api.get(api.endpoints.commentsByIssue(issueId)),
         api.get(api.endpoints.attachmentsByIssue(issueId)),
         api.get(api.endpoints.ratingsByIssue(issueId))
       ]);
+      const comments = asArray(settledValue(commentsResult, []));
+      const attachments = asArray(settledValue(attachmentsResult, []))
+        .map(normalizeApiAttachment);
+      const ratings = asArray(settledValue(ratingsResult, []));
 
       return {
         ...issue,
-        comments: asArray(comments),
-        attachments: asArray(attachments),
+        comments,
+        attachments,
         statusUpdates: syntheticTimeline(issue),
-        rating: asArray(ratings)[0] || null,
+        rating: ratings[0] || null,
         ui: {}
       };
     },
@@ -298,7 +319,6 @@
       return response && response.rating ? response.rating : response;
     }
   };
-
   const sources = Object.freeze({ mock: mockSource, api: apiSource });
 
   function getSource() {

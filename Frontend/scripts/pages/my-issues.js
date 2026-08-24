@@ -53,6 +53,7 @@
       activeFilterChips: byId("activeFilterChips"),
       activeFilterCount: byId("activeFilterCount"),
       createIssueForm: byId("createIssueForm"),
+      createIssueStatus: byId("createIssueStatus"),
       issueCategory: byId("issueCategory"),
       issueRegion: byId("issueRegion"),
       issueGovernorate: byId("issueGovernorate"),
@@ -80,6 +81,24 @@
       : "info";
     elements.pageStatus.className = `alert alert-${alertTone} mb-4`;
     elements.pageStatus.textContent = message;
+  }
+
+  function setCreateIssueStatus(message, tone) {
+    if (!elements.createIssueStatus) {
+      return;
+    }
+
+    if (!message) {
+      elements.createIssueStatus.className = "alert d-none";
+      elements.createIssueStatus.textContent = "";
+      return;
+    }
+
+    const safeTone = ["success", "danger", "info", "warning"].includes(tone)
+      ? tone
+      : "info";
+    elements.createIssueStatus.className = `alert alert-${safeTone} mb-3`;
+    elements.createIssueStatus.textContent = message;
   }
 
   function firstName(name) {
@@ -123,9 +142,11 @@
       heroTotal.textContent = `${issues.length} total issue${issues.length === 1 ? "" : "s"}`;
     }
     if (heroSummary) {
-      heroSummary.textContent = activeCount
-        ? `${activeCount} report${activeCount === 1 ? " is" : "s are"} awaiting or receiving municipal action.`
-        : "All of your reports have been resolved.";
+      heroSummary.textContent = issues.length === 0
+        ? "Your submitted reports will appear here."
+        : activeCount
+          ? `${activeCount} report${activeCount === 1 ? " is" : "s are"} awaiting or receiving municipal action.`
+          : "All of your reports have been resolved.";
     }
     if (heroResolved) {
       heroResolved.textContent = `${resolvedCount} resolved`;
@@ -251,7 +272,15 @@
     const visibleIssues = getVisibleIssues();
     const totalIssues = asArray(state.dashboard.issues).length;
 
-    if (!visibleIssues.length) {
+    if (totalIssues === 0) {
+      elements.gallery.innerHTML = `
+        <div class="ocsp-card p-4 text-center" role="status">
+          <i class="bi bi-clipboard-plus fs-2 text-primary mb-2" aria-hidden="true"></i>
+          <h3 class="h5">No issues submitted yet</h3>
+          <p class="text-muted mb-3">Create your first report to start tracking community service work.</p>
+          <button class="ocsp-button ocsp-button--submit align-self-center" data-bs-toggle="modal" data-bs-target="#createIssueModal" type="button">Report an issue</button>
+        </div>`;
+    } else if (!visibleIssues.length) {
       elements.gallery.innerHTML = `
         <div class="ocsp-card p-4 text-center" role="status">
           <i class="bi bi-search fs-2 text-primary mb-2" aria-hidden="true"></i>
@@ -267,7 +296,9 @@
     }
 
     if (elements.resultSummary) {
-      elements.resultSummary.textContent = `Showing ${visibleIssues.length} of ${totalIssues} issues.`;
+      elements.resultSummary.textContent = totalIssues === 0
+        ? "No issues submitted yet."
+        : `Showing ${visibleIssues.length} of ${totalIssues} issue${totalIssues === 1 ? "" : "s"}.`;
     }
     elements.gallery.setAttribute("aria-busy", "false");
   }
@@ -479,7 +510,7 @@
 
     try {
       await service.submitRating(issueId, score, feedback);
-      status.textContent = "Thank you. Your feedback has been saved for this session.";
+      status.textContent = "Thank you. Your feedback has been saved.";
     } catch (error) {
       status.textContent = error.message || "The rating could not be saved.";
     } finally {
@@ -521,7 +552,9 @@
       regionId: Number(formData.get("issueRegion"))
     };
 
+    setCreateIssueStatus("", "info");
     submitButton.disabled = true;
+    form.setAttribute("aria-busy", "true");
     submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Submitting issue...';
 
     try {
@@ -533,11 +566,14 @@
       elements.issueLatitude.value = "";
       elements.issueLongitude.value = "";
       renderDashboard();
+      setCreateIssueStatus("", "info");
       closeCreateModal();
       setPageStatus("The issue was added successfully.", "success");
     } catch (error) {
-      setPageStatus(error.message || "The sample issue could not be created.", "danger");
+      setCreateIssueStatus(error.message || "The issue could not be created.", "danger");
+      elements.createIssueStatus.focus();
     } finally {
+      form.removeAttribute("aria-busy");
       submitButton.disabled = false;
       submitButton.innerHTML = '<i class="bi bi-send-fill me-2" aria-hidden="true"></i>Submit Issue';
     }
@@ -654,6 +690,11 @@
   }
 
   function bindFormEvents() {
+    const createModal = byId("createIssueModal");
+    if (createModal) {
+      createModal.addEventListener("show.bs.modal", () => setCreateIssueStatus("", "info"));
+    }
+
     elements.createIssueForm.addEventListener("submit", (event) => {
       event.preventDefault();
       if (elements.createIssueForm.reportValidity()) {
@@ -662,6 +703,26 @@
     });
     elements.issueRegion.addEventListener("change", updateGovernorate);
     elements.locationButton.addEventListener("click", captureCurrentLocation);
+  }
+
+  async function openLinkedIssueFromUrl() {
+    const rawIssueId = new URLSearchParams(global.location.search).get("issueId");
+    if (!rawIssueId) {
+      return;
+    }
+
+    const issueId = Number(rawIssueId);
+    const issueExists = Number.isInteger(issueId) && issueId > 0
+      && asArray(state.dashboard.issues).some((issue) => Number(issue.issueId) === issueId);
+    if (!issueExists) {
+      setPageStatus("The linked issue could not be found.", "warning");
+      return;
+    }
+
+    const trigger = elements.gallery.querySelector(
+      `[data-action="open-issue"][data-issue-id="${renderers.safeDomId(issueId)}"]`
+    );
+    await showIssueDetails(issueId, trigger);
   }
 
   async function start() {
@@ -688,6 +749,7 @@
     try {
       state.dashboard = await service.getDashboardData();
       renderDashboard();
+      await openLinkedIssueFromUrl();
     } catch (error) {
       elements.gallery.innerHTML = `
         <div class="alert alert-danger" role="alert">

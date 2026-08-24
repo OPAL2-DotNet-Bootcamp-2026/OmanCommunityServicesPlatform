@@ -367,6 +367,7 @@
           </div>
           <div class="modal-body p-0">
           <form class="issue-form" id="createIssueForm">
+            <div id="createIssueStatus" class="alert d-none" role="alert" aria-live="assertive" tabindex="-1"></div>
             <fieldset>
               <legend>
                 Issue Details
@@ -376,7 +377,7 @@
                   Issue title
                 </label>
                 <input class="form-control" id="issueTitle" name="issueTitle"
-                  maxlength="80" placeholder="Briefly describe the issue" required="" type="text" />
+                  maxlength="150" placeholder="Briefly describe the issue" required="" type="text" />
               </div>
               <div class="mb-3">
                 <label class="form-label" for="issueCategory">
@@ -405,7 +406,7 @@
                   Description
                 </label>
                 <textarea class="form-control" id="issueDescription" name="issueDescription"
-                  placeholder="Provide detailed information about the issue..." required="" rows="4"></textarea>
+                  maxlength="2000" placeholder="Provide detailed information about the issue..." required="" rows="4"></textarea>
               </div>
             </fieldset>
             <fieldset>
@@ -454,7 +455,7 @@
                     </i>
                   </span>
                   <input autocomplete="street-address" class="form-control" id="issueLocation" name="issueLocation"
-                    placeholder="Example: Street 21, Ghala Industrial Area" required="" type="text" />
+                    maxlength="300" placeholder="Example: Street 21, Ghala Industrial Area" required="" type="text" />
                 </div>
               </div>
               <div class="row g-3 mb-3">
@@ -515,7 +516,7 @@
               <button class="ocsp-button ocsp-button--cancel issue-form__cancel" type="button" data-bs-dismiss="modal">
                 Cancel
               </button>
-              <button class="ocsp-button ocsp-button--submit" type="submit">
+              <button class="ocsp-button ocsp-button--submit" id="createIssueSubmit" type="submit">
                 <i class="bi bi-send-fill me-2">
                 </i>
                 Submit Issue
