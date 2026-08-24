@@ -4375,7 +4375,636 @@ body.ocsp-portal .ocsp-target-backdrop:focus-visible {
 }
 
 /* ==========================================================================
-   29. Bootstrap JavaScript state aliases
+   29. Admin setup dialog
+   URL fragments open the chooser and reveal one static form without JavaScript.
+   The field names mirror the future Region, Department and Category API bodies.
+   ========================================================================== */
+
+body.ocsp-portal--staff .reference-admin-jump {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+body.ocsp-portal--staff .reference-admin-modal {
+  display: none;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.ocsp-portal--staff .reference-admin-modal:target,
+body.ocsp-portal--staff .reference-admin-modal:has(.reference-admin__panel:target) {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: grid !important;
+  padding: 1rem;
+  place-items: center;
+  visibility: visible !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  opacity: 1 !important;
+  pointer-events: auto;
+}
+
+body.ocsp-portal--staff .reference-admin-modal > .ocsp-target-backdrop--modal {
+  z-index: 0;
+}
+
+body.ocsp-portal--staff .reference-admin-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(1080px, calc(100vw - 2rem));
+  max-width: 1080px;
+  min-width: 0;
+  margin: auto;
+  pointer-events: auto;
+}
+
+body.ocsp-portal--staff .reference-admin {
+  display: flex;
+  width: 100%;
+  max-height: calc(100dvh - 2rem);
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f7f9fb;
+  border: 1px solid rgba(203, 209, 214, 0.95);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(8, 31, 50, 0.28);
+}
+
+body.ocsp-portal--staff .reference-admin-modal:focus {
+  outline: none;
+}
+
+body.ocsp-portal--staff .reference-admin-modal:focus-visible .reference-admin-dialog {
+  outline: 3px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 4px;
+}
+
+body.ocsp-portal--staff .reference-admin__header {
+  position: relative;
+  display: flex;
+  min-height: 112px;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 1.2rem 1.4rem 1.1rem;
+  padding-inline-end: 4.75rem;
+  color: #ffffff;
+  background:
+    linear-gradient(115deg, rgba(7, 45, 74, 0.98), rgba(39, 123, 188, 0.96)),
+    var(--ocsp-primary-dark);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+body.ocsp-portal--staff .reference-admin__eyebrow,
+body.ocsp-portal--staff .reference-admin__status,
+body.ocsp-portal--staff .reference-admin__flow-item,
+body.ocsp-portal--staff .reference-admin__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+}
+
+body.ocsp-portal--staff .reference-admin__eyebrow {
+  margin-block-end: 0.35rem;
+  color: #d9efff;
+  font-size: 0.7rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+body.ocsp-portal--staff .reference-admin__header h2 {
+  margin: 0;
+  color: #ffffff !important;
+  font-size: clamp(1.45rem, 3vw, 2rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+body.ocsp-portal--staff .reference-admin__header p {
+  max-width: 700px;
+  margin: 0.45rem 0 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+body.ocsp-portal--staff .reference-admin__close {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 1.15rem;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  text-decoration: none;
+  transform: translateY(-50%);
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+body.ocsp-portal--staff .reference-admin__close:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+body.ocsp-portal--staff .reference-admin__close:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+body.ocsp-portal--staff .reference-admin__body {
+  min-height: 0;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+body.ocsp-portal--staff .reference-admin__chooser-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+body.ocsp-portal--staff .reference-admin__chooser-heading h3 {
+  margin: 0;
+  color: var(--ocsp-ink) !important;
+  font-size: clamp(1.15rem, 2.5vw, 1.45rem) !important;
+  font-weight: 700 !important;
+}
+
+body.ocsp-portal--staff .reference-admin__chooser-heading p {
+  margin: 0.35rem 0 0;
+  color: var(--ocsp-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+body.ocsp-portal--staff .reference-admin__status {
+  min-height: 34px;
+  flex: 0 0 auto;
+  padding: 0.42rem 0.7rem;
+  color: #0f6b50;
+  background: #edf9f4;
+  border: 1px solid #b9e5d4;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+body.ocsp-portal--staff .reference-admin__flow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-block: 1rem;
+  color: var(--ocsp-muted);
+  font-size: 0.72rem;
+}
+
+body.ocsp-portal--staff .reference-admin__flow > i {
+  color: #8ca0b3;
+}
+
+body.ocsp-portal--staff .reference-admin__flow-item {
+  min-height: 34px;
+  padding: 0.35rem 0.65rem;
+  color: var(--ocsp-text);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--ocsp-border);
+  border-radius: 999px;
+}
+
+body.ocsp-portal--staff .reference-admin__flow-item b {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  color: #ffffff;
+  background: var(--ocsp-primary);
+  border-radius: 50%;
+  font-size: 0.62rem;
+}
+
+body.ocsp-portal--staff .reference-admin__workspace,
+body.ocsp-portal--staff .reference-admin__form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+body.ocsp-portal--staff .reference-admin__switcher {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.35rem;
+  background: #e8eff5;
+  border: 1px solid #d5e0e8;
+  border-radius: 12px;
+}
+
+body.ocsp-portal--staff .reference-admin__label {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.8rem;
+  color: #3e5368;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+body.ocsp-portal--staff .reference-admin__label:hover {
+  color: var(--ocsp-primary-dark);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+body.ocsp-portal--staff .reference-admin__label:focus-visible {
+  outline: 3px solid rgba(39, 123, 188, 0.32);
+  outline-offset: 2px;
+}
+
+body.ocsp-portal--staff .reference-admin-modal:has(#adminRegionPanel:target)
+  .reference-admin__label[href="#adminRegionPanel"],
+body.ocsp-portal--staff .reference-admin-modal:has(#adminDepartmentPanel:target)
+  .reference-admin__label[href="#adminDepartmentPanel"],
+body.ocsp-portal--staff .reference-admin-modal:has(#adminCategoryPanel:target)
+  .reference-admin__label[href="#adminCategoryPanel"] {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--ocsp-primary-dark), var(--ocsp-primary));
+  border-color: var(--ocsp-primary-dark);
+  box-shadow: 0 7px 16px rgba(11, 66, 109, 0.2);
+}
+
+body.ocsp-portal--staff .reference-admin__selection-prompt {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin-block-start: 1rem;
+  padding: 1.25rem;
+  color: var(--ocsp-text);
+  text-align: start;
+  background:
+    radial-gradient(circle at 50% 0, rgba(39, 123, 188, 0.09), transparent 58%),
+    #ffffff;
+  border: 1px dashed #b9c9d8;
+  border-radius: 14px;
+}
+
+body.ocsp-portal--staff .reference-admin-modal:has(.reference-admin__panel:target)
+  .reference-admin__selection-prompt {
+  display: none;
+}
+
+body.ocsp-portal--staff .reference-admin__selection-icon {
+  display: inline-grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--ocsp-primary-dark);
+  background: var(--ocsp-primary-soft);
+  border: 1px solid #cfe3f2;
+  border-radius: 14px;
+  font-size: 1.15rem;
+}
+
+body.ocsp-portal--staff .reference-admin__selection-prompt strong,
+body.ocsp-portal--staff .reference-admin__selection-prompt span {
+  display: block;
+}
+
+body.ocsp-portal--staff .reference-admin__selection-prompt strong {
+  margin-block-end: 0.2rem;
+  color: var(--ocsp-ink);
+  font-size: 0.92rem;
+}
+
+body.ocsp-portal--staff .reference-admin__selection-prompt div > span {
+  color: var(--ocsp-muted);
+  font-size: 0.75rem;
+}
+
+body.ocsp-portal--staff .reference-admin__panels {
+  margin-block-start: 1rem;
+}
+
+body.ocsp-portal--staff .reference-admin__panel {
+  --reference-accent: var(--ocsp-primary);
+  --reference-soft: #eef6fc;
+  display: none;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid var(--ocsp-border);
+  border-top: 3px solid var(--reference-accent);
+  border-radius: 14px;
+  box-shadow: var(--ocsp-shadow-sm);
+  scroll-margin-top: 1rem;
+}
+
+body.ocsp-portal--staff .reference-admin__panel:target {
+  display: grid;
+}
+
+body.ocsp-portal--staff .reference-admin__panel:focus {
+  outline: none;
+}
+
+body.ocsp-portal--staff .reference-admin__panel:focus-visible {
+  outline: 3px solid rgba(39, 123, 188, 0.3);
+  outline-offset: 3px;
+}
+
+body.ocsp-portal--staff .reference-admin__panel--departments {
+  --reference-accent: #0f8a66;
+  --reference-soft: #edf9f4;
+}
+
+body.ocsp-portal--staff .reference-admin__panel--categories {
+  --reference-accent: #6d28d9;
+  --reference-soft: #f5f3ff;
+}
+
+body.ocsp-portal--staff .reference-admin__intro {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: var(--reference-soft);
+  border-inline-end: 1px solid var(--ocsp-border);
+}
+
+body.ocsp-portal--staff .reference-admin__step {
+  margin-block-end: 1rem;
+  color: var(--reference-accent);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+body.ocsp-portal--staff .reference-admin__icon {
+  display: inline-grid;
+  width: 48px;
+  height: 48px;
+  margin-block-end: 1rem;
+  place-items: center;
+  color: #ffffff;
+  background: var(--reference-accent);
+  border-radius: 12px;
+  font-size: 1.2rem;
+  box-shadow: 0 9px 20px color-mix(in srgb, var(--reference-accent) 24%, transparent);
+}
+
+body.ocsp-portal--staff .reference-admin__intro h3 {
+  margin: 0;
+  color: var(--ocsp-ink) !important;
+  font-size: 1.18rem !important;
+  font-weight: 700 !important;
+}
+
+body.ocsp-portal--staff .reference-admin__intro p {
+  margin: 0.6rem 0 0;
+  color: var(--ocsp-muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+body.ocsp-portal--staff .reference-admin__form {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+body.ocsp-portal--staff .reference-admin__field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+body.ocsp-portal--staff .reference-admin__field {
+  min-width: 0;
+}
+
+body.ocsp-portal--staff .reference-admin__field--full {
+  grid-column: 1 / -1;
+}
+
+body.ocsp-portal--staff .reference-admin__field .form-label {
+  margin-block-end: 0.4rem;
+  color: var(--ocsp-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+body.ocsp-portal--staff .reference-admin__field :is(.form-control, .form-select) {
+  width: 100%;
+  min-height: 46px;
+  color: var(--ocsp-text);
+  background-color: #ffffff;
+  border-color: var(--ocsp-border-strong);
+  border-radius: 9px;
+  font-size: 0.82rem;
+}
+
+body.ocsp-portal--staff .reference-admin__field :is(.form-control, .form-select):focus {
+  border-color: var(--ocsp-primary);
+  box-shadow: 0 0 0 0.2rem rgba(39, 123, 188, 0.15);
+}
+
+body.ocsp-portal--staff .reference-admin__field textarea.form-control {
+  min-height: 92px;
+  resize: vertical;
+}
+
+body.ocsp-portal--staff .reference-admin__hint {
+  display: block;
+  margin-block-start: 0.35rem;
+  color: var(--ocsp-muted);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+body.ocsp-portal--staff .reference-admin__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-block-start: 1.25rem;
+  padding-block-start: 1rem;
+  border-top: 1px solid var(--ocsp-border);
+}
+
+body.ocsp-portal--staff .reference-admin__actions .btn {
+  display: inline-flex;
+  min-width: 116px;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+body.ocsp-portal--staff .reference-admin__actions .btn:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+body.ocsp-portal--staff .reference-admin__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.85rem 0 0;
+  padding: 0.7rem 0.8rem;
+  color: #4e6275;
+  background: #ffffff;
+  border: 1px solid var(--ocsp-border);
+  border-radius: 9px;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+body.ocsp-portal--staff .reference-admin__note i {
+  flex: 0 0 auto;
+  color: var(--ocsp-primary);
+}
+
+html:has(body.ocsp-portal--staff .reference-admin-modal:target),
+html:has(body.ocsp-portal--staff .reference-admin-modal .reference-admin__panel:target),
+body.ocsp-portal--staff:has(.reference-admin-modal:target),
+body.ocsp-portal--staff:has(.reference-admin-modal .reference-admin__panel:target) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+@media (max-width: 991.98px) {
+  body.ocsp-portal--staff .reference-admin__panel {
+    grid-template-columns: 1fr;
+  }
+
+  body.ocsp-portal--staff .reference-admin__intro {
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--ocsp-border);
+  }
+}
+
+@media (max-width: 575.98px) {
+  body.ocsp-portal--staff .reference-admin-jump {
+    width: 100%;
+  }
+
+  body.ocsp-portal--staff .reference-admin-modal:target,
+  body.ocsp-portal--staff .reference-admin-modal:has(.reference-admin__panel:target) {
+    padding: 0;
+    place-items: stretch;
+  }
+
+  body.ocsp-portal--staff .reference-admin-dialog {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0;
+  }
+
+  body.ocsp-portal--staff .reference-admin {
+    min-height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  body.ocsp-portal--staff .reference-admin__header {
+    min-height: 108px;
+    padding: 1rem;
+    padding-inline-end: 4.25rem;
+  }
+
+  body.ocsp-portal--staff .reference-admin__header h2 {
+    font-size: 1.35rem !important;
+  }
+
+  body.ocsp-portal--staff .reference-admin__header p {
+    font-size: 0.74rem;
+  }
+
+  body.ocsp-portal--staff .reference-admin__close {
+    inset-inline-end: 0.75rem;
+  }
+
+  body.ocsp-portal--staff .reference-admin__body {
+    padding: 0.9rem;
+  }
+
+  body.ocsp-portal--staff .reference-admin__chooser-heading {
+    flex-direction: column;
+  }
+
+  body.ocsp-portal--staff .reference-admin__flow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body.ocsp-portal--staff .reference-admin__flow > i {
+    display: none;
+  }
+
+  body.ocsp-portal--staff .reference-admin__flow-item {
+    justify-content: flex-start;
+  }
+
+  body.ocsp-portal--staff .reference-admin__switcher,
+  body.ocsp-portal--staff .reference-admin__field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.ocsp-portal--staff .reference-admin__selection-prompt {
+    min-height: 130px;
+    justify-content: flex-start;
+  }
+
+  body.ocsp-portal--staff .reference-admin__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body.ocsp-portal--staff .reference-admin__actions .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.ocsp-portal--staff .reference-admin__label,
+  body.ocsp-portal--staff .reference-admin__close {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   30. Bootstrap JavaScript state aliases
    ========================================================================== */
 
 body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).show {

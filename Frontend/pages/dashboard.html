@@ -56,9 +56,9 @@
             <i class="bi bi-chevron-right" aria-hidden="true"></i>
             <span aria-current="page">Dashboard</span>
           </div>
-          <span class="page-kicker"><i class="bi bi-person-workspace"></i> Staff dashboard</span>
+          <span class="page-kicker"><i class="bi bi-shield-check"></i> Admin dashboard</span>
           <h1>Turn reports into results.</h1>
-          <p class="page-hero__copy">Review assigned civic issues, document municipal action and keep citizens informed from first assessment to resolution.</p>
+          <p class="page-hero__copy">Manage service structure, review assigned civic issues and keep citizens informed from first assessment to resolution.</p>
           <div class="page-hero__actions">
             <a class="btn-ocsp-primary" href="#issuesAccordion"><i class="bi bi-inboxes"></i>Review assigned work</a>
             <a class="btn-ocsp-light" href="notifications.html"><i class="bi bi-bell"></i>View notifications</a>
@@ -85,22 +85,21 @@
     <!-- Header Section -->
 <!-- Staff Page Heading -->
     <div class="issues-toolbar">
-
       <div class="issues-heading">
-
         <span class="page-kicker">
-          <i class="bi bi-person-workspace"></i>
-          Staff Workspace
+          <i class="bi bi-shield-check"></i>
+          Admin Workspace
         </span>
-
         <h2>Dashboard</h2>
-
         <p>
-          Review assigned civic issues, update their status, and respond to citizen comments.
+          Manage platform setup, review assigned civic issues, update their status, and respond to citizen comments.
         </p>
-
       </div>
-
+      <a class="btn-ocsp-primary reference-admin-jump" id="adminManagementTrigger" href="#adminManagement"
+        aria-haspopup="dialog" aria-controls="adminManagement">
+        <i class="bi bi-diagram-3" aria-hidden="true"></i>
+        Manage platform setup
+      </a>
     </div>
 
 
@@ -376,8 +375,8 @@
       <div class="help-strip__main">
         <span class="help-strip__icon"><i class="bi bi-life-preserver"></i></span>
         <div>
-          <h2 id="staff-help-title">Need support with an assigned case?</h2>
-          <p>Contact the OCSP service desk for access, routing or escalation assistance.</p>
+          <h2 id="staff-help-title">Need support with an admin task?</h2>
+          <p>Contact the OCSP service desk for access, setup, routing or escalation assistance.</p>
         </div>
       </div>
       <div class="d-flex flex-wrap gap-3">
@@ -395,6 +394,239 @@
       <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
     </div>
   </footer>
+
+    <!-- CSS-only Admin Management dialog: the menu opens first, then a selected form is revealed. -->
+    <section class="reference-admin-modal" id="adminManagement" role="dialog"
+      aria-labelledby="adminManagementTitle" aria-describedby="adminManagementDescription" tabindex="-1">
+      <a class="ocsp-target-backdrop ocsp-target-backdrop--modal" href="#adminManagementTrigger"
+        aria-label="Close platform setup" tabindex="-1"></a>
+
+      <div class="reference-admin-dialog">
+        <div class="reference-admin">
+          <header class="reference-admin__header">
+            <div>
+              <span class="reference-admin__eyebrow">
+                <i class="bi bi-sliders2" aria-hidden="true"></i>
+                Admin setup
+              </span>
+              <h2 id="adminManagementTitle">Manage Platform Setup</h2>
+              <p id="adminManagementDescription">Choose what you want to add, then complete the matching setup form.</p>
+            </div>
+            <a class="reference-admin__close" href="#adminManagementTrigger" aria-label="Close platform setup">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </a>
+          </header>
+
+          <div class="reference-admin__body">
+            <section class="reference-admin__chooser" aria-labelledby="adminManagementChoiceTitle">
+              <div class="reference-admin__chooser-heading">
+                <div>
+                  <h3 id="adminManagementChoiceTitle">What would you like to add?</h3>
+                  <p>Select one setup type. Its complete form will appear below.</p>
+                </div>
+                <span class="reference-admin__status">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                  Static UI preview
+                </span>
+              </div>
+
+              <div class="reference-admin__flow" aria-label="Recommended setup order">
+                <span class="reference-admin__flow-item"><b>1</b> Region</span>
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                <span class="reference-admin__flow-item"><b>2</b> Department</span>
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                <span class="reference-admin__flow-item"><b>3</b> Category</span>
+              </div>
+
+              <nav class="reference-admin__workspace" aria-label="Choose a platform setup type">
+                <div class="reference-admin__switcher">
+                  <a class="reference-admin__label" id="manageRegionsLabel" href="#adminRegionPanel"
+                    aria-controls="adminRegionPanel">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                    Regions
+                  </a>
+                  <a class="reference-admin__label" id="manageDepartmentsLabel" href="#adminDepartmentPanel"
+                    aria-controls="adminDepartmentPanel">
+                    <i class="bi bi-building" aria-hidden="true"></i>
+                    Departments
+                  </a>
+                  <a class="reference-admin__label" id="manageCategoriesLabel" href="#adminCategoryPanel"
+                    aria-controls="adminCategoryPanel">
+                    <i class="bi bi-tags" aria-hidden="true"></i>
+                    Categories
+                  </a>
+                </div>
+              </nav>
+
+              <div class="reference-admin__selection-prompt">
+                <span class="reference-admin__selection-icon" aria-hidden="true">
+                  <i class="bi bi-hand-index-thumb"></i>
+                </span>
+                <div>
+                  <strong>Select a setup type</strong>
+                  <span>The corresponding form will be displayed here.</span>
+                </div>
+              </div>
+            </section>
+
+            <div class="reference-admin__panels">
+              <section class="reference-admin__panel reference-admin__panel--regions" id="adminRegionPanel"
+                aria-labelledby="manageRegionsLabel" tabindex="-1">
+                <div class="reference-admin__intro">
+                  <span class="reference-admin__step">Step 01</span>
+                  <span class="reference-admin__icon" aria-hidden="true"><i class="bi bi-geo-alt"></i></span>
+                  <h3>Add a region</h3>
+                  <p>Regions define the service area used when departments and citizen reports are routed.</p>
+                </div>
+                <form class="reference-admin__form" aria-describedby="adminManagementNote" autocomplete="off">
+                  <fieldset>
+                    <legend class="visually-hidden">New region details</legend>
+                    <div class="reference-admin__field-grid">
+                      <div class="reference-admin__field">
+                        <label class="form-label" for="adminRegionName">Region name</label>
+                        <input class="form-control" id="adminRegionName" name="regionName" type="text"
+                          placeholder="Example: Bawshar">
+                      </div>
+                      <div class="reference-admin__field">
+                        <label class="form-label" for="adminRegionGovernorate">Governorate</label>
+                        <select class="form-select" id="adminRegionGovernorate" name="governorate">
+                          <option value="" selected disabled>Select a governorate</option>
+                          <option value="Muscat">Muscat</option>
+                          <option value="Dhofar">Dhofar</option>
+                          <option value="Musandam">Musandam</option>
+                          <option value="Al Buraimi">Al Buraimi</option>
+                          <option value="Ad Dakhiliyah">Ad Dakhiliyah</option>
+                          <option value="North Al Batinah">North Al Batinah</option>
+                          <option value="South Al Batinah">South Al Batinah</option>
+                          <option value="North Ash Sharqiyah">North Ash Sharqiyah</option>
+                          <option value="South Ash Sharqiyah">South Ash Sharqiyah</option>
+                          <option value="Al Dhahirah">Al Dhahirah</option>
+                          <option value="Al Wusta">Al Wusta</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="reference-admin__actions">
+                      <button class="btn ocsp-button ocsp-button--cancel" type="reset">Clear</button>
+                      <button class="btn ocsp-button ocsp-button--submit" type="submit"
+                        aria-describedby="adminManagementNote" disabled>
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        Add region
+                      </button>
+                    </div>
+                  </fieldset>
+                </form>
+              </section>
+
+              <section class="reference-admin__panel reference-admin__panel--departments" id="adminDepartmentPanel"
+                aria-labelledby="manageDepartmentsLabel" tabindex="-1">
+                <div class="reference-admin__intro">
+                  <span class="reference-admin__step">Step 02</span>
+                  <span class="reference-admin__icon" aria-hidden="true"><i class="bi bi-building"></i></span>
+                  <h3>Add a department</h3>
+                  <p>Departments own service delivery and are linked to the region they support.</p>
+                </div>
+                <form class="reference-admin__form" aria-describedby="adminManagementNote" autocomplete="off">
+                  <fieldset>
+                    <legend class="visually-hidden">New department details</legend>
+                    <div class="reference-admin__field-grid">
+                      <div class="reference-admin__field">
+                        <label class="form-label" for="adminDepartmentName">Department name</label>
+                        <input class="form-control" id="adminDepartmentName" name="departmentName" type="text"
+                          placeholder="Example: Roads &amp; Infrastructure">
+                      </div>
+                      <div class="reference-admin__field">
+                        <label class="form-label" for="adminDepartmentEmail">Contact email</label>
+                        <input class="form-control" id="adminDepartmentEmail" name="contactEmail" type="email"
+                          placeholder="roads.dept@ocsp.om">
+                      </div>
+                      <div class="reference-admin__field reference-admin__field--full">
+                        <label class="form-label" for="adminDepartmentDescription">Description</label>
+                        <textarea class="form-control" id="adminDepartmentDescription" name="description" rows="3"
+                          placeholder="Example: Handles road maintenance, paving, and pothole repairs."></textarea>
+                      </div>
+                      <div class="reference-admin__field reference-admin__field--full">
+                        <label class="form-label" for="adminDepartmentRegion">Region</label>
+                        <select class="form-select" id="adminDepartmentRegion" name="regionId"
+                          aria-describedby="adminDepartmentRegionHint">
+                          <option value="" selected disabled>Select a region</option>
+                          <option value="1">Bawshar — Muscat</option>
+                          <option value="2">Muttrah — Muscat</option>
+                          <option value="3">Seeb — Muscat</option>
+                        </select>
+                        <small class="reference-admin__hint" id="adminDepartmentRegionHint">
+                          The selected value supplies the regionId.
+                        </small>
+                      </div>
+                    </div>
+                    <div class="reference-admin__actions">
+                      <button class="btn ocsp-button ocsp-button--cancel" type="reset">Clear</button>
+                      <button class="btn ocsp-button ocsp-button--submit" type="submit"
+                        aria-describedby="adminManagementNote" disabled>
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        Add department
+                      </button>
+                    </div>
+                  </fieldset>
+                </form>
+              </section>
+
+              <section class="reference-admin__panel reference-admin__panel--categories" id="adminCategoryPanel"
+                aria-labelledby="manageCategoriesLabel" tabindex="-1">
+                <div class="reference-admin__intro">
+                  <span class="reference-admin__step">Step 03</span>
+                  <span class="reference-admin__icon" aria-hidden="true"><i class="bi bi-tags"></i></span>
+                  <h3>Add a category</h3>
+                  <p>Categories classify incoming reports and route them to the responsible department.</p>
+                </div>
+                <form class="reference-admin__form" aria-describedby="adminManagementNote" autocomplete="off">
+                  <fieldset>
+                    <legend class="visually-hidden">New category details</legend>
+                    <div class="reference-admin__field-grid">
+                      <div class="reference-admin__field">
+                        <label class="form-label" for="adminCategoryName">Category name</label>
+                        <input class="form-control" id="adminCategoryName" name="categoryName" type="text"
+                          placeholder="Example: Potholes &amp; Asphalt">
+                      </div>
+                      <div class="reference-admin__field">
+                        <label class="form-label" for="adminCategoryDepartment">Department</label>
+                        <select class="form-select" id="adminCategoryDepartment" name="departmentId"
+                          aria-describedby="adminCategoryDepartmentHint">
+                          <option value="" selected disabled>Select a department</option>
+                          <option value="1">Roads &amp; Infrastructure</option>
+                          <option value="2">Traffic &amp; Signals</option>
+                          <option value="3">Public Safety</option>
+                        </select>
+                        <small class="reference-admin__hint" id="adminCategoryDepartmentHint">
+                          The selected value supplies the departmentId.
+                        </small>
+                      </div>
+                      <div class="reference-admin__field reference-admin__field--full">
+                        <label class="form-label" for="adminCategoryDescription">Description</label>
+                        <textarea class="form-control" id="adminCategoryDescription" name="description" rows="3"
+                          placeholder="Example: Reports regarding street damage and potholes."></textarea>
+                      </div>
+                    </div>
+                    <div class="reference-admin__actions">
+                      <button class="btn ocsp-button ocsp-button--cancel" type="reset">Clear</button>
+                      <button class="btn ocsp-button ocsp-button--submit" type="submit"
+                        aria-describedby="adminManagementNote" disabled>
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        Add category
+                      </button>
+                    </div>
+                  </fieldset>
+                </form>
+              </section>
+            </div>
+
+            <p class="reference-admin__note" id="adminManagementNote" role="note">
+              <i class="bi bi-info-circle" aria-hidden="true"></i>
+              UI preview only: you can fill and clear these forms, but Add actions will not save data until the API is connected.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- OFFCANVAS FILTER DRAWER -->
     <div class="offcanvas offcanvas-end issue-filter-drawer" tabindex="-1" id="filterDrawer"
@@ -535,74 +767,6 @@
                 </div>
 
 
-                <!-- Activity Timeline -->
-                <div class="mt-4">
-
-                  <span class="content-label">
-                    Activity Timeline
-                  </span>
-
-                  <ol class="activity-timeline activity-timeline--compact">
-
-                    <li class="timeline-item timeline-item--open">
-
-                      <span class="timeline-dot"></span>
-
-                      <div>
-                        <strong>
-                          Issue Submitted
-                        </strong>
-
-                        <small>
-                          Oct 12, 2026 · 8:42 AM
-                        </small>
-                      </div>
-
-                    </li>
-
-                    <li class="timeline-item timeline-item--progress">
-
-                      <span class="timeline-dot"></span>
-
-                      <div>
-                        <strong>
-                          In Progress
-                        </strong>
-
-                        <small>
-                          Changed by Staff ID: 501
-                        </small>
-
-                        <small>
-                          Current status
-                        </small>
-                      </div>
-
-                    </li>
-
-                    <li class="timeline-item timeline-item--resolved">
-
-                      <span class="timeline-dot"></span>
-
-                      <div>
-                        <strong>
-                          Resolved
-                        </strong>
-
-                        <small>
-                          Changed by Staff ID: 501
-                        </small>
-
-                        <small>
-                          Oct 12, 2026 · 4:10 PM
-                        </small>
-                      </div>
-
-                    </li>
-
-                  </ol>
-
-                </div>
                 <hr class="my-4" />
                 <span class="content-label">
                   Staff Action Panel
@@ -718,54 +882,6 @@
                   </div>
 
                 </div>
-                <!-- Activity Timeline -->
-                <div class="mt-4">
-
-                  <span class="content-label">
-                    Activity Timeline
-                  </span>
-
-                  <ol class="activity-timeline activity-timeline--compact">
-
-                    <li class="timeline-item timeline-item--open">
-
-                      <span class="timeline-dot"></span>
-
-                      <div>
-                        <strong>
-                          Issue Submitted
-                        </strong>
-
-                        <small>
-                          Oct 14, 2026 · 9:20 AM
-                        </small>
-                      </div>
-
-                    </li>
-
-                    <li class="timeline-item timeline-item--progress">
-
-                      <span class="timeline-dot"></span>
-
-                      <div>
-                        <strong>
-                          In Progress
-                        </strong>
-
-                        <small>
-                          Changed by Staff ID: 211
-                        </small>
-
-                        <small>
-                          Current status
-                        </small>
-                      </div>
-
-                    </li>
-
-                  </ol>
-
-                </div>
                 <hr class="my-4" />
                 <span class="content-label">
                   Staff Action Panel
@@ -873,69 +989,6 @@
                     </button>
 
                   </div>
-
-                </div>
-                <!-- Activity Timeline -->
-                <div class="mt-4">
-
-                  <span class="content-label">
-                    Activity Timeline
-                  </span>
-
-                  <ol class="activity-timeline activity-timeline--compact">
-
-                    <li class="timeline-item timeline-item--open">
-
-                      <span class="timeline-dot"></span>
-
-                      <div>
-                        <strong>
-                          Issue Submitted
-                        </strong>
-
-                        <small>
-                          Oct 13, 2026 · 10:15 AM
-                        </small>
-                      </div>
-
-                    </li>
-
-                    <li class="timeline-item timeline-item--progress">
-
-                      <span class="timeline-dot"></span>
-
-                      <div>
-                        <strong>
-                          In Progress
-                        </strong>
-
-                        <small>
-                          Oct 14, 2026 · 8:30 AM
-                        </small>
-                      </div>
-
-                    </li>
-                    <li class="timeline-item timeline-item--resolved">
-
-                      <span class="timeline-dot"></span>
-
-                      <div>
-                        <strong>
-                          Resolved
-                        </strong>
-
-                        <small>
-                          Changed by Staff ID: 501
-                        </small>
-
-                        <small>
-                          Oct 15, 2026 · 7:30 AM
-                        </small>
-                      </div>
-
-                    </li>
-
-                  </ol>
 
                 </div>
                 <hr class="my-4" />
