@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="../styles/custome.css">
 </head>
 
-<body class="site-page">
+<body class="site-page" data-auth-page="guest">
     <a class="skip-link" href="#loginForm">Skip to sign in form</a>
 
     <nav class="site-nav" aria-label="Primary navigation">
@@ -34,9 +34,9 @@
 
             <div class="nav-menu" id="loginNavMenu">
                 <a class="nav-link-ocsp" href="home.html">Home</a>
-                <a class="nav-link-ocsp" href="my-issues.html">My Issues</a>
-                <a class="nav-link-ocsp" href="dashboard.html">Dashboard</a>
-                <a class="nav-link-ocsp" href="notifications.html">
+                <a class="nav-link-ocsp" data-nav-roles="Citizen" href="my-issues.html">My Issues</a>
+                <a class="nav-link-ocsp" data-nav-roles="Staff Admin" href="dashboard.html">Dashboard</a>
+                <a class="nav-link-ocsp" data-nav-auth="authenticated" href="notifications.html">
                     Notifications <span class="nav-count" aria-label="2 unread notifications">2</span>
                 </a>
                 <a class="user-chip" href="login.html" aria-current="page">
@@ -77,12 +77,17 @@
                         <p>Welcome back to the Oman Community Services Platform.</p>
                     </div>
 
-                    <form id="loginForm" action="my-issues.html" method="get" tabindex="-1">
+                    <div id="loginStatus" class="alert d-none" role="alert" aria-live="assertive" tabindex="-1"></div>
+                    <noscript>
+                        <div class="alert alert-warning" role="alert">JavaScript is required to sign in.</div>
+                    </noscript>
+
+                    <form id="loginForm">
                         <div class="mb-3">
                             <label class="form-label" for="email">Email Address <span class="required-mark"
                                     aria-hidden="true">*</span></label>
-                            <input class="form-control" type="email" id="email" placeholder="name@example.com"
-                                autocomplete="email" required>
+                            <input class="form-control" type="email" id="email" name="email" placeholder="name@example.com"
+                                autocomplete="email" maxlength="150" required>
                         </div>
 
                         <div class="mb-2">
@@ -92,13 +97,13 @@
                                 <a class="small text-decoration-none mb-2"
                                     href="mailto:support@ocsp.om?subject=Password%20help">Forgot password?</a>
                             </div>
-                            <input class="form-control" type="password" id="password" placeholder="Enter your password"
-                                autocomplete="current-password" required>
+                            <input class="form-control" type="password" id="password" name="password" placeholder="Enter your password"
+                                autocomplete="current-password" minlength="6" maxlength="256" required>
                         </div>
 
                         <p class="field-hint mb-4">Fields marked with * are required.</p>
 
-                        <button class="btn-ocsp-primary ocsp-button ocsp-button--submit w-100" type="submit">
+                        <button class="btn-ocsp-primary ocsp-button ocsp-button--submit w-100" id="loginSubmit" type="submit">
                             <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Sign In
                         </button>
                     </form>
@@ -122,6 +127,14 @@
             <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
         </div>
     </footer>
+
+    <script src="../scripts/config.js" defer></script>
+    <script src="../scripts/data/mock-data.js" defer></script>
+    <script src="../scripts/services/api-client.js" defer></script>
+    <script src="../scripts/services/session-service.js" defer></script>
+    <script src="../scripts/services/auth-service.js" defer></script>
+    <script src="../scripts/components/site-session.js" defer></script>
+    <script src="../scripts/pages/login.js" defer></script>
 </body>
 
 </html>

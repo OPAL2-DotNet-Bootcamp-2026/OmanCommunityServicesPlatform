@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../styles/custome.css">
 </head>
 
-<body class="site-page">
+<body class="site-page" data-auth-page="guest">
     <a class="skip-link" href="#registerForm">Skip to registration form</a>
 
     <nav class="site-nav" aria-label="Primary navigation">
@@ -33,9 +33,9 @@
 
             <div class="nav-menu" id="registerNavMenu">
                 <a class="nav-link-ocsp" href="home.html">Home</a>
-                <a class="nav-link-ocsp" href="my-issues.html">My Issues</a>
-                <a class="nav-link-ocsp" href="dashboard.html">Dashboard</a>
-                <a class="nav-link-ocsp" href="notifications.html">
+                <a class="nav-link-ocsp" data-nav-roles="Citizen" href="my-issues.html">My Issues</a>
+                <a class="nav-link-ocsp" data-nav-roles="Staff Admin" href="dashboard.html">Dashboard</a>
+                <a class="nav-link-ocsp" data-nav-auth="authenticated" href="notifications.html">
                     Notifications <span class="nav-count" aria-label="2 unread notifications">2</span>
                 </a>
                 <a class="user-chip" href="register.html" aria-current="page">
@@ -76,52 +76,48 @@
                         <p>Join the Oman Community Services Platform to access civic services.</p>
                     </div>
 
-                    <form id="registerForm" action="login.html" method="get" tabindex="-1">
+                    <div id="registerStatus" class="alert d-none" role="alert" aria-live="assertive" tabindex="-1"></div>
+                    <noscript>
+                        <div class="alert alert-warning" role="alert">JavaScript is required to create an account.</div>
+                    </noscript>
+
+                    <form id="registerForm">
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="name">Full Name <span class="required-mark"
                                         aria-hidden="true">*</span></label>
-                                <input class="form-control" type="text" id="name" placeholder="e.g. Ahmed Al Harthi"
+                                <input class="form-control" type="text" id="name" name="name" placeholder="e.g. Ahmed Al Harthi"
                                     maxlength="50" autocomplete="name" required>
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="email">Email <span class="required-mark"
                                         aria-hidden="true">*</span></label>
-                                <input class="form-control" type="email" id="email" placeholder="ahmed@example.com"
+                                <input class="form-control" type="email" id="email" name="email" placeholder="ahmed@example.com"
                                     maxlength="150" autocomplete="email" required>
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="phoneNumber">Phone Number <span
                                         class="fw-normal text-secondary">(optional)</span></label>
-                                <input class="form-control" type="tel" id="phoneNumber" placeholder="+968 9123 4567"
+                                <input class="form-control" type="tel" id="phoneNumber" name="phoneNumber" placeholder="+968 9123 4567"
                                     minlength="8" maxlength="20" autocomplete="tel">
                             </div>
 
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="regionId">Region <span
                                         class="fw-normal text-secondary">(optional)</span></label>
-                                <select class="form-select" id="regionId" autocomplete="address-level1">
-                                    <option value="" selected>Select your region</option>
-                                    <option>Muscat</option>
-                                    <option>Dhofar</option>
-                                    <option>Musandam</option>
-                                    <option>Al Buraimi</option>
-                                    <option>Ad Dakhiliyah</option>
-                                    <option>Al Batinah North</option>
-                                    <option>Al Batinah South</option>
-                                    <option>Ash Sharqiyah North</option>
-                                    <option>Ash Sharqiyah South</option>
-                                    <option>Adh Dhahirah</option>
-                                    <option>Al Wusta</option>
+                                <select class="form-select" id="regionId" name="regionId" autocomplete="address-level1"
+                                    aria-describedby="regionHint" disabled>
+                                    <option value="" selected>Loading regions...</option>
                                 </select>
+                                <p class="field-hint" id="regionHint">Loading available regions...</p>
                             </div>
 
                             <div class="col-12">
                                 <label class="form-label" for="password">Password <span class="required-mark"
                                         aria-hidden="true">*</span></label>
-                                <input class="form-control" type="password" id="password" minlength="6" maxlength="256"
+                                <input class="form-control" type="password" id="password" name="password" minlength="6" maxlength="256"
                                     placeholder="Enter your password" autocomplete="new-password"
                                     aria-describedby="passwordHint" required>
                                 <p class="field-hint" id="passwordHint">Use at least 6 characters.</p>
@@ -130,7 +126,7 @@
 
                         <p class="field-hint mt-3 mb-4">Fields marked with * are required.</p>
 
-                        <button class="btn-ocsp-primary ocsp-button ocsp-button--submit w-100" type="submit">
+                        <button class="btn-ocsp-primary ocsp-button ocsp-button--submit w-100" id="registerSubmit" type="submit">
                             <i class="bi bi-person-check" aria-hidden="true"></i>Register
                         </button>
                     </form>
@@ -154,6 +150,14 @@
             <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
         </div>
     </footer>
+
+    <script src="../scripts/config.js" defer></script>
+    <script src="../scripts/data/mock-data.js" defer></script>
+    <script src="../scripts/services/api-client.js" defer></script>
+    <script src="../scripts/services/session-service.js" defer></script>
+    <script src="../scripts/services/auth-service.js" defer></script>
+    <script src="../scripts/components/site-session.js" defer></script>
+    <script src="../scripts/pages/register.js" defer></script>
 </body>
 
 </html>

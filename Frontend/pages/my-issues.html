@@ -11,7 +11,7 @@
   <link href="../styles/custome.css" rel="stylesheet" />
 </head>
 
-<body class="site-page ocsp-portal ocsp-portal--citizen">
+<body class="site-page ocsp-portal ocsp-portal--citizen" data-auth-page="protected" data-allowed-roles="Citizen">
   <a class="skip-link" href="#main-content">Skip to my issues</a>
 
   <nav class="site-nav" aria-label="Primary navigation">
@@ -31,15 +31,15 @@
 
       <div class="nav-menu" id="myIssuesNavMenu">
         <a class="nav-link-ocsp" href="home.html">Home</a>
-        <a class="nav-link-ocsp is-active" href="my-issues.html" aria-current="page">My Issues</a>
-        <a class="nav-link-ocsp" href="dashboard.html">Dashboard</a>
-        <a class="nav-link-ocsp" href="notifications.html">
+        <a class="nav-link-ocsp is-active" data-nav-roles="Citizen" href="my-issues.html" aria-current="page">My Issues</a>
+        <a class="nav-link-ocsp" data-nav-roles="Staff Admin" href="dashboard.html">Dashboard</a>
+        <a class="nav-link-ocsp" data-nav-auth="authenticated" href="notifications.html">
           Notifications <span class="nav-count" id="notificationCount" aria-label="0 unread notifications" hidden>0</span>
         </a>
-        <a class="user-chip" href="login.html">
-          <span class="user-chip__avatar" id="currentUserAvatar" aria-hidden="true">C</span>
-          <span id="currentUserName">Citizen</span>
-          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <a class="user-chip" data-session-control href="login.html">
+          <span class="user-chip__avatar" id="currentUserAvatar" data-session-avatar aria-hidden="true">C</span>
+          <span id="currentUserName" data-session-name>Citizen</span>
+          <i class="bi bi-box-arrow-right" data-session-icon aria-hidden="true"></i>
         </a>
       </div>
     </div>
@@ -532,6 +532,8 @@
   <script src="../scripts/config.js" defer></script>
   <script src="../scripts/data/mock-data.js" defer></script>
   <script src="../scripts/services/api-client.js" defer></script>
+  <script src="../scripts/services/session-service.js" defer></script>
+  <script src="../scripts/components/site-session.js" defer></script>
   <script src="../scripts/services/data-service.js" defer></script>
   <script src="../scripts/components/issue-renderers.js" defer></script>
   <script src="../scripts/pages/my-issues.js" defer></script>

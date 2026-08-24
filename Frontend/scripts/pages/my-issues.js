@@ -4,6 +4,7 @@
   const ocsp = global.OCSP || {};
   const service = ocsp.dataService;
   const renderers = ocsp.issueRenderers;
+  const shell = ocsp.siteSession;
 
   const state = {
     dashboard: null,
@@ -664,6 +665,10 @@
   }
 
   async function start() {
+    if (shell && !shell.isPageAllowed()) {
+      return;
+    }
+
     cacheElements();
 
     if (!service || !renderers || !elements.gallery) {

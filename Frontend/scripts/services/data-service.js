@@ -29,13 +29,9 @@
   }
 
   function getStoredSessionUser() {
-    try {
-      const stored = global.localStorage.getItem("ocsp.session.user");
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (_error) {
-      // The mock source and a future authentication screen can both work without storage.
+    const sessionUser = ocsp.sessionService && ocsp.sessionService.getUser();
+    if (sessionUser) {
+      return clone(sessionUser);
     }
 
     return {
@@ -99,7 +95,9 @@
   const mockSource = {
     async getDashboardData() {
       return {
-        currentUser: clone(mockState.currentUser),
+        currentUser: getStoredSessionUser().userId
+          ? getStoredSessionUser()
+          : clone(mockState.currentUser),
         notifications: clone(asArray(mockState.notifications)),
         categories: clone(asArray(mockState.categories)),
         regions: clone(asArray(mockState.regions)),

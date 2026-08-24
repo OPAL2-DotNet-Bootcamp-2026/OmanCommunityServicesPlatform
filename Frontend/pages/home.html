@@ -10,7 +10,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="../styles/custome.css" rel="stylesheet">
 </head>
-<body class="site-page">
+<body class="site-page" data-auth-page="public">
   <a class="skip-link" href="#mainContent">Skip to main content</a>
 
   <nav class="site-nav" aria-label="Primary navigation">
@@ -30,15 +30,15 @@
 
       <div class="nav-menu" id="homeNavMenu">
         <a class="nav-link-ocsp is-active" href="home.html" aria-current="page">Home</a>
-        <a class="nav-link-ocsp" href="my-issues.html">My Issues</a>
-        <a class="nav-link-ocsp" href="dashboard.html">Dashboard</a>
-        <a class="nav-link-ocsp" href="notifications.html">
+        <a class="nav-link-ocsp" data-nav-roles="Citizen" href="my-issues.html">My Issues</a>
+        <a class="nav-link-ocsp" data-nav-roles="Staff Admin" href="dashboard.html">Dashboard</a>
+        <a class="nav-link-ocsp" data-nav-auth="authenticated" href="notifications.html">
           Notifications <span class="nav-count" aria-label="2 unread notifications">2</span>
         </a>
-        <a class="user-chip" href="login.html">
-          <span class="user-chip__avatar" aria-hidden="true">AH</span>
-          <span>Sign In</span>
-          <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+        <a class="user-chip" data-session-control href="login.html">
+          <span class="user-chip__avatar" data-session-avatar aria-hidden="true">?</span>
+          <span data-session-name>Sign in</span>
+          <i class="bi bi-box-arrow-in-right" data-session-icon aria-hidden="true"></i>
         </a>
       </div>
     </div>
@@ -55,7 +55,7 @@
 
             <div class="page-hero__actions">
               <a class="btn-ocsp-primary" href="my-issues.html#createIssueModal"><i class="bi bi-plus-circle" aria-hidden="true"></i>Create an Issue</a>
-              <a class="btn-ocsp-light" href="login.html"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Sign In</a>
+              <a class="btn-ocsp-light" href="login.html"><i class="bi bi-box-arrow-in-right" data-session-icon aria-hidden="true"></i>Sign In</a>
             </div>
 
             <div class="hero-meta" aria-label="Service highlights">
@@ -175,5 +175,10 @@
       <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
     </div>
   </footer>
+
+  <script src="../scripts/config.js" defer></script>
+  <script src="../scripts/services/api-client.js" defer></script>
+  <script src="../scripts/services/session-service.js" defer></script>
+  <script src="../scripts/components/site-session.js" defer></script>
 </body>
 </html>
