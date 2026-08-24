@@ -218,12 +218,22 @@
         ${statusUpdates
           .map((update) => {
             const status = getStatusMeta(update.newStatus);
-            const label = update.notes || status.label;
+            const isSubmission = !update.previousStatus && update.newStatus === "Open";
+            const label = isSubmission ? "Issue Submitted" : status.label;
+            const notes = String(update.notes || "").trim();
+            const staffLine = !isSubmission && update.updatedById
+              ? `<small>Changed by Staff ID: ${escapeHtml(update.updatedById)}</small>`
+              : "";
+            const notesLine = !isSubmission && notes && notes !== label
+              ? `<small>${escapeHtml(notes)}</small>`
+              : "";
             return `
               <li class="timeline-item timeline-item--${status.key}">
                 <span class="timeline-dot" aria-hidden="true"></span>
                 <div>
                   <strong>${escapeHtml(label)}</strong>
+                  ${staffLine}
+                  ${notesLine}
                   <small>${escapeHtml(formatDateTime(update.updatedAt))}</small>
                 </div>
               </li>`;
@@ -239,7 +249,7 @@
 
     return comments
       .map((comment) => {
-        const roleKey = comment.isStaffComment ? "staff" : "citizen";
+        const roleKey = comment.isStaffComment ? "admin" : "citizen";
         const roleLabel = comment.isStaffComment ? "Staff" : "Citizen";
         return `
           <article class="ocsp-card comment-card${comment.highlighted ? " comment-card--highlighted" : ""}" role="listitem">
@@ -386,9 +396,12 @@
     getInitials,
     formatDate,
     formatDateTime,
+    renderIssueImage,
     renderIssueCard,
     renderIssueDetailModal,
-    renderComments
+    renderAttachments,
+    renderComments,
+    renderTimeline
   });
 
   global.OCSP = ocsp;

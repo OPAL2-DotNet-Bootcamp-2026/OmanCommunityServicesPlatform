@@ -126,7 +126,7 @@
       return `<a class="notification-card${unreadClass}" ${commonAttributes} href="${escapeHtml(href)}">${content}</a>`;
     }
 
-    return `<button class="notification-card${unreadClass} border-0 w-100 text-start" ${commonAttributes} type="button">${content}</button>`;
+    return `<button class="notification-card${unreadClass} w-100 text-start" ${commonAttributes} type="button">${content}</button>`;
   }
 
   function groupNotifications(notifications) {

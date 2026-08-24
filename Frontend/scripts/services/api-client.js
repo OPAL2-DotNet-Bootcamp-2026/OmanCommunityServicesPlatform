@@ -18,6 +18,7 @@
     issueById: (issueId) => `/issue/GetIssueById/${issueId}`,
     createIssue: "/issue/Create",
     changeIssueStatus: (issueId) => `/issue/ChangeIssueStatus/${issueId}`,
+    allStatusUpdates: "/api/StatusUpdate",
     statusUpdatesByIssue: (issueId) => `/api/StatusUpdate/issue/${issueId}`,
 
     categories: "/category/GetAllCategories",

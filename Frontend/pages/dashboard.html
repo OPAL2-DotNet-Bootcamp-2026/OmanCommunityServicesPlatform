@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Review and update civic issues assigned to municipal staff through OCSP." />
+  <meta name="description" content="Review and update civic issues through the OCSP municipal workspace." />
   <title>Dashboard — OCSP</title>
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -13,8 +13,8 @@
   <link rel="stylesheet" href="../styles/custome.css" />
 </head>
 
-<body class="site-page ocsp-portal ocsp-portal--staff">
-  <a class="skip-link" href="#main-content">Skip to assigned issues</a>
+<body class="site-page ocsp-portal ocsp-portal--staff" data-auth-page="protected" data-allowed-roles="Staff Admin">
+  <a class="skip-link" href="#main-content">Skip to issues</a>
 
   <nav class="site-nav" aria-label="Primary navigation">
     <div class="container-xxl px-3 px-md-4 site-nav__inner">
@@ -33,15 +33,17 @@
 
       <div class="nav-menu" id="staffIssuesNavMenu">
         <a class="nav-link-ocsp" href="home.html">Home</a>
-        <a class="nav-link-ocsp" href="my-issues.html">My Issues</a>
-        <a class="nav-link-ocsp is-active" href="dashboard.html" aria-current="page">Dashboard</a>
-        <a class="nav-link-ocsp" href="notifications.html">
-          Notifications <span class="nav-count" aria-label="2 unread notifications">2</span>
+        <a class="nav-link-ocsp" data-nav-roles="Citizen" href="my-issues.html" hidden>My Issues</a>
+        <a class="nav-link-ocsp is-active" data-nav-roles="Staff Admin" href="dashboard.html"
+          aria-current="page">Dashboard</a>
+        <a class="nav-link-ocsp" data-nav-auth="authenticated" href="notifications.html">
+          Notifications
+          <span class="nav-count" id="dashboardNotificationCount" aria-label="0 unread notifications" hidden>0</span>
         </a>
-        <a class="user-chip" href="login.html">
-          <span class="user-chip__avatar" aria-hidden="true">S5</span>
-          <span>Staff 501</span>
-          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        <a class="user-chip" data-session-control href="login.html">
+          <span class="user-chip__avatar" id="dashboardUserAvatar" data-session-avatar aria-hidden="true">?</span>
+          <span id="dashboardUserName" data-session-name>Staff</span>
+          <i class="bi bi-box-arrow-right" data-session-icon aria-hidden="true"></i>
         </a>
       </div>
     </div>
@@ -56,23 +58,23 @@
             <i class="bi bi-chevron-right" aria-hidden="true"></i>
             <span aria-current="page">Dashboard</span>
           </div>
-          <span class="page-kicker"><i class="bi bi-shield-check"></i> Admin dashboard</span>
+          <span class="page-kicker" id="dashboardRoleKicker"><i class="bi bi-shield-check"></i> Admin dashboard</span>
           <h1>Turn reports into results.</h1>
-          <p class="page-hero__copy">Manage service structure, review assigned civic issues and keep citizens informed from first assessment to resolution.</p>
+          <p class="page-hero__copy" id="dashboardHeroCopy">Manage service structure, review civic issues and keep citizens informed from first assessment to resolution.</p>
           <div class="page-hero__actions">
-            <a class="btn-ocsp-primary" href="#issuesAccordion"><i class="bi bi-inboxes"></i>Review assigned work</a>
+            <a class="btn-ocsp-primary" href="#issuesAccordion"><i class="bi bi-inboxes"></i>Review civic issues</a>
             <a class="btn-ocsp-light" href="notifications.html"><i class="bi bi-bell"></i>View notifications</a>
           </div>
         </div>
-        <aside class="hero-panel" aria-label="Staff workload summary">
+        <aside class="hero-panel" aria-label="Issue workload summary">
           <span class="hero-panel__label">Current workload</span>
-          <p class="hero-panel__value">3 assigned issues</p>
-          <p class="hero-panel__copy">One open issue needs triage and one field task is in progress.</p>
+          <p class="hero-panel__value" id="dashboardHeroAssigned">Loading issues...</p>
+          <p class="hero-panel__copy" id="dashboardHeroWorkloadCopy">Loading current workload...</p>
           <div class="hero-panel__divider"></div>
           <div class="d-flex align-items-center justify-content-between gap-3">
             <div>
               <span class="hero-panel__label">Completed today</span>
-              <p class="hero-panel__value mb-0">1 resolved</p>
+              <p class="hero-panel__value mb-0" id="dashboardHeroResolvedToday">0 resolved</p>
             </div>
             <i class="bi bi-check2-circle fs-2 text-success" aria-hidden="true"></i>
           </div>
@@ -86,16 +88,16 @@
 <!-- Staff Page Heading -->
     <div class="issues-toolbar">
       <div class="issues-heading">
-        <span class="page-kicker">
+        <span class="page-kicker" id="dashboardWorkspaceKicker">
           <i class="bi bi-shield-check"></i>
           Admin Workspace
         </span>
         <h2>Dashboard</h2>
-        <p>
-          Manage platform setup, review assigned civic issues, update their status, and respond to citizen comments.
+        <p id="dashboardWorkspaceCopy">
+          Manage platform setup, review civic issues, update their status, and respond to citizen comments.
         </p>
       </div>
-      <a class="btn-ocsp-primary reference-admin-jump" id="adminManagementTrigger" href="#adminManagement"
+      <a class="btn-ocsp-primary reference-admin-jump" id="adminManagementTrigger" href="#adminManagement" data-admin-only hidden
         aria-haspopup="dialog" aria-controls="adminManagement">
         <i class="bi bi-diagram-3" aria-hidden="true"></i>
         Manage platform setup
@@ -114,14 +116,14 @@
       id="staffIssueFilterResolved" aria-controls="issuesAccordion" />
 
     <!-- Issue Statistics -->
-    <section class="issue-stats" aria-label="Assigned issue statistics and status filters">
+    <section class="issue-stats" aria-label="Issue statistics and status filters">
       <label class="issue-stat issue-stat--total issue-summary-filter-label" for="staffIssueFilterTotal">
         <span class="issue-stat__icon">
           <i class="bi bi-clipboard-data"></i>
         </span>
         <span class="issue-stat__copy">
-          <strong class="issue-stat__value">03</strong>
-          <span class="issue-stat__label">Assigned</span>
+          <strong class="issue-stat__value" id="issueStatTotal">00</strong>
+          <span class="issue-stat__label">Total</span>
         </span>
       </label>
 
@@ -130,7 +132,7 @@
           <i class="bi bi-inbox"></i>
         </span>
         <span class="issue-stat__copy">
-          <strong class="issue-stat__value">01</strong>
+          <strong class="issue-stat__value" id="issueStatOpen">00</strong>
           <span class="issue-stat__label">Open</span>
         </span>
       </label>
@@ -140,7 +142,7 @@
           <i class="bi bi-hourglass-split"></i>
         </span>
         <span class="issue-stat__copy">
-          <strong class="issue-stat__value">01</strong>
+          <strong class="issue-stat__value" id="issueStatProgress">00</strong>
           <span class="issue-stat__label">In Progress</span>
         </span>
       </label>
@@ -150,7 +152,7 @@
           <i class="bi bi-check-circle"></i>
         </span>
         <span class="issue-stat__copy">
-          <strong class="issue-stat__value">01</strong>
+          <strong class="issue-stat__value" id="issueStatResolved">00</strong>
           <span class="issue-stat__label">Resolved</span>
         </span>
       </label>
@@ -160,11 +162,11 @@
     <div class="row g-2 mb-4 align-items-center ocsp-control-row">
       <!-- Issue Title Search Input -->
       <div class="col">
-        <label class="visually-hidden" for="searchInput">Search assigned issues by title</label>
+        <label class="visually-hidden" for="searchInput">Search issues by title</label>
         <div class="input-group shadow-sm ocsp-search">
           <span class="input-group-text bg-white border-end-0 px-3"><i class="bi bi-search text-muted"></i></span>
           <input type="text" class="form-control border-start-0 py-2" placeholder="Search by issue title..."
-            id="searchInput">
+            id="searchInput" maxlength="150">
         </div>
       </div>
 
@@ -174,198 +176,38 @@
           class="btn btn-white border shadow-sm position-relative d-flex align-items-center gap-2 bg-white px-3 py-2 ocsp-filter-trigger" aria-controls="filterDrawer" aria-haspopup="dialog" id="dashboardFilterTrigger" href="#filterDrawer">
           <i class="bi bi-funnel-fill text-primary"></i>
           <span class="fw-semibold">Filters & Sort</span>
-          <span class="badge bg-primary rounded-pill ms-1">3</span>
+          <span class="badge bg-primary rounded-pill ms-1" id="dashboardFilterCount" hidden>0</span>
         </a>
       </div>
     </div>
 
     <!-- ENLARGED ACTIVE FILTERS PANEL -->
-    <div class="card border-0 bg-light p-3 mb-4 rounded-3 shadow-sm active-filters-panel">
+    <div class="card border-0 bg-light p-3 mb-4 rounded-3 shadow-sm active-filters-panel"
+      id="activeFiltersPanel" hidden>
       <div class="d-flex flex-wrap align-items-center gap-2">
-
-        <!-- Label -->
         <span class="fw-bold text-dark me-2 d-flex align-items-center gap-1 active-filters__label">
-          <i class="bi bi-sliders text-secondary"></i> Active Filters:
+          <i class="bi bi-sliders text-secondary" aria-hidden="true"></i>
+          Active Filters:
         </span>
-
-        <!-- Active Filter Tags -->
-        <span
-          class="badge bg-white text-dark border shadow-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold fs-6">
-          <span class="text-muted fw-normal">Status:</span> Open
-          <button type="button" class="btn-close ms-1 active-filter__dismiss"
-            aria-label="Remove status filter"></button>
-        </span>
-
-        <span
-          class="badge bg-white text-dark border shadow-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold fs-6">
-          <span class="text-muted fw-normal">Dept:</span> Traffic
-          <button type="button" class="btn-close ms-1 active-filter__dismiss"
-            aria-label="Remove department filter"></button>
-        </span>
-
-        <span
-          class="badge bg-white text-dark border shadow-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold fs-6">
-          <span class="text-muted fw-normal">Sort:</span> Newest First
-          <button type="button" class="btn-close ms-1 active-filter__dismiss"
-            aria-label="Remove sort filter"></button>
-        </span>
-
-        <!-- Clear All Action -->
-        <button type="button"
+        <span class="d-flex flex-wrap align-items-center gap-2" id="activeFilterChips"></span>
+        <button type="button" id="clearAllFiltersButton"
           class="btn btn-link text-danger text-decoration-none p-0 ms-auto fw-bold d-inline-flex align-items-center gap-1 fs-6">
-          <i class="bi bi-trash3"></i> Clear all
+          <i class="bi bi-trash3" aria-hidden="true"></i>
+          Clear all
         </button>
       </div>
     </div>
 
+    <div class="d-none" id="dashboardPageStatus" role="alert" aria-live="assertive" tabindex="-1"></div>
+    <p class="small text-secondary mb-3" id="issuesResultSummary" aria-live="polite"></p>
+
     <!-- Issues List Container -->
     <div class="accordion d-flex flex-column gap-3" id="issuesAccordion">
 
-      <!-- ISSUE 1: OPEN (Medium Priority) -->
-      <div class="accordion-item issue-card issue-resolved issue-filter-item issue-filter-item--resolved">
-        <h2 class="accordion-header">
-          <a class="accordion-button collapsed" aria-haspopup="dialog" aria-controls="issueModal-8992" id="staffIssueTrigger-8992" href="#issueModal-8992">
-            <div class="row align-items-center w-100 me-2 g-2 text-start">
-              <div class="col-12 col-md-3 d-flex align-items-center gap-3">
-
-                <span class="issue-card-media issue-card-media--attachment issue-card-media--water"
-                  data-preview-label="Latest: Location photo" role="img"
-                  aria-label="Photo of a pothole on the road">
-                  <img class="issue-card-media__image" src="../assets/images/cards/pothole.webp" alt="" width="720" height="480" loading="lazy" decoding="async">
-                </span>
-
-                <div class="min-w-0">
-                  <h6 class="mb-0 fw-bold text-dark text-truncate">
-                    Pothole on Main St.
-                  </h6>
-
-                  <small class="text-muted">
-                    REQ-8992
-                  </small>
-                </div>
-
-              </div>
-              <div class="col-6 col-md-2 text-dark small">
-                User ID: 105
-              </div>
-              <div class="col-12 col-md-3 text-muted small">
-                <span class="fw-semibold text-dark">Roads & Infrastructure</span><br>
-                <span class="text-secondary">Maintenance • Muscat</span>
-              </div>
-              <div class="col-6 col-md-2 text-md-center d-flex justify-content-md-center gap-2 flex-wrap status-priority-group">
-
-                <span class="status-badge status-badge--resolved">Resolved</span>
-
-                <span class="priority-badge priority-badge--low">
-                  Low
-                </span>
-
-              </div>
-              <div class="col-12 col-md-2 text-md-end text-muted issue-date">
-                Oct 12, 2026
-              </div>
-            </div>
-          </a>
-        </h2>
-
+      <div class="ocsp-card p-4 text-center" role="status">
+        <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
+        <span class="d-block">Loading issues...</span>
       </div>
-
-      <!-- ISSUE 2: IN PROGRESS (High Priority) -->
-      <div class="accordion-item issue-card issue-open issue-filter-item issue-filter-item--open">
-        <h2 class="accordion-header">
-          <a class="accordion-button collapsed" aria-haspopup="dialog" aria-controls="issueModal-9004" id="staffIssueTrigger-9004" href="#issueModal-9004">
-            <div class="row align-items-center w-100 me-2 g-2 text-start">
-              <div class="col-12 col-md-3 d-flex align-items-center gap-3">
-
-                <span class="issue-card-media issue-card-media--attachment issue-card-media--document"
-                  data-preview-label="Latest: Location photo" role="img" aria-label="Photo of an urban traffic signal">
-                  <img class="issue-card-media__image" src="../assets/images/cards/traffic-light.webp" alt="" width="720" height="480" loading="lazy" decoding="async">
-                </span>
-
-                <div class="min-w-0">
-                  <h6 class="mb-0 fw-bold text-dark text-truncate">
-                    Traffic Light Malfunction
-                  </h6>
-
-                  <small class="text-muted">
-                    REQ-9004
-                  </small>
-                </div>
-
-              </div>
-              <div class="col-6 col-md-2 text-dark small">
-                User ID: 211
-              </div>
-              <div class="col-12 col-md-3 issue-meta">
-                <span class="fw-semibold text-dark">Traffic & Signals</span><br>
-                <span class="text-secondary">Signals • Muscat</span>
-              </div>
-              <div class="col-6 col-md-2 text-md-center d-flex justify-content-md-center gap-2 flex-wrap status-priority-group">
-
-                <span class="status-badge status-badge--open">Open</span>
-
-                <span class="priority-badge priority-badge--medium">
-                  Medium
-                </span>
-
-              </div>
-              <div class="col-12 col-md-2 text-md-end text-muted issue-date">
-                Oct 14, 2026
-              </div>
-            </div>
-          </a>
-        </h2>
-
-      </div>
-
-      <!-- ISSUE 3: RESOLVED (Low Priority) -->
-      <div class="accordion-item issue-card issue-inprogress issue-filter-item issue-filter-item--progress">
-        <h2 class="accordion-header">
-          <a class="accordion-button collapsed" aria-haspopup="dialog" aria-controls="issueModal-9012" id="staffIssueTrigger-9012" href="#issueModal-9012">
-            <div class="row align-items-center w-100 me-2 g-2 text-start">
-              <div class="col-12 col-md-3 d-flex align-items-center gap-3">
-
-                <span class="issue-card-media issue-card-media--attachment issue-card-media--document"
-                  data-preview-label="Latest: Location photo" role="img" aria-label="Photo of road crosswalk markings">
-                  <img class="issue-card-media__image" src="../assets/images/cards/crosswalk.jpg" alt="" width="960" height="720" loading="lazy" decoding="async">
-                </span>
-
-                <div class="min-w-0">
-                  <h6 class="mb-0 fw-bold text-dark text-truncate">
-                    Faded Crosswalk Markings
-                  </h6>
-
-                  <small class="text-muted">
-                    REQ-9012
-                  </small>
-                </div>
-
-              </div>
-              <div class="col-6 col-md-2 text-dark small">
-                User ID: 304
-              </div>
-              <div class="col-12 col-md-3 text-muted small">
-                <span class="fw-semibold text-dark">Public Safety</span><br>
-                <span class="text-secondary">Safety • Seeb</span>
-              </div>
-              <div class="col-6 col-md-2 text-md-center d-flex justify-content-md-center gap-2 flex-wrap status-priority-group">
-
-                <span class="status-badge status-badge--progress">In Progress</span>
-
-                <span class="priority-badge priority-badge--high">
-                  High
-                </span>
-
-              </div>
-              <div class="col-12 col-md-2 text-md-end text-muted issue-date">
-                Oct 15, 2026
-              </div>
-            </div>
-          </a>
-        </h2>
-
-      </div>
-
     </div>
 
   </main>
@@ -396,7 +238,7 @@
   </footer>
 
     <!-- CSS-only Admin Management dialog: the menu opens first, then a selected form is revealed. -->
-    <section class="reference-admin-modal" id="adminManagement" role="dialog"
+    <section class="reference-admin-modal" id="adminManagement" role="dialog" aria-modal="true" data-admin-only hidden
       aria-labelledby="adminManagementTitle" aria-describedby="adminManagementDescription" tabindex="-1">
       <a class="ocsp-target-backdrop ocsp-target-backdrop--modal" href="#adminManagementTrigger"
         aria-label="Close platform setup" tabindex="-1"></a>
@@ -425,8 +267,8 @@
                   <p>Select one setup type. Its complete form will appear below.</p>
                 </div>
                 <span class="reference-admin__status">
-                  <i class="bi bi-eye" aria-hidden="true"></i>
-                  Static UI preview
+                  <i class="bi bi-database-check" aria-hidden="true"></i>
+                  Frontend data flow ready
                 </span>
               </div>
 
@@ -478,30 +320,30 @@
                   <h3>Add a region</h3>
                   <p>Regions define the service area used when departments and citizen reports are routed.</p>
                 </div>
-                <form class="reference-admin__form" aria-describedby="adminManagementNote" autocomplete="off">
+                <form class="reference-admin__form" id="adminRegionForm" aria-describedby="adminManagementNote" autocomplete="off">
                   <fieldset>
                     <legend class="visually-hidden">New region details</legend>
                     <div class="reference-admin__field-grid">
                       <div class="reference-admin__field">
                         <label class="form-label" for="adminRegionName">Region name</label>
-                        <input class="form-control" id="adminRegionName" name="regionName" type="text"
+                        <input class="form-control" id="adminRegionName" name="regionName" type="text" maxlength="100" required
                           placeholder="Example: Bawshar">
                       </div>
                       <div class="reference-admin__field">
                         <label class="form-label" for="adminRegionGovernorate">Governorate</label>
-                        <select class="form-select" id="adminRegionGovernorate" name="governorate">
+                        <select class="form-select" id="adminRegionGovernorate" name="governorate" required>
                           <option value="" selected disabled>Select a governorate</option>
                           <option value="Muscat">Muscat</option>
                           <option value="Dhofar">Dhofar</option>
                           <option value="Musandam">Musandam</option>
-                          <option value="Al Buraimi">Al Buraimi</option>
-                          <option value="Ad Dakhiliyah">Ad Dakhiliyah</option>
-                          <option value="North Al Batinah">North Al Batinah</option>
-                          <option value="South Al Batinah">South Al Batinah</option>
-                          <option value="North Ash Sharqiyah">North Ash Sharqiyah</option>
-                          <option value="South Ash Sharqiyah">South Ash Sharqiyah</option>
-                          <option value="Al Dhahirah">Al Dhahirah</option>
-                          <option value="Al Wusta">Al Wusta</option>
+                          <option value="AlBuraimi">Al Buraimi</option>
+                          <option value="AdDakhiliyah">Ad Dakhiliyah</option>
+                          <option value="AlBatinahNorth">North Al Batinah</option>
+                          <option value="AlBatinahSouth">South Al Batinah</option>
+                          <option value="AshSharqiyahNorth">North Ash Sharqiyah</option>
+                          <option value="AshSharqiyahSouth">South Ash Sharqiyah</option>
+                          <option value="AdhDhahirah">Al Dhahirah</option>
+                          <option value="AlWusta">Al Wusta</option>
                         </select>
                       </div>
                     </div>
@@ -525,36 +367,36 @@
                   <h3>Add a department</h3>
                   <p>Departments own service delivery and are linked to the region they support.</p>
                 </div>
-                <form class="reference-admin__form" aria-describedby="adminManagementNote" autocomplete="off">
+                <form class="reference-admin__form" id="adminDepartmentForm" aria-describedby="adminManagementNote" autocomplete="off">
                   <fieldset>
                     <legend class="visually-hidden">New department details</legend>
                     <div class="reference-admin__field-grid">
                       <div class="reference-admin__field">
                         <label class="form-label" for="adminDepartmentName">Department name</label>
-                        <input class="form-control" id="adminDepartmentName" name="departmentName" type="text"
+                        <input class="form-control" id="adminDepartmentName" name="departmentName" type="text" maxlength="100" required
                           placeholder="Example: Roads &amp; Infrastructure">
                       </div>
                       <div class="reference-admin__field">
                         <label class="form-label" for="adminDepartmentEmail">Contact email</label>
-                        <input class="form-control" id="adminDepartmentEmail" name="contactEmail" type="email"
+                        <input class="form-control" id="adminDepartmentEmail" name="contactEmail" type="email" maxlength="150" required
                           placeholder="roads.dept@ocsp.om">
                       </div>
                       <div class="reference-admin__field reference-admin__field--full">
                         <label class="form-label" for="adminDepartmentDescription">Description</label>
-                        <textarea class="form-control" id="adminDepartmentDescription" name="description" rows="3"
+                        <textarea class="form-control" id="adminDepartmentDescription" name="description" rows="3" maxlength="500"
                           placeholder="Example: Handles road maintenance, paving, and pothole repairs."></textarea>
                       </div>
                       <div class="reference-admin__field reference-admin__field--full">
                         <label class="form-label" for="adminDepartmentRegion">Region</label>
                         <select class="form-select" id="adminDepartmentRegion" name="regionId"
                           aria-describedby="adminDepartmentRegionHint">
-                          <option value="" selected disabled>Select a region</option>
+                          <option value="" selected>No region (optional)</option>
                           <option value="1">Bawshar — Muscat</option>
                           <option value="2">Muttrah — Muscat</option>
                           <option value="3">Seeb — Muscat</option>
                         </select>
                         <small class="reference-admin__hint" id="adminDepartmentRegionHint">
-                          The selected value supplies the regionId.
+                          Select a region when the department belongs to a specific service area.
                         </small>
                       </div>
                     </div>
@@ -578,18 +420,18 @@
                   <h3>Add a category</h3>
                   <p>Categories classify incoming reports and route them to the responsible department.</p>
                 </div>
-                <form class="reference-admin__form" aria-describedby="adminManagementNote" autocomplete="off">
+                <form class="reference-admin__form" id="adminCategoryForm" aria-describedby="adminManagementNote" autocomplete="off">
                   <fieldset>
                     <legend class="visually-hidden">New category details</legend>
                     <div class="reference-admin__field-grid">
                       <div class="reference-admin__field">
                         <label class="form-label" for="adminCategoryName">Category name</label>
-                        <input class="form-control" id="adminCategoryName" name="categoryName" type="text"
+                        <input class="form-control" id="adminCategoryName" name="categoryName" type="text" maxlength="100" required
                           placeholder="Example: Potholes &amp; Asphalt">
                       </div>
                       <div class="reference-admin__field">
                         <label class="form-label" for="adminCategoryDepartment">Department</label>
-                        <select class="form-select" id="adminCategoryDepartment" name="departmentId"
+                        <select class="form-select" id="adminCategoryDepartment" name="departmentId" required
                           aria-describedby="adminCategoryDepartmentHint">
                           <option value="" selected disabled>Select a department</option>
                           <option value="1">Roads &amp; Infrastructure</option>
@@ -602,7 +444,7 @@
                       </div>
                       <div class="reference-admin__field reference-admin__field--full">
                         <label class="form-label" for="adminCategoryDescription">Description</label>
-                        <textarea class="form-control" id="adminCategoryDescription" name="description" rows="3"
+                        <textarea class="form-control" id="adminCategoryDescription" name="description" rows="3" maxlength="300"
                           placeholder="Example: Reports regarding street damage and potholes."></textarea>
                       </div>
                     </div>
@@ -619,9 +461,10 @@
               </section>
             </div>
 
+            <div class="d-none" id="adminManagementStatus" role="alert" aria-live="assertive" tabindex="-1"></div>
             <p class="reference-admin__note" id="adminManagementNote" role="note">
               <i class="bi bi-info-circle" aria-hidden="true"></i>
-              UI preview only: you can fill and clear these forms, but Add actions will not save data until the API is connected.
+              Mock mode keeps additions until the page reloads. API mode will use the existing protected backend routes.
             </p>
           </div>
         </div>
@@ -630,7 +473,7 @@
 
     <!-- OFFCANVAS FILTER DRAWER -->
     <div class="offcanvas offcanvas-end issue-filter-drawer" tabindex="-1" id="filterDrawer"
-      aria-labelledby="filterDrawerLabel" role="dialog">
+      aria-labelledby="filterDrawerLabel" role="dialog" aria-modal="true">
       <div class="offcanvas-header border-bottom">
         <h5 class="offcanvas-title fw-bold" id="filterDrawerLabel"><i class="bi bi-funnel me-2"></i>Filter & Sort Issues
         </h5>
@@ -702,356 +545,32 @@
 
         <!-- Actions Footer -->
         <div class="pt-3 border-top d-flex gap-2 issue-filter-actions">
-          <button type="button" class="btn btn-light border issue-filter-actions__button">Reset All</button>
-          <a class="btn btn-primary-custom issue-filter-actions__button" href="#dashboardFilterTrigger">Apply
-            Filters</a>
+          <button type="button" class="btn btn-light border issue-filter-actions__button" id="resetFiltersButton">Reset All</button>
+          <button type="button" class="btn btn-primary-custom issue-filter-actions__button" id="applyFiltersButton">Apply Filters</button>
         </div>
       </div>
     </div>
 
     <a class="ocsp-target-backdrop ocsp-target-backdrop--drawer" href="#dashboardFilterTrigger" aria-label="Close filters"></a>
 
-    <!-- Issue detail modals -->
-    <div class="modal issue-detail-modal" id="issueModal-8992" tabindex="-1"
-      aria-labelledby="issueModalLabel-8992" role="dialog">
-      <a class="ocsp-target-backdrop ocsp-target-backdrop--modal" href="#staffIssueTrigger-8992" aria-label="Close issue details"></a>
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down issue-detail-dialog">
-        <div class="modal-content issue-detail-modal__content">
-          <div class="modal-header issue-dialog__header issue-detail-modal__header">
-            <div>
-              <span class="content-label">STAFF ISSUE &middot; REQ-8992</span>
-              <h2 class="modal-title" id="issueModalLabel-8992">Pothole on Main St.</h2>
-            </div>
-            <a class="btn-close" aria-label="Close" href="#staffIssueTrigger-8992"></a>
-          </div>
-          <div class="modal-body issue-detail-modal__body bg-white p-4">
-            <div class="row">
-              <div class="col-md-7 pe-md-4 border-end">
-                <p class="mb-2">
-                  <strong>Description:</strong> Large pothole in the right lane causing vehicles to swerve sharply.
-                </p>
-                <p class="mb-3 text-muted small">
-                  <i class="bi bi-geo-alt-fill me-1"></i> Main St, near Central Bakery
-                </p>
-                <div
-                  class="mb-4 rounded overflow-hidden border bg-light d-flex align-items-center justify-content-center issue-map-preview">
-                  <div class="text-muted text-center">
-                    <i class="bi bi-map text-secondary mb-2 issue-map-preview__icon"></i>
-                    <p class="mb-0">Google Maps Iframe<br /><small>Lat: 23.5850, Lng: 58.4010</small></p>
-                  </div>
-                </div>
+    <!-- Issue details are rendered lazily so API mode avoids one request per card. -->
+    <div id="issueDetailModalHost"></div>
 
-                <!-- Attachments -->
-                <div class="attachments-section">
-
-                  <span class="content-label">
-                    <i class="bi bi-paperclip me-1"></i>
-                    Citizen Attachments
-                  </span>
-
-                  <div class="attachment-grid">
-
-                    <button class="attachment-thumb attachment-thumb--road">
-                      <i class="bi bi-image"></i>
-                      <span>Issue Photo</span>
-                      <small>issue-photo.jpg</small>
-                    </button>
-
-                    <button class="attachment-thumb attachment-thumb--water">
-                      <i class="bi bi-file-earmark-image"></i>
-                      <span>Location Photo</span>
-                      <small>location.jpg</small>
-                    </button>
-
-                  </div>
-                </div>
-
-
-                <hr class="my-4" />
-                <span class="content-label">
-                  Staff Action Panel
-                </span>
-                <div class="row g-3 mb-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold text-dark" for="nextStatus8992">Next Status</label>
-                    <select class="form-select bg-light" id="nextStatus8992">
-                      <option>In Progress</option>
-                      <option>Resolved</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label small fw-bold text-dark" for="internalNotes8992">Internal Notes</label>
-                  <textarea class="form-control bg-light" id="internalNotes8992" rows="3" placeholder="Add resolution steps..."></textarea>
-                </div>
-                <div class="d-flex justify-content-end">
-                  <button type="button" class="btn btn-primary-custom staff-status-update">Update Status</button>
-                </div>
-              </div>
-              <div class="col-md-5 ps-md-4 comments-column">
-                <span class="content-label">
-                  <i class="bi bi-chat-text me-2"></i>
-                  Comments
-                </span>
-                <div aria-label="Issue updates and comments" class="comment-thread mb-3" role="list">
-                  <article class="comment-card" role="listitem">
-                    <div class="comment-avatar">
-                      AA
-                    </div>
-                    <div class="comment-copy">
-                      <div class="comment-header">
-                        <div class="comment-author">
-                          <strong>Ahmed Ali</strong>
-                          <span class="role-badge role-badge--citizen">
-                            Citizen
-                          </span>
-                        </div>
-                        <time>
-                          08:15 AM
-                        </time>
-                      </div>
-                      <p>
-                        Please fix this soon, I almost damaged my tire this morning.
-                      </p>
-                    </div>
-                  </article>
-                </div>
-                <div class="comment-composer">
-                  <input aria-label="Add a comment" class="form-control" placeholder="Add a public comment..."
-                    type="text" />
-                  <button aria-label="Send comment" class="btn btn-primary-custom" type="button">
-                    <i class="bi bi-send"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
+    <noscript>
+      <div class="alert alert-warning m-4" role="alert">
+        JavaScript is required to load the staff dashboard.
       </div>
-    </div>
+    </noscript>
 
-    <div class="modal issue-detail-modal" id="issueModal-9004" tabindex="-1"
-      aria-labelledby="issueModalLabel-9004" role="dialog">
-      <a class="ocsp-target-backdrop ocsp-target-backdrop--modal" href="#staffIssueTrigger-9004" aria-label="Close issue details"></a>
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down issue-detail-dialog">
-        <div class="modal-content issue-detail-modal__content">
-          <div class="modal-header issue-dialog__header issue-detail-modal__header">
-            <div>
-              <span class="content-label">STAFF ISSUE &middot; REQ-9004</span>
-              <h2 class="modal-title" id="issueModalLabel-9004">Traffic Light Malfunction</h2>
-            </div>
-            <a class="btn-close" aria-label="Close" href="#staffIssueTrigger-9004"></a>
-          </div>
-          <div class="modal-body issue-detail-modal__body bg-white p-4">
-            <div class="row">
-              <div class="col-md-7 pe-md-4 border-end">
-                <p class="mb-2">
-                  <strong>Description:</strong> Primary traffic signal for northbound traffic is completely dead.
-                </p>
-                <p class="mb-3 text-muted small">
-                  <i class="bi bi-geo-alt-fill me-1"></i> Junction 4, Main Highway, Muscat
-                </p>
-                <div
-                  class="mb-4 rounded overflow-hidden border bg-light d-flex align-items-center justify-content-center issue-map-preview">
-                  <div class="text-muted text-center">
-                    <i class="bi bi-map text-secondary mb-2 issue-map-preview__icon"></i>
-                    <p class="mb-0">Google Maps Iframe<br /><small>Lat: 23.5859, Lng: 58.4059</small></p>
-                  </div>
-                </div>
-                <!-- Citizen Attachments -->
-                <div class="mb-4">
-
-                  <span class="content-label">
-                    <i class="bi bi-paperclip me-1"></i>
-                    Citizen Attachments
-                  </span>
-
-                  <div class="attachment-grid">
-
-                    <button class="attachment-thumb attachment-thumb--road" type="button">
-                      <i class="bi bi-image"></i>
-                      <span>Issue Photo</span>
-                    </button>
-
-                    <button class="attachment-thumb attachment-thumb--document" type="button">
-                      <i class="bi bi-file-earmark-image"></i>
-                      <span>Location Photo</span>
-                    </button>
-
-                  </div>
-
-                </div>
-                <hr class="my-4" />
-                <span class="content-label">
-                  Staff Action Panel
-                </span>
-                <div class="row g-3 mb-3">
-                  <div class="col-md-6">
-                    <label class="form-label small fw-bold text-dark" for="nextStatus9004">Next Status</label>
-                    <select class="form-select bg-light" id="nextStatus9004">
-                      <option>Resolved</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label small fw-bold text-dark" for="internalNotes9004">Internal Notes</label>
-                  <textarea class="form-control bg-light" id="internalNotes9004" rows="3" placeholder="Add resolution steps..."></textarea>
-                </div>
-                <div class="d-flex justify-content-end">
-                  <button type="button" class="btn btn-primary-custom staff-status-update">Update Status</button>
-                </div>
-              </div>
-              <div class="col-md-5 ps-md-4 comments-column">
-                <span class="content-label">
-                  <i class="bi bi-chat-text me-2"></i>Comments
-                </span>
-                <div aria-label="Issue updates and comments" class="comment-thread mb-3" role="list">
-                  <article class="comment-card" role="listitem">
-                    <div class="comment-avatar">SH</div>
-                    <div class="comment-copy">
-                      <div class="comment-header">
-                        <div class="comment-author">
-                          <strong>Said Al-Harthy</strong>
-                          <span class="role-badge role-badge--citizen">Citizen</span>
-                        </div>
-                        <time>10:45 AM</time>
-                      </div>
-                      <p>Both lights are out. Traffic is backing up onto the highway.</p>
-                    </div>
-                  </article>
-                </div>
-                <div class="comment-composer">
-                  <input aria-label="Add a comment" class="form-control" placeholder="Add a public comment..."
-                    type="text" />
-                  <button aria-label="Send comment" class="btn btn-primary-custom" type="button">
-                    <i class="bi bi-send"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal issue-detail-modal" id="issueModal-9012" tabindex="-1"
-      aria-labelledby="issueModalLabel-9012" role="dialog">
-      <a class="ocsp-target-backdrop ocsp-target-backdrop--modal" href="#staffIssueTrigger-9012" aria-label="Close issue details"></a>
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down issue-detail-dialog">
-        <div class="modal-content issue-detail-modal__content">
-          <div class="modal-header issue-dialog__header issue-detail-modal__header">
-            <div>
-              <span class="content-label">STAFF ISSUE &middot; REQ-9012</span>
-              <h2 class="modal-title" id="issueModalLabel-9012">Faded Crosswalk Markings</h2>
-            </div>
-            <a class="btn-close" aria-label="Close" href="#staffIssueTrigger-9012"></a>
-          </div>
-          <div class="modal-body issue-detail-modal__body bg-white p-4">
-            <div class="row">
-              <div class="col-md-7 pe-md-4 border-end">
-                <p class="mb-2">
-                  <strong>Description:</strong> Pedestrian crosswalk paint outside the primary school has worn off.
-                </p>
-                <p class="mb-3 text-muted small">
-                  <i class="bi bi-geo-alt-fill me-1"></i> 15th Ave School Zone, Seeb
-                </p>
-                <div
-                  class="mb-4 rounded overflow-hidden border bg-light d-flex align-items-center justify-content-center issue-map-preview">
-                  <div class="text-muted text-center">
-                    <i class="bi bi-map text-secondary mb-2 issue-map-preview__icon"></i>
-                    <p class="mb-0">Google Maps Iframe<br /><small>Lat: 23.6703, Lng: 58.1769</small></p>
-                  </div>
-                </div>
-                <!-- Citizen Attachments -->
-                <div class="mb-4">
-
-                  <span class="content-label">
-                    <i class="bi bi-paperclip me-1"></i>
-                    Citizen Attachments
-                  </span>
-
-                  <div class="attachment-grid">
-
-                    <button class="attachment-thumb attachment-thumb--road" type="button">
-
-                      <i class="bi bi-image"></i>
-                      <span>Crosswalk Photo</span>
-
-                    </button>
-
-                    <button class="attachment-thumb attachment-thumb--document" type="button">
-
-                      <i class="bi bi-file-earmark-image"></i>
-                      <span>Location Photo</span>
-
-                    </button>
-
-                  </div>
-
-                </div>
-                <hr class="my-4" />
-                <span class="content-label">
-                  Staff Action Panel
-                </span>
-
-                <div class="alert alert-success bg-opacity-10 border-success-subtle text-success small mb-3">
-                  <i class="bi bi-check-circle-fill me-2"></i> This issue has been successfully resolved and closed.
-                </div>
-
-                <!-- Citizen Rating & Review Card -->
-                <div class="rating-panel">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="fw-bold small text-dark">Citizen Feedback & Rating</span>
-                    <div class="text-warning small">
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <span class="fw-bold text-dark ms-1">5.0 / 5</span>
-                    </div>
-                  </div>
-                  <p class="mb-0 small text-muted">
-                    "Thank you for repainting the lines before school reopened! Very fast response."
-                  </p>
-                </div>
-              </div>
-
-              <div class="col-md-5 ps-md-4 comments-column">
-                <span class="content-label">
-                  <i class="bi bi-chat-text me-2"></i>Comments
-                </span>
-                <div aria-label="Issue updates and comments" class="comment-thread mb-3" role="list">
-                  <article class="comment-card" role="listitem">
-                    <div class="comment-avatar">PS</div>
-                    <div class="comment-copy">
-                      <div class="comment-header">
-                        <div class="comment-author">
-                          <strong>Public School Dist.</strong>
-                          <span class="role-badge role-badge--citizen">Citizen</span>
-                        </div>
-                        <time>Oct 15, 07:30 AM</time>
-                      </div>
-                      <p>Please repaint before the new term begins next week.</p>
-                    </div>
-                  </article>
-                </div>
-                <div class="comment-composer">
-                  <input aria-label="Add a comment" class="form-control" placeholder="Add a public comment..."
-                    type="text" />
-                  <button aria-label="Send comment" class="btn btn-primary-custom" type="button">
-                    <i class="bi bi-send"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
+    <script src="../scripts/config.js" defer></script>
+    <script src="../scripts/data/mock-data.js" defer></script>
+    <script src="../scripts/services/api-client.js" defer></script>
+    <script src="../scripts/services/session-service.js" defer></script>
+    <script src="../scripts/components/site-session.js" defer></script>
+    <script src="../scripts/components/issue-renderers.js" defer></script>
+    <script src="../scripts/services/dashboard-service.js" defer></script>
+    <script src="../scripts/components/dashboard-renderers.js" defer></script>
+    <script src="../scripts/pages/dashboard.js" defer></script>
 
 
 </body>

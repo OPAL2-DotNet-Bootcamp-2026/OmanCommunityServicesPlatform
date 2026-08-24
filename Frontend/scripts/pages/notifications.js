@@ -95,6 +95,7 @@
     const notificationId = Number(trigger.dataset.notificationId);
     const targetHref = trigger.getAttribute("href") || "";
     if (!Number.isInteger(notificationId) || notificationId < 1) {
+      if (targetHref) global.location.assign(targetHref);
       return;
     }
 
@@ -118,13 +119,21 @@
       trigger.classList.remove("is-unread");
       trigger.querySelector(".unread-dot")?.remove();
       updateUnreadSummary();
-      if (targetHref) global.location.assign(targetHref);
     } catch (error) {
-      setPageStatus(error.message || "The notification could not be marked as read.", "danger");
+      if ([401, 403].includes(Number(error && error.status))) {
+        setPageStatus(error.message || "Your session could not be verified.", "danger");
+        return;
+      }
+      if (!targetHref) {
+        setPageStatus(error.message || "The notification could not be marked as read.", "danger");
+      }
     } finally {
       trigger.removeAttribute("aria-busy");
       state.pendingNotificationIds.delete(notificationId);
     }
+
+    // Opening the related issue must not depend on a non-auth read-status write.
+    if (targetHref) global.location.assign(targetHref);
   }
 
   function bindEvents() {
@@ -141,9 +150,7 @@
       if (!trigger) {
         return;
       }
-      if (trigger.dataset.read !== "true") {
-        event.preventDefault();
-      }
+      event.preventDefault();
       markRead(trigger);
     });
   }

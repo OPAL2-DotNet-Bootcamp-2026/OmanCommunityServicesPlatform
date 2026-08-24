@@ -38,6 +38,13 @@
     return global.document.getElementById(id);
   }
 
+  // Consume notification deep links once so refresh does not reopen a stale modal.
+  function consumeIssueLink() {
+    const url = new URL(global.location.href);
+    url.searchParams.delete("issueId");
+    global.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+
   function cacheElements() {
     elements = {
       gallery: byId("citizenIssuesGallery"),
@@ -431,6 +438,7 @@
 
       if (global.bootstrap && global.bootstrap.Modal) {
         global.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        consumeIssueLink();
       } else {
         throw new Error("Bootstrap JavaScript could not be loaded, so the details dialog is unavailable.");
       }
@@ -716,6 +724,7 @@
       && asArray(state.dashboard.issues).some((issue) => Number(issue.issueId) === issueId);
     if (!issueExists) {
       setPageStatus("The linked issue could not be found.", "warning");
+      consumeIssueLink();
       return;
     }
 

@@ -77,6 +77,13 @@
     return sessionUser.userId ? sessionUser : clone(mockState.currentUser);
   }
 
+  function mockNotificationsForActor() {
+    const actorId = Number(getMockActor().userId);
+    return asArray(mockState.notifications).filter(
+      (notification) => Number(notification.userId) === actorId
+    );
+  }
+
   function composeMockIssue(issue) {
     const category = asArray(mockState.categories).find(
       (item) => item.categoryName === issue.categoryName
@@ -99,17 +106,17 @@
 
   const mockSource = {
     async getNotifications() {
-      return clone(asArray(mockState.notifications)).sort(
+      return clone(mockNotificationsForActor()).sort(
         (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
       );
     },
 
     async getUnreadNotifications() {
-      return clone(asArray(mockState.notifications).filter((notification) => !notification.isRead));
+      return clone(mockNotificationsForActor().filter((notification) => !notification.isRead));
     },
 
     async markNotificationAsRead(notificationId) {
-      const notification = asArray(mockState.notifications).find(
+      const notification = mockNotificationsForActor().find(
         (item) => Number(item.notificationId) === Number(notificationId)
       );
       if (!notification) {
@@ -123,7 +130,7 @@
       if (typeof isRead !== "boolean") {
         throw new Error("A valid notification read status is required.");
       }
-      const notification = asArray(mockState.notifications).find(
+      const notification = mockNotificationsForActor().find(
         (item) => Number(item.notificationId) === Number(notificationId)
       );
       if (!notification) {
@@ -136,7 +143,7 @@
     async getDashboardData() {
       return {
         currentUser: clone(getMockActor()),
-        notifications: clone(asArray(mockState.notifications)),
+        notifications: clone(mockNotificationsForActor()),
         categories: clone(asArray(mockState.categories)),
         regions: clone(asArray(mockState.regions)),
         issues: asArray(mockState.issues).map(composeMockIssue)

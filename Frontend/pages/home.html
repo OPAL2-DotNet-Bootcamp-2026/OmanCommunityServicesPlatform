@@ -33,7 +33,7 @@
         <a class="nav-link-ocsp" data-nav-roles="Citizen" href="my-issues.html">My Issues</a>
         <a class="nav-link-ocsp" data-nav-roles="Staff Admin" href="dashboard.html">Dashboard</a>
         <a class="nav-link-ocsp" data-nav-auth="authenticated" href="notifications.html">
-          Notifications <span class="nav-count" aria-label="2 unread notifications">2</span>
+          Notifications <span class="nav-count" id="homeNotificationCount" aria-label="0 unread notifications" hidden>0</span>
         </a>
         <a class="user-chip" data-session-control href="login.html">
           <span class="user-chip__avatar" data-session-avatar aria-hidden="true">?</span>
@@ -177,8 +177,11 @@
   </footer>
 
   <script src="../scripts/config.js" defer></script>
+  <script src="../scripts/data/mock-data.js" defer></script>
   <script src="../scripts/services/api-client.js" defer></script>
   <script src="../scripts/services/session-service.js" defer></script>
   <script src="../scripts/components/site-session.js" defer></script>
+  <script src="../scripts/services/data-service.js" defer></script>
+  <script src="../scripts/pages/home.js" defer></script>
 </body>
 </html>
