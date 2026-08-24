@@ -312,8 +312,6 @@
 
   function renderIssueDetailModal(issue) {
     const issueDomId = safeDomId(issue.issueId);
-    const status = getStatusMeta(issue.currentStatus);
-    const priority = getPriorityMeta(issue.priority);
     const mapVariant = issue.ui && ["park", "city"].includes(issue.ui.mapVariant)
       ? ` map-preview--${issue.ui.mapVariant}`
       : "";
@@ -354,12 +352,6 @@
                   <div class="mt-4">
                     <span class="content-label">Attachments</span>
                     ${renderAttachments(issue.attachments)}
-                  </div>
-                  <div class="fact-grid">
-                    <div class="ocsp-card fact-card"><span>Status</span><strong>${escapeHtml(status.label)}</strong></div>
-                    <div class="ocsp-card fact-card"><span>Priority</span><strong>${escapeHtml(priority.label)}</strong></div>
-                    <div class="ocsp-card fact-card"><span>Category</span><strong>${escapeHtml(issue.categoryName || "Uncategorized")}</strong></div>
-                    <div class="ocsp-card fact-card"><span>Department</span><strong>${escapeHtml(issue.assignedDepartmentName || "Awaiting assignment")}</strong></div>
                   </div>
                   <hr class="my-4">
                   <span class="content-label">Activity Timeline</span>
