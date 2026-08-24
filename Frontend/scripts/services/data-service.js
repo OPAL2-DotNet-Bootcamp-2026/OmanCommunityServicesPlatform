@@ -98,6 +98,41 @@
   }
 
   const mockSource = {
+    async getNotifications() {
+      return clone(asArray(mockState.notifications)).sort(
+        (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+      );
+    },
+
+    async getUnreadNotifications() {
+      return clone(asArray(mockState.notifications).filter((notification) => !notification.isRead));
+    },
+
+    async markNotificationAsRead(notificationId) {
+      const notification = asArray(mockState.notifications).find(
+        (item) => Number(item.notificationId) === Number(notificationId)
+      );
+      if (!notification) {
+        throw new Error("The selected notification could not be found.");
+      }
+      notification.isRead = true;
+      return clone(notification);
+    },
+
+    async updateNotificationReadStatus(notificationId, isRead) {
+      if (typeof isRead !== "boolean") {
+        throw new Error("A valid notification read status is required.");
+      }
+      const notification = asArray(mockState.notifications).find(
+        (item) => Number(item.notificationId) === Number(notificationId)
+      );
+      if (!notification) {
+        throw new Error("The selected notification could not be found.");
+      }
+      notification.isRead = isRead;
+      return clone(notification);
+    },
+
     async getDashboardData() {
       return {
         currentUser: clone(getMockActor()),
@@ -234,6 +269,26 @@
   }
 
   const apiSource = {
+    async getNotifications() {
+      return asArray(await api.get(api.endpoints.myNotifications));
+    },
+
+    async getUnreadNotifications() {
+      return asArray(await api.get(api.endpoints.unreadNotifications));
+    },
+
+    async markNotificationAsRead(notificationId) {
+      await api.patch(api.endpoints.markNotificationRead(notificationId));
+      return true;
+    },
+
+    async updateNotificationReadStatus(notificationId, isRead) {
+      await api.patch(api.endpoints.updateNotificationReadStatus(notificationId), {
+        isRead: Boolean(isRead)
+      });
+      return true;
+    },
+
     async getDashboardData() {
       // The issue list is essential; lookups and notification counts may recover
       // independently so one optional endpoint cannot blank the complete page.
@@ -330,6 +385,10 @@
   }
 
   ocsp.dataService = Object.freeze({
+    getNotifications: (...args) => getSource().getNotifications(...args),
+    getUnreadNotifications: (...args) => getSource().getUnreadNotifications(...args),
+    markNotificationAsRead: (...args) => getSource().markNotificationAsRead(...args),
+    updateNotificationReadStatus: (...args) => getSource().updateNotificationReadStatus(...args),
     getDashboardData: (...args) => getSource().getDashboardData(...args),
     getIssueDetails: (...args) => getSource().getIssueDetails(...args),
     createIssue: (...args) => getSource().createIssue(...args),
