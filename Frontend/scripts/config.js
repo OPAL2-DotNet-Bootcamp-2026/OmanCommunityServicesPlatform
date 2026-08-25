@@ -4,16 +4,12 @@
   const ocsp = global.OCSP || {};
 
   // Deployments may define window.OCSP_RUNTIME_CONFIG before this file loads.
-  // The committed defaults intentionally keep the standalone frontend in mock mode.
+  // Local development uses the backend HTTP profile configured in launchSettings.json.
   const runtime = global.OCSP_RUNTIME_CONFIG || {};
-  const requestedSource = runtime.dataSource || "mock";
-  const dataSource = ["mock", "api"].includes(requestedSource)
-    ? requestedSource
-    : "mock";
-  const apiBaseUrl = String(runtime.apiBaseUrl || "").replace(/\/+$/, "");
+  const apiBaseUrl = String(runtime.apiBaseUrl || "http://localhost:5037")
+    .replace(/\/+$/, "");
 
   ocsp.config = Object.freeze({
-    dataSource,
     apiBaseUrl,
     requestTimeoutMs: Number(runtime.requestTimeoutMs) || 12000,
     locale: "en-OM",

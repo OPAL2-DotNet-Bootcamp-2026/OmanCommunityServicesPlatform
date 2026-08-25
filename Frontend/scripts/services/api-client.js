@@ -19,7 +19,9 @@
     createIssue: "/issue/Create",
     changeIssueStatus: (issueId) => `/issue/ChangeIssueStatus/${issueId}`,
     allStatusUpdates: "/api/StatusUpdate",
+    statusUpdateById: (statusUpdateId) => `/api/StatusUpdate/${statusUpdateId}`,
     statusUpdatesByIssue: (issueId) => `/api/StatusUpdate/issue/${issueId}`,
+    deleteStatusUpdate: (statusUpdateId) => `/api/StatusUpdate/${statusUpdateId}`,
 
     categories: "/category/GetAllCategories",
     categoryById: (categoryId) => `/category/GetCategoryById/${categoryId}`,
@@ -44,14 +46,24 @@
     deleteComment: (commentId) => `/comment/${commentId}`,
 
     attachmentsByIssue: (issueId) => `/attachment/Issue/${issueId}`,
+    attachmentById: (attachmentId) => `/attachment/${attachmentId}`,
     createAttachment: "/attachment/Create",
+    updateAttachment: (attachmentId) => `/attachment/Update/${attachmentId}`,
     deleteAttachment: (attachmentId) => `/attachment/Delete/${attachmentId}`,
 
+    ratings: "/rating/GetAll",
+    ratingById: (ratingId) => `/rating/GetById/${ratingId}`,
     ratingsByIssue: (issueId) => `/rating/GetByIssueId/${issueId}`,
     createRating: "/rating/Create",
+    updateRating: (ratingId) => `/rating/Update/${ratingId}`,
+    deleteRating: (ratingId) => `/rating/Delete/${ratingId}`,
 
+    notifications: "/notification",
+    notificationById: (notificationId) => `/notification/${notificationId}`,
     myNotifications: "/notification/my",
     unreadNotifications: "/notification/my/unread",
+    createNotification: (userId) => `/notification/user/${userId}`,
+    updateNotification: (notificationId) => `/notification/${notificationId}`,
     markNotificationRead: (notificationId) => `/notification/${notificationId}/read`,
     updateNotificationReadStatus: (notificationId) => `/notification/${notificationId}/read-status`,
     deleteNotification: (notificationId) => `/notification/${notificationId}`
@@ -169,7 +181,7 @@
   async function request(path, options) {
     if (!config.apiBaseUrl) {
       throw new ApiError(
-        "The API data source is not configured. Keep mock mode enabled or provide the API base URL.",
+        "The API address is not configured. Provide apiBaseUrl in OCSP_RUNTIME_CONFIG.",
         0,
         null
       );

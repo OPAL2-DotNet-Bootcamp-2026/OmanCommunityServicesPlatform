@@ -138,16 +138,6 @@
     });
   }
 
-  global.addEventListener("ocsp:authorization-error", (event) => {
-    if (!event.detail || event.detail.status !== 403 || !sessionService.getUser()) {
-      return;
-    }
-    sessionService.setFlash({
-      message: "You do not have permission to perform that action.",
-      tone: "warning"
-    });
-    navigate(sessionService.roleHome(sessionService.getUser().role));
-  });
 
   global.document.addEventListener("DOMContentLoaded", () => {
     if (!isPageAllowed()) {

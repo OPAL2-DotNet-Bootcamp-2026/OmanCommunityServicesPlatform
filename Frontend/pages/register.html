@@ -36,10 +36,10 @@
                 <a class="nav-link-ocsp" data-nav-roles="Citizen" href="my-issues.html">My Issues</a>
                 <a class="nav-link-ocsp" data-nav-roles="Staff Admin" href="dashboard.html">Dashboard</a>
                 <a class="nav-link-ocsp" data-nav-auth="authenticated" href="notifications.html">
-                    Notifications <span class="nav-count" aria-label="2 unread notifications">2</span>
+                    Notifications <span class="nav-count" aria-label="0 unread notifications" hidden>0</span>
                 </a>
                 <a class="user-chip" href="register.html" aria-current="page">
-                    <span class="user-chip__avatar" aria-hidden="true">AH</span>
+                    <span class="user-chip__avatar" aria-hidden="true">?</span>
                     <span>Register</span>
                     <i class="bi bi-person-plus" aria-hidden="true"></i>
                 </a>
@@ -97,21 +97,11 @@
                                     maxlength="150" autocomplete="email" required>
                             </div>
 
-                            <div class="col-12 col-md-6">
+                            <div class="col-12">
                                 <label class="form-label" for="phoneNumber">Phone Number <span
                                         class="fw-normal text-secondary">(optional)</span></label>
                                 <input class="form-control" type="tel" id="phoneNumber" name="phoneNumber" placeholder="+968 9123 4567"
                                     minlength="8" maxlength="20" autocomplete="tel">
-                            </div>
-
-                            <div class="col-12 col-md-6">
-                                <label class="form-label" for="regionId">Region <span
-                                        class="fw-normal text-secondary">(optional)</span></label>
-                                <select class="form-select" id="regionId" name="regionId" autocomplete="address-level1"
-                                    aria-describedby="regionHint" disabled>
-                                    <option value="" selected>Loading regions...</option>
-                                </select>
-                                <p class="field-hint" id="regionHint">Loading available regions...</p>
                             </div>
 
                             <div class="col-12">
@@ -152,7 +142,6 @@
     </footer>
 
     <script src="../scripts/config.js" defer></script>
-    <script src="../scripts/data/mock-data.js" defer></script>
     <script src="../scripts/services/api-client.js" defer></script>
     <script src="../scripts/services/session-service.js" defer></script>
     <script src="../scripts/services/auth-service.js" defer></script>

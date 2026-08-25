@@ -5,8 +5,7 @@
   const dataService = ocsp.dataService;
   const session = ocsp.sessionService;
 
-  // The badge uses the shared data service, so mock and API modes follow the
-  // same rendering path. A count failure never blocks normal home navigation.
+  // The shared data service retrieves the signed-in user's unread API records. A count failure never blocks normal home navigation.
   async function loadUnreadNotificationCount() {
     const badge = global.document.getElementById("homeNotificationCount");
     const user = session && session.getUser();

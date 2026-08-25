@@ -208,9 +208,9 @@
       </div>`;
   }
 
-  function renderTimeline(statusUpdates) {
+  function renderTimeline(statusUpdates, emptyMessage) {
     if (!Array.isArray(statusUpdates) || !statusUpdates.length) {
-      return '<p class="text-muted small mb-0">No status updates are available.</p>';
+      return `<p class="text-muted small mb-0">${escapeHtml(emptyMessage || "No status updates are available.")}</p>`;
     }
 
     return `
@@ -276,9 +276,10 @@
 
     const selectedScore = Number(issue.rating && issue.rating.score) || 0;
     const feedback = issue.rating && issue.rating.feedback ? issue.rating.feedback : "";
+    const ratingId = Number(issue.rating && issue.rating.ratingId) || "";
 
     return `
-      <div class="ocsp-card rating-panel" data-rating-panel data-issue-id="${safeDomId(issue.issueId)}" data-selected-rating="${selectedScore}">
+      <div class="ocsp-card rating-panel" data-rating-panel data-issue-id="${safeDomId(issue.issueId)}" data-rating-id="${ratingId}" data-selected-rating="${selectedScore}">
         <div class="rating-copy">
           <h3>Rate this service</h3>
           <p>How satisfied are you with the resolution of this issue?</p>
@@ -297,7 +298,7 @@
         <textarea class="form-control" id="citizenFeedback-${safeDomId(issue.issueId)}" data-rating-feedback maxlength="500" placeholder="Leave optional feedback..." rows="3">${escapeHtml(feedback)}</textarea>
         <button class="ocsp-button ocsp-button--submit mt-3" data-action="submit-rating" type="button">
           <i class="bi bi-send-fill" aria-hidden="true"></i>
-          Submit Feedback
+          ${ratingId ? "Update Feedback" : "Submit Feedback"}
         </button>
         <p class="small mt-2 mb-0" data-rating-status aria-live="polite"></p>
       </div>`;
@@ -326,6 +327,13 @@
       ? ` map-preview--${issue.ui.mapVariant}`
       : "";
     const mapAreaName = (issue.ui && issue.ui.mapAreaName) || issue.regionName || "Issue location";
+    const warnings = Array.isArray(issue.warnings) ? issue.warnings : [];
+    const warningAlert = warnings.length
+      ? `
+        <div class="alert alert-warning mb-4" role="alert">
+          Some issue details could not be loaded: ${warnings.map(escapeHtml).join(", ")}.
+        </div>`
+      : "";
 
     return `
       <div class="modal fade issue-detail-modal" id="citizenIssueDetails-${issueDomId}" tabindex="-1" aria-labelledby="citizenIssueDetailsTitle-${issueDomId}" aria-hidden="true">
@@ -342,6 +350,7 @@
             </div>
             <div class="modal-body issue-body issue-detail-modal__body">
               ${renderStatusBanner(issue)}
+              ${warningAlert}
               <div class="row g-4">
                 <div class="col-lg-7 pe-lg-4 border-lg-end">
                   <div class="description-block">
@@ -365,7 +374,7 @@
                   </div>
                   <hr class="my-4">
                   <span class="content-label">Activity Timeline</span>
-                  ${renderTimeline(issue.statusUpdates)}
+                  ${renderTimeline(issue.statusUpdates, "Detailed activity history is available to municipal staff. Your current status is shown on the issue card.")}
                 </div>
                 <div class="col-lg-5 ps-lg-4 comments-column">
                   <span class="content-label"><i class="bi bi-chat-text me-2" aria-hidden="true"></i>Comments</span>

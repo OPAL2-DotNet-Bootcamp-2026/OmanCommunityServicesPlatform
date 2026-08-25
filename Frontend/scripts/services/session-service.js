@@ -47,7 +47,7 @@
   }
 
   function decodeJwtPayload(token) {
-    if (!token || token.startsWith("mock.")) {
+    if (!token) {
       return null;
     }
 
@@ -67,7 +67,7 @@
 
   function isExpired(token) {
     const payload = decodeJwtPayload(token);
-    return Boolean(payload && payload.exp && payload.exp * 1000 <= Date.now());
+    return !payload || !payload.exp || payload.exp * 1000 <= Date.now();
   }
 
   function persist(session) {

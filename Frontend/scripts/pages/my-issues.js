@@ -236,6 +236,9 @@
       (region) => region.regionId,
       (region) => `${region.regionName} — ${region.governorate}`
     );
+
+    elements.issueCategory.disabled = categories.length === 0;
+    elements.issueRegion.disabled = regions.length === 0;
   }
 
   function normalizedSearchText(value) {
@@ -394,6 +397,14 @@
     renderStatistics();
     renderLookupOptions();
     renderFilteredContent();
+
+    const warnings = asArray(state.dashboard.warnings);
+    if (warnings.length && elements.pageStatus.classList.contains("d-none")) {
+      setPageStatus(
+        `Some supporting issue data could not be loaded: ${warnings.join(", ")}.`,
+        "warning"
+      );
+    }
   }
 
   function clearFilters() {
@@ -472,10 +483,23 @@
     submitButton.disabled = true;
 
     try {
-      await service.addComment(issueId, content);
-      const issue = await service.getIssueDetails(issueId);
+      const response = await service.addComment(issueId, content);
+      const user = state.dashboard.currentUser || {};
+      const comment = {
+        issueId,
+        userId: user.userId,
+        userName: user.name || "Citizen",
+        content,
+        isStaffComment: false,
+        commentDate: new Date().toISOString(),
+        ...(response && typeof response === "object" ? response : {})
+      };
       const thread = form.parentElement.querySelector("[data-comment-thread]");
-      thread.innerHTML = renderers.renderComments(issue.comments);
+
+      // The POST already succeeded. Render its DTO locally so a later GET
+      // failure cannot invite the citizen to submit the same comment twice.
+      thread.querySelector("[data-empty-comments]")?.remove();
+      thread.insertAdjacentHTML("beforeend", renderers.renderComments([comment]));
       input.value = "";
       status.textContent = "Comment added.";
     } catch (error) {
@@ -504,6 +528,7 @@
   async function submitRating(button) {
     const panel = button.closest("[data-rating-panel]");
     const issueId = Number(panel.dataset.issueId);
+    const ratingId = Number(panel.dataset.ratingId) || null;
     const score = Number(panel.dataset.selectedRating);
     const feedback = panel.querySelector("[data-rating-feedback]").value.trim();
     const status = panel.querySelector("[data-rating-status]");
@@ -514,10 +539,31 @@
     }
 
     button.disabled = true;
-    status.textContent = "Saving feedback...";
+    status.textContent = ratingId ? "Updating feedback..." : "Saving feedback...";
 
     try {
-      await service.submitRating(issueId, score, feedback);
+      const response = await service.saveRating(ratingId, issueId, score, feedback);
+      const user = state.dashboard.currentUser || {};
+      const savedRating = {
+        ratingId,
+        issueId,
+        userId: user.userId,
+        score,
+        feedback: feedback || null,
+        ratedAt: new Date().toISOString(),
+        ...(response && typeof response === "object" ? response : {})
+      };
+
+      // Keep the returned database ID so later submissions use PUT, not a
+      // duplicate create request.
+      panel.dataset.ratingId = String(savedRating.ratingId || "");
+      const issue = asArray(state.dashboard.issues).find(
+        (item) => Number(item.issueId) === issueId
+      );
+      if (issue) {
+        issue.rating = savedRating;
+      }
+      button.innerHTML = '<i class="bi bi-send-fill" aria-hidden="true"></i> Update Feedback';
       status.textContent = "Thank you. Your feedback has been saved.";
     } catch (error) {
       status.textContent = error.message || "The rating could not be saved.";
@@ -566,8 +612,28 @@
     submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Submitting issue...';
 
     try {
-      await service.createIssue(payload);
-      state.dashboard = await service.getDashboardData();
+      const created = await service.createIssue(payload);
+      const category = asArray(state.dashboard.categories).find(
+        (item) => Number(item.categoryId) === payload.categoryId
+      );
+      const region = asArray(state.dashboard.regions).find(
+        (item) => Number(item.regionId) === payload.regionId
+      );
+
+      // The create response is the new database record. Add it locally instead
+      // of making a second request that could misreport a successful POST.
+      state.dashboard.issues = [{
+        ...created,
+        categoryId: payload.categoryId,
+        regionId: payload.regionId,
+        categoryName: created.categoryName || (category && category.categoryName) || "",
+        regionName: created.regionName || (region && region.regionName) || "",
+        governorate: created.governorate || (region && region.governorate) || "",
+        assignedDepartmentName: created.assignedDepartmentName
+          || (category && category.departmentName)
+          || null
+      }, ...asArray(state.dashboard.issues)];
+
       form.reset();
       byId("priorityMedium").checked = true;
       elements.issueGovernorate.value = "";
@@ -663,7 +729,10 @@
     elements.gallery.addEventListener("click", (event) => {
       const openButton = event.target.closest('[data-action="open-issue"]');
       const clearButton = event.target.closest('[data-action="clear-filters"]');
-      if (openButton) {
+      const retryButton = event.target.closest('[data-action="retry-issues"]');
+      if (retryButton) {
+        loadDashboard();
+      } else if (openButton) {
         showIssueDetails(openButton.dataset.issueId, openButton);
       } else if (clearButton) {
         clearFilters();
@@ -734,6 +803,29 @@
     await showIssueDetails(issueId, trigger);
   }
 
+  async function loadDashboard() {
+    setPageStatus("", "info");
+    elements.gallery.setAttribute("aria-busy", "true");
+    elements.gallery.innerHTML = `
+      <div class="ocsp-card p-4 text-center" role="status">
+        <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
+        <span>Loading issues...</span>
+      </div>`;
+
+    try {
+      state.dashboard = await service.getDashboardData();
+      renderDashboard();
+      await openLinkedIssueFromUrl();
+    } catch (error) {
+      elements.gallery.innerHTML = `
+        <div class="alert alert-danger" role="alert">
+          <p>${renderers.escapeHtml(error.message || "The issue data could not be loaded.")}</p>
+          <button class="ocsp-button ocsp-button--submit" data-action="retry-issues" type="button">Try again</button>
+        </div>`;
+      elements.gallery.setAttribute("aria-busy", "false");
+    }
+  }
+
   async function start() {
     if (shell && !shell.isPageAllowed()) {
       return;
@@ -749,23 +841,7 @@
     bindDelegatedEvents();
     bindFormEvents();
     initializeLocationCapture();
-    elements.gallery.innerHTML = `
-      <div class="ocsp-card p-4 text-center" role="status">
-        <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
-        <span>Loading issues...</span>
-      </div>`;
-
-    try {
-      state.dashboard = await service.getDashboardData();
-      renderDashboard();
-      await openLinkedIssueFromUrl();
-    } catch (error) {
-      elements.gallery.innerHTML = `
-        <div class="alert alert-danger" role="alert">
-          ${renderers.escapeHtml(error.message || "The issue data could not be loaded.")}
-        </div>`;
-      elements.gallery.setAttribute("aria-busy", "false");
-    }
+    await loadDashboard();
   }
 
   global.document.addEventListener("DOMContentLoaded", () => {

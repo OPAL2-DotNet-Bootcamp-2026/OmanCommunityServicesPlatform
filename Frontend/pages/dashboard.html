@@ -268,7 +268,7 @@
                 </div>
                 <span class="reference-admin__status">
                   <i class="bi bi-database-check" aria-hidden="true"></i>
-                  Frontend data flow ready
+                  Connected to platform API
                 </span>
               </div>
 
@@ -391,9 +391,6 @@
                         <select class="form-select" id="adminDepartmentRegion" name="regionId"
                           aria-describedby="adminDepartmentRegionHint">
                           <option value="" selected>No region (optional)</option>
-                          <option value="1">Bawshar — Muscat</option>
-                          <option value="2">Muttrah — Muscat</option>
-                          <option value="3">Seeb — Muscat</option>
                         </select>
                         <small class="reference-admin__hint" id="adminDepartmentRegionHint">
                           Select a region when the department belongs to a specific service area.
@@ -434,9 +431,6 @@
                         <select class="form-select" id="adminCategoryDepartment" name="departmentId" required
                           aria-describedby="adminCategoryDepartmentHint">
                           <option value="" selected disabled>Select a department</option>
-                          <option value="1">Roads &amp; Infrastructure</option>
-                          <option value="2">Traffic &amp; Signals</option>
-                          <option value="3">Public Safety</option>
                         </select>
                         <small class="reference-admin__hint" id="adminCategoryDepartmentHint">
                           The selected value supplies the departmentId.
@@ -464,7 +458,7 @@
             <div class="d-none" id="adminManagementStatus" role="alert" aria-live="assertive" tabindex="-1"></div>
             <p class="reference-admin__note" id="adminManagementNote" role="note">
               <i class="bi bi-info-circle" aria-hidden="true"></i>
-              Mock mode keeps additions until the page reloads. API mode will use the existing protected backend routes.
+              Changes are saved directly through the backend's protected Admin routes.
             </p>
           </div>
         </div>
@@ -523,9 +517,6 @@
             <label class="form-label small fw-bold text-dark" for="deptFilter">Department</label>
             <select class="form-select bg-light" id="deptFilter">
               <option selected value="">All Departments</option>
-              <option value="Roads">Roads & Infrastructure</option>
-              <option value="Traffic">Traffic & Signals</option>
-              <option value="PublicSafety">Public Safety</option>
             </select>
           </div>
 
@@ -534,11 +525,6 @@
             <label class="form-label small fw-bold text-dark" for="categoryFilter">Category</label>
             <select class="form-select bg-light" id="categoryFilter">
               <option selected value="">All Categories</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Signals">Signals</option>
-              <option value="Safety">Safety</option>
-              <option value="Sanitation">Sanitation</option>
-              <option value="Lighting">Street Lighting</option>
             </select>
           </div>
         </div>
@@ -553,7 +539,7 @@
 
     <a class="ocsp-target-backdrop ocsp-target-backdrop--drawer" href="#dashboardFilterTrigger" aria-label="Close filters"></a>
 
-    <!-- Issue details are rendered lazily so API mode avoids one request per card. -->
+    <!-- Issue details are rendered lazily to avoid one API request per card. -->
     <div id="issueDetailModalHost"></div>
 
     <noscript>
@@ -563,7 +549,6 @@
     </noscript>
 
     <script src="../scripts/config.js" defer></script>
-    <script src="../scripts/data/mock-data.js" defer></script>
     <script src="../scripts/services/api-client.js" defer></script>
     <script src="../scripts/services/session-service.js" defer></script>
     <script src="../scripts/components/site-session.js" defer></script>

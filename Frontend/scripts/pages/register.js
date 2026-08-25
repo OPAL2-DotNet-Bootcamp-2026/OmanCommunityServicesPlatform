@@ -14,8 +14,6 @@
       name: global.document.getElementById("name"),
       email: global.document.getElementById("email"),
       phone: global.document.getElementById("phoneNumber"),
-      region: global.document.getElementById("regionId"),
-      regionHint: global.document.getElementById("regionHint"),
       password: global.document.getElementById("password"),
       submit: global.document.getElementById("registerSubmit"),
       status: global.document.getElementById("registerStatus")
@@ -45,35 +43,6 @@
       : '<i class="bi bi-person-check" aria-hidden="true"></i>Register';
   }
 
-  function populateRegions(regions) {
-    elements.region.replaceChildren(new Option("Select your region", ""));
-    regions.forEach((region) => {
-      const regionId = Number(region.regionId);
-      if (!Number.isInteger(regionId) || regionId < 1) {
-        return;
-      }
-      const label = region.governorate
-        ? `${region.regionName} — ${region.governorate}`
-        : region.regionName;
-      elements.region.add(new Option(label, String(regionId)));
-    });
-
-    elements.region.disabled = regions.length === 0;
-    elements.regionHint.textContent = regions.length
-      ? "Region is optional and can be updated later."
-      : "Region can be added after registration.";
-  }
-
-  async function loadRegions() {
-    elements.region.disabled = true;
-    elements.regionHint.textContent = "Loading available regions...";
-    try {
-      populateRegions(await auth.getRegistrationRegions());
-    } catch (_error) {
-      populateRegions([]);
-    }
-  }
-
   async function submitRegistration(event) {
     event.preventDefault();
     if (submitting || !elements.form.reportValidity()) {
@@ -83,11 +52,12 @@
     setStatus("", "info");
     setSubmitting(true);
     try {
+      // The anonymous register route accepts a null region. Region lookup is a
+      // protected backend route, so it becomes available after sign-in.
       await auth.register({
         name: elements.name.value.trim(),
         email: elements.email.value.trim(),
         phoneNumber: elements.phone.value.trim() || null,
-        regionId: elements.region.value ? Number(elements.region.value) : null,
         password: elements.password.value
       });
       session.setFlash({
@@ -115,7 +85,6 @@
     }
 
     elements.form.addEventListener("submit", submitRegistration);
-    loadRegions();
   }
 
   global.document.addEventListener("DOMContentLoaded", () => {
