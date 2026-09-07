@@ -8,6 +8,11 @@
   const shell = ocsp.siteSession;
   const session = ocsp.sessionService;
   const config = ocsp.config || {};
+  const parseApiDate = typeof config.parseApiDate === "function"
+    ? config.parseApiDate
+    : (value) => new Date(value);
+  const motion = ocsp.animations;
+  const feedback = ocsp.feedback;
 
   const state = {
     dashboard: null,
@@ -45,6 +50,11 @@
 
   let elements = {};
   let searchTimer = null;
+  let imageObserver = null;
+  const imageLoadTasks = new Map();
+  const imageLoadWaiters = [];
+  let activeImageLoads = 0;
+  const maxConcurrentImageLoads = 3;
 
   function asArray(value) {
     return Array.isArray(value) ? value : [];
@@ -102,6 +112,10 @@
       : "info";
     element.className = `alert alert-${safeTone} ${extraClass || ""}`.trim();
     element.textContent = message;
+    if (motion) motion.revealStatus(element);
+    if (feedback && ["success", "danger", "warning"].includes(safeTone)) {
+      feedback.show(message, { tone: safeTone, announce: false });
+    }
   }
 
   function setPageStatus(message, tone) {
@@ -156,7 +170,7 @@
   }
 
   function timeZoneDateKey(value) {
-    const date = value instanceof Date ? value : new Date(value);
+    const date = parseApiDate(value);
     if (Number.isNaN(date.getTime())) {
       return "";
     }
@@ -187,16 +201,28 @@
       (update) => update.newStatus === "Resolved" && timeZoneDateKey(update.updatedAt) === today
     ).length;
 
-    const values = {
-      dashboardUserAvatar: shared.getInitials(user.name),
-      dashboardUserName: user.name || user.role || "Staff",
-      dashboardHeroAssigned: `${issues.length} issue${issues.length === 1 ? "" : "s"}`,
-      dashboardHeroResolvedToday: `${resolvedToday} resolved`
-    };
-    Object.entries(values).forEach(([id, value]) => {
-      const element = byId(id);
-      if (element) element.textContent = value;
-    });
+    // The shared site-session component owns header identity on every page.
+
+    const assignedValue = byId("dashboardHeroAssigned");
+    const resolvedValue = byId("dashboardHeroResolvedToday");
+    if (assignedValue) {
+      if (motion) {
+        motion.countTo(assignedValue, issues.length, {
+          format: (value) => `${Math.round(value)} issue${Math.round(value) === 1 ? "" : "s"}`
+        });
+      } else {
+        assignedValue.textContent = `${issues.length} issue${issues.length === 1 ? "" : "s"}`;
+      }
+    }
+    if (resolvedValue) {
+      if (motion) {
+        motion.countTo(resolvedValue, resolvedToday, {
+          format: (value) => `${Math.round(value)} resolved`
+        });
+      } else {
+        resolvedValue.textContent = `${resolvedToday} resolved`;
+      }
+    }
 
     const workload = byId("dashboardHeroWorkloadCopy");
     if (workload) {
@@ -220,6 +246,7 @@
         "aria-label",
         `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
       );
+      if (motion) motion.pulse(notificationCount, unreadCount);
     }
   }
 
@@ -234,7 +261,10 @@
 
     Object.entries(counts).forEach(([key, value]) => {
       const output = byId(`issueStat${key}`);
-      if (output) output.textContent = String(value).padStart(2, "0");
+      if (output) {
+        if (motion) motion.countTo(output, value);
+        else output.textContent = String(value);
+      }
     });
   }
 
@@ -332,6 +362,126 @@
     });
   }
 
+  function getIssueById(issueId) {
+    return asArray(state.dashboard && state.dashboard.issues).find(
+      (issue) => Number(issue.issueId) === Number(issueId)
+    ) || null;
+  }
+
+  // Attachments are separate backend resources. Once loaded, store them on the
+  // issue and expose the first image through the shared card renderer.
+  function applyAttachmentsToIssue(issueId, attachments) {
+    const issue = getIssueById(issueId);
+    if (!issue) return null;
+
+    const normalized = asArray(attachments);
+    const image = normalized.find(
+      (attachment) => String(attachment.fileType || "").toLowerCase() === "image"
+        && attachment.fileUrl
+    );
+    const ui = { ...(issue.ui || {}), attachmentsLoaded: true };
+
+    if (image) {
+      ui.imageUrl = image.fileUrl;
+      ui.imageAlt = issue.title || "Issue image";
+      ui.imageStyle = image.style || "document";
+      ui.previewLabel = image.label || "Issue photo";
+    } else {
+      delete ui.imageUrl;
+      delete ui.imageAlt;
+      ui.imageStyle = "document";
+      ui.previewLabel = "Issue attachment";
+    }
+
+    issue.attachments = normalized;
+    issue.ui = ui;
+    return issue;
+  }
+
+  function refreshIssueCardImage(issue) {
+    if (!issue || !elements.list) return;
+    const card = elements.list.querySelector(
+      '[data-issue-id="' + shared.safeDomId(issue.issueId) + '"]'
+    );
+    const media = card && card.querySelector(".issue-card-media");
+    if (media) media.outerHTML = shared.renderIssueImage(issue);
+  }
+
+  // One shared semaphore limits requests from both IntersectionObserver and
+  // the compatibility fallback, keeping large dashboards responsive.
+  async function withImageLoadSlot(request) {
+    if (activeImageLoads >= maxConcurrentImageLoads) {
+      await new Promise((resolve) => imageLoadWaiters.push(resolve));
+    }
+    activeImageLoads += 1;
+    try {
+      return await request();
+    } finally {
+      activeImageLoads -= 1;
+      const releaseNext = imageLoadWaiters.shift();
+      if (releaseNext) releaseNext();
+    }
+  }
+
+  async function hydrateIssueImage(issueId) {
+    const issue = getIssueById(issueId);
+    if (!issue || (issue.ui && issue.ui.attachmentsLoaded)) return;
+    if (imageLoadTasks.has(issueId)) return imageLoadTasks.get(issueId);
+
+    const task = withImageLoadSlot(
+      () => service.getStaffIssueAttachments(issueId)
+    )
+      .then((attachments) => {
+        refreshIssueCardImage(applyAttachmentsToIssue(issueId, attachments));
+      })
+      // Preview loading is optional. A failed background request can retry the
+      // next time filtering or sorting renders this card.
+      .catch(() => {})
+      .finally(() => imageLoadTasks.delete(issueId));
+
+    imageLoadTasks.set(issueId, task);
+    return task;
+  }
+
+  function hydrateVisibleIssueImages() {
+    if (imageObserver) imageObserver.disconnect();
+    const cards = Array.from(
+      elements.list.querySelectorAll(".issue-card[data-issue-id]")
+    );
+    const pendingCards = cards.filter((card) => {
+      const issue = getIssueById(card.dataset.issueId);
+      return issue && !(issue.ui && issue.ui.attachmentsLoaded);
+    });
+    if (!pendingCards.length) return;
+
+    // Older browsers use a small worker pool so requests remain bounded.
+    if (typeof global.IntersectionObserver !== "function") {
+      const issueIds = pendingCards.map((card) => Number(card.dataset.issueId));
+      let cursor = 0;
+      const worker = async () => {
+        while (cursor < issueIds.length) {
+          const issueId = issueIds[cursor++];
+          await hydrateIssueImage(issueId);
+        }
+      };
+      Array.from({ length: Math.min(3, issueIds.length) }, () => worker());
+      return;
+    }
+
+    // Load only cards near the viewport so image requests do not delay the
+    // dashboard data or create a large request burst.
+    const observer = new global.IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        hydrateIssueImage(Number(entry.target.dataset.issueId));
+      });
+    }, { rootMargin: "240px 0px" });
+
+    imageObserver = observer;
+    pendingCards.forEach((card) => observer.observe(card));
+  }
+
   function renderIssues() {
     const issues = asArray(state.dashboard.issues);
     const visible = getVisibleIssues();
@@ -356,12 +506,24 @@
       elements.list.innerHTML = visible.map(renderers.renderStaffIssueCard).join("");
     }
 
+    if (motion) {
+      const firstRender = elements.list.dataset.ocspMotionRendered !== "true";
+      motion.revealList(elements.list, ".issue-card, .ocsp-card[role=\"status\"], .alert", {
+        stagger: firstRender,
+        interval: firstRender ? 36 : 0,
+        duration: firstRender ? 240 : 160,
+        distance: firstRender ? 12 : 6
+      });
+      elements.list.dataset.ocspMotionRendered = "true";
+    }
+
     if (elements.resultSummary) {
       elements.resultSummary.textContent = issues.length
         ? `Showing ${visible.length} of ${issues.length} issue${issues.length === 1 ? "" : "s"}.`
         : "No issues are available.";
     }
     elements.list.setAttribute("aria-busy", "false");
+    hydrateVisibleIssueImages();
   }
 
   function activeFilterDefinitions() {
@@ -406,6 +568,13 @@
         ${shared.escapeHtml(filter.value)}
         <button class="btn-close ms-1 active-filter__dismiss" type="button" data-action="remove-filter" data-filter="${shared.escapeHtml(filter.key)}" aria-label="Remove ${shared.escapeHtml(filter.label)} filter"></button>
       </span>`).join("");
+    if (motion) {
+      motion.revealList(elements.activeFilterChips, ":scope > .badge", {
+        interval: 35,
+        duration: 180,
+        distance: 6
+      });
+    }
   }
 
   function syncFilterControls() {
@@ -500,8 +669,18 @@
         state.openIssueTrigger = null;
         return;
       }
+      // A failed optional attachment request must not erase a preview that the
+      // card already loaded successfully in the background.
+      if (!asArray(issue.warnings).includes("attachments")) {
+        refreshIssueCardImage(
+          applyAttachmentsToIssue(numericIssueId, issue.attachments)
+        );
+      }
       state.openIssueId = numericIssueId;
       elements.detailHost.innerHTML = renderers.renderStaffIssueDetailModal(issue);
+      if (motion) {
+        motion.revealWithin(elements.detailHost, { interval: 45, distance: 8 });
+      }
       const modalAnchor = `issueModal-${shared.safeDomId(numericIssueId)}`;
       const isDeepLink = new URLSearchParams(global.location.search).has("issueId");
 
@@ -560,7 +739,8 @@
 
     state.busy.status = true;
     form.setAttribute("aria-busy", "true");
-    submitButton.disabled = true;
+    if (motion) motion.setButtonBusy(submitButton, true, "Updating status...");
+    else submitButton.disabled = true;
     status.textContent = "Updating status...";
 
     try {
@@ -600,21 +780,31 @@
       renderAccountAndHero();
       renderStatistics();
       renderFilteredContent();
-      setPageStatus("The issue status was updated successfully.", "success");
+      // The bottom-right toast is the success confirmation; keep the page-level
+      // region clear so the same message is not shown twice.
+      setPageStatus("", "info");
+      if (feedback) {
+        feedback.success("The issue status was updated successfully.");
+      } else {
+        setPageStatus("The issue status was updated successfully.", "success");
+      }
       const newTrigger = elements.list.querySelector(
         `[data-action="open-issue"][data-issue-id="${shared.safeDomId(issueId)}"]`
       );
       if (newTrigger) {
         newTrigger.focus();
       } else {
-        elements.pageStatus.focus();
+        elements.searchInput.focus();
       }
     } catch (error) {
-      status.textContent = error.message || "The issue status could not be updated.";
+      const message = error.message || "The issue status could not be updated.";
+      status.textContent = message;
+      if (feedback) feedback.error(message, { announce: false });
     } finally {
       state.busy.status = false;
       form.removeAttribute("aria-busy");
-      submitButton.disabled = false;
+      if (motion) motion.setButtonBusy(submitButton, false);
+      else submitButton.disabled = false;
     }
   }
 
@@ -636,7 +826,8 @@
     state.busy.comment = true;
     form.setAttribute("aria-busy", "true");
     input.disabled = true;
-    submitButton.disabled = true;
+    if (motion) motion.setButtonBusy(submitButton, true, "Adding comment...");
+    else submitButton.disabled = true;
     status.textContent = "Adding comment...";
 
     try {
@@ -654,15 +845,26 @@
       const thread = form.parentElement.querySelector("[data-comment-thread]");
       thread.querySelector("[data-empty-comments]")?.remove();
       thread.insertAdjacentHTML("beforeend", shared.renderComments([comment]));
+      if (motion) {
+        motion.revealList(thread, ".comment-card", {
+          stagger: false,
+          duration: 220,
+          distance: 7
+        });
+      }
       input.value = "";
       status.textContent = "Comment added.";
+      if (feedback) feedback.success("Comment added.", { announce: false });
     } catch (error) {
-      status.textContent = error.message || "The comment could not be added.";
+      const message = error.message || "The comment could not be added.";
+      status.textContent = message;
+      if (feedback) feedback.error(message, { announce: false });
     } finally {
       state.busy.comment = false;
       form.removeAttribute("aria-busy");
       input.disabled = false;
-      submitButton.disabled = false;
+      if (motion) motion.setButtonBusy(submitButton, false);
+      else submitButton.disabled = false;
       input.focus();
     }
   }
@@ -718,7 +920,8 @@
     const submitButton = form.querySelector('[type="submit"]');
     state.busy.setup = true;
     form.setAttribute("aria-busy", "true");
-    submitButton.disabled = true;
+    if (motion) motion.setButtonBusy(submitButton, true, `Adding ${request.label.toLocaleLowerCase()}...`);
+    else submitButton.disabled = true;
     setAdminStatus(`Adding ${request.label.toLocaleLowerCase()}...`, "info");
 
     try {
@@ -746,7 +949,8 @@
     } finally {
       state.busy.setup = false;
       form.removeAttribute("aria-busy");
-      submitButton.disabled = false;
+      if (motion) motion.setButtonBusy(submitButton, false);
+      else submitButton.disabled = false;
     }
   }
 
@@ -871,6 +1075,22 @@
         loadDashboard();
       }
     });
+
+    // Public URLs can expire or point to non-image pages. Replace failed image
+    // elements with the existing accessible "No preview" card design.
+    elements.list.addEventListener("error", (event) => {
+      const image = event.target;
+      if (!image || typeof image.matches !== "function"
+        || !image.matches(".issue-card-media__image")) return;
+      const card = image.closest("[data-issue-id]");
+      const issue = card && getIssueById(card.dataset.issueId);
+      const media = image.closest(".issue-card-media");
+      if (!issue || !media) return;
+      issue.ui = { ...(issue.ui || {}) };
+      delete issue.ui.imageUrl;
+      delete issue.ui.imageAlt;
+      media.outerHTML = shared.renderIssueImage(issue);
+    }, true);
 
     elements.activeFilterChips.addEventListener("click", (event) => {
       const trigger = event.target.closest('[data-action="remove-filter"]');
@@ -1011,37 +1231,46 @@
   }
 
   async function loadDashboard() {
+    const flash = session && session.consumeFlash ? session.consumeFlash() : null;
+    if (flash && flash.message) setPageStatus(flash.message, flash.tone);
     elements.list.setAttribute("aria-busy", "true");
-    elements.list.innerHTML = `
-      <div class="ocsp-card p-4 text-center" role="status">
-        <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
-        <span class="d-block">Loading issues...</span>
-      </div>`;
+    if (motion) {
+      motion.renderSkeletons(elements.list, {
+        count: 3,
+        variant: "issue",
+        label: "Loading issues..."
+      });
+    } else {
+      elements.list.innerHTML = `
+        <div class="ocsp-card p-4 text-center" role="status">
+          <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
+          <span class="d-block">Loading issues...</span>
+        </div>`;
+    }
 
     try {
       state.dashboard = await service.getStaffDashboardData();
       renderDashboard();
-      const flash = session && session.consumeFlash();
       await openLinkedIssueFromUrl();
       if (!state.openIssueId) {
         await openIssueFromHash();
       }
       const warnings = asArray(state.dashboard.warnings);
-      if (flash && flash.message) {
-        setPageStatus(flash.message, flash.tone);
-      } else if (warnings.length && elements.pageStatus.classList.contains("d-none")) {
+      if (warnings.length) {
         setPageStatus(
           `Some supporting dashboard data could not be loaded: ${warnings.join(", ")}.`,
           "warning"
         );
       }
     } catch (error) {
+      const message = error.message || "The dashboard could not be loaded.";
       elements.list.innerHTML = `
         <div class="alert alert-danger" role="alert">
-          <p class="mb-3">${shared.escapeHtml(error.message || "The dashboard could not be loaded.")}</p>
+          <p class="mb-3">${shared.escapeHtml(message)}</p>
           <button class="btn ocsp-button ocsp-button--submit" type="button" data-action="retry-dashboard">Try again</button>
         </div>`;
       elements.list.setAttribute("aria-busy", "false");
+      if (feedback) feedback.error(message, { announce: false });
     }
   }
 

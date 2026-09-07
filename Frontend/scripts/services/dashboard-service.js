@@ -55,6 +55,15 @@
     };
   }
 
+  // Issue list responses do not contain attachments. Load them separately so
+  // card previews can be hydrated without changing the backend contract.
+  async function getStaffIssueAttachments(issueId) {
+    const attachments = await api.get(
+      api.endpoints.attachmentsByIssue(Number(issueId))
+    );
+    return asArray(attachments).map(normalizeApiAttachment);
+  }
+
   async function getStaffDashboardData() {
     const results = await Promise.allSettled([
       api.get(api.endpoints.allIssues),
@@ -89,7 +98,7 @@
     const results = await Promise.allSettled([
       api.get(api.endpoints.issueById(issueId)),
       api.get(api.endpoints.commentsByIssue(issueId)),
-      api.get(api.endpoints.attachmentsByIssue(issueId)),
+      getStaffIssueAttachments(issueId),
       api.get(api.endpoints.statusUpdatesByIssue(issueId)),
       api.get(api.endpoints.ratingsByIssue(issueId))
     ]);
@@ -109,7 +118,7 @@
     return {
       ...issue,
       comments: asArray(settledValue(results[1], [])),
-      attachments: asArray(settledValue(results[2], [])).map(normalizeApiAttachment),
+      attachments: asArray(settledValue(results[2], [])),
       statusUpdates: asArray(settledValue(results[3], []))
         .sort((left, right) => new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime()),
       ratings,
@@ -158,6 +167,7 @@
 
   ocsp.dashboardService = Object.freeze({
     getStaffDashboardData,
+    getStaffIssueAttachments,
     getStaffIssueDetails,
     changeIssueStatus,
     addStaffComment,

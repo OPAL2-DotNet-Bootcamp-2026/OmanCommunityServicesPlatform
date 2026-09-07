@@ -3,6 +3,9 @@
 
   const ocsp = global.OCSP || {};
   const config = ocsp.config || {};
+  const parseApiDate = typeof config.parseApiDate === "function"
+    ? config.parseApiDate
+    : (value) => new Date(value);
 
   const statusMap = Object.freeze({
     Open: { key: "open", label: "Open", icon: "bi-inbox" },
@@ -78,7 +81,7 @@
       return "Latest status";
     }
 
-    const date = new Date(value);
+    const date = parseApiDate(value);
     if (Number.isNaN(date.getTime())) {
       return "Date unavailable";
     }
@@ -127,7 +130,7 @@
 
     return `
       <span class="issue-card-media issue-card-media--attachment issue-card-media--${imageStyle}" data-preview-label="${previewLabel}" role="img" aria-label="${alt}">
-        <img class="issue-card-media__image" src="${escapeHtml(imageUrl)}" alt="" width="720" height="480" loading="lazy" decoding="async">
+        <img class="issue-card-media__image" src="${escapeHtml(imageUrl)}" alt="" width="720" height="480" loading="lazy" decoding="async" referrerpolicy="no-referrer">
       </span>`;
   }
 
@@ -135,7 +138,17 @@
     const status = getStatusMeta(issue.currentStatus);
     const priority = getPriorityMeta(issue.priority);
     const issueDomId = safeDomId(issue.issueId);
+    const issueTitle = String(issue.title || "Issue").trim() || "Issue";
+    const issueTitleAnnouncement = /[.!?]$/.test(issueTitle)
+      ? issueTitle
+      : `${issueTitle}.`;
     const hasFreshUpdate = Boolean(issue.ui && issue.ui.hasFreshUpdate);
+    const freshUpdateLabel = String(
+      issue.ui && issue.ui.freshUpdateLabel || "New update"
+    ).trim() || "New update";
+    const freshUpdateAnnouncement = /[.!?]$/.test(freshUpdateLabel)
+      ? freshUpdateLabel
+      : `${freshUpdateLabel}.`;
 
     return `
       <article class="ocsp-card ocsp-card--interactive issue-card issue-card--${status.key} issue-filter-item issue-filter-item--${status.key}${hasFreshUpdate ? " is-updated" : ""}" data-issue-id="${issueDomId}">
@@ -145,13 +158,13 @@
           data-action="open-issue"
           data-issue-id="${issueDomId}"
           aria-haspopup="dialog"
-          aria-label="View details for ${escapeHtml(issue.title)}${hasFreshUpdate ? ". New update." : ""}">
+          aria-label="View details for ${escapeHtml(issueTitleAnnouncement)}${hasFreshUpdate ? ` ${escapeHtml(freshUpdateAnnouncement)}` : ""}">
           <span class="row align-items-center w-100 g-2 text-start">
             <span class="col-auto">${renderIssueImage(issue)}</span>
             <span class="col">
               <span class="issue-title-row">
                 <span class="issue-title d-block">${escapeHtml(issue.title)}</span>
-                ${hasFreshUpdate ? '<span class="fresh-update"><i class="bi bi-stars" aria-hidden="true"></i> New update</span>' : ""}
+                ${hasFreshUpdate ? `<span class="fresh-update" aria-hidden="true"><i class="bi bi-stars"></i>${escapeHtml(freshUpdateLabel)}</span>` : ""}
               </span>
               <span class="issue-meta mt-1 d-block">
                 <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
@@ -328,6 +341,39 @@
       : "";
     const mapAreaName = (issue.ui && issue.ui.mapAreaName) || issue.regionName || "Issue location";
     const warnings = Array.isArray(issue.warnings) ? issue.warnings : [];
+    const ui = issue.ui || {};
+    const canUpdateImage = ["Open", "InProgress"].includes(issue.currentStatus)
+      && ui.imageUpdateAvailable !== false;
+    const imageUpdatePanelId = `citizenIssueUpdatePanel-${issueDomId}`;
+    const imageUpdateInputId = `citizenIssueImageUrl-${issueDomId}`;
+    const imageUpdateHelpId = `citizenIssueImageHelp-${issueDomId}`;
+    const imageUpdateStatusId = `citizenIssueImageStatus-${issueDomId}`;
+    const imageUpdateAction = canUpdateImage
+      ? `
+        <button class="ocsp-button ocsp-button--cancel" type="button" data-action="toggle-issue-image-update" aria-expanded="false" aria-controls="${imageUpdatePanelId}">
+          <i class="bi bi-pencil-square" aria-hidden="true"></i>Update issue
+        </button>`
+      : "";
+    const imageUpdatePanel = canUpdateImage
+      ? `
+        <section class="ocsp-card p-3 mb-4" id="${imageUpdatePanelId}" hidden>
+          <h3 class="content-label mb-2">Update issue image</h3>
+          <p class="small text-muted mb-3">Add or replace the public image URL while this issue is Open or In Progress.</p>
+          <form data-action="update-issue-image" data-issue-id="${issueDomId}">
+            <label class="form-label" for="${imageUpdateInputId}">Image URL</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-image" aria-hidden="true"></i></span>
+              <input class="form-control" id="${imageUpdateInputId}" name="imageUrl" type="url" inputmode="url" maxlength="300" autocomplete="url" spellcheck="false" required value="${escapeHtml(ui.editableImageUrl || "")}" placeholder="https://example.com/issue-photo.jpg" aria-describedby="${imageUpdateHelpId} ${imageUpdateStatusId}">
+            </div>
+            <p class="small text-muted mt-2 mb-3" id="${imageUpdateHelpId}">Use a public address beginning with http:// or https://.</p>
+            <p class="small mb-3" id="${imageUpdateStatusId}" data-image-update-status role="status" aria-live="polite"></p>
+            <div class="d-flex flex-wrap justify-content-end gap-2">
+              <button class="ocsp-button ocsp-button--cancel" type="button" data-action="cancel-issue-image-update">Cancel</button>
+              <button class="ocsp-button ocsp-button--submit" type="submit"><i class="bi bi-check2-circle" aria-hidden="true"></i>Save image</button>
+            </div>
+          </form>
+        </section>`
+      : "";
     const warningAlert = warnings.length
       ? `
         <div class="alert alert-warning mb-4" role="alert">
@@ -344,13 +390,17 @@
                 <span class="page-kicker">Citizen issue</span>
                 <h2 class="modal-title" id="citizenIssueDetailsTitle-${issueDomId}">${escapeHtml(issue.title)}</h2>
               </div>
-              <button type="button" class="dialog-close border-0 bg-transparent" data-bs-dismiss="modal" aria-label="Close issue details">
-                <i class="bi bi-x-lg" aria-hidden="true"></i>
-              </button>
+              <div class="d-flex align-items-center gap-2">
+                ${imageUpdateAction}
+                <button type="button" class="dialog-close border-0 bg-transparent" data-bs-dismiss="modal" aria-label="Close issue details">
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+              </div>
             </div>
             <div class="modal-body issue-body issue-detail-modal__body">
               ${renderStatusBanner(issue)}
               ${warningAlert}
+              ${imageUpdatePanel}
               <div class="row g-4">
                 <div class="col-lg-7 pe-lg-4 border-lg-end">
                   <div class="description-block">

@@ -7,13 +7,14 @@
   const storageKey = config.sessionStorageKey || "ocsp.session";
   const flashStorageKey = `${storageKey}.flash`;
   const allowedPageRoles = Object.freeze({
-    "home.html": [],
+    "index.html": [],
     "my-issues.html": ["Citizen"],
     "dashboard.html": ["Staff", "Admin"],
     "notifications.html": ["Citizen", "Staff", "Admin"]
   });
   let memorySession = null;
   let memoryFlash = null;
+  let authorizationRedirectStarted = false;
 
   function normalizeRole(value) {
     const role = String(value || "").trim().toLowerCase();
@@ -212,7 +213,8 @@
 
     try {
       const url = new URL(rawValue, global.location.href);
-      const pageName = url.pathname.split("/").pop().toLowerCase();
+      // A directory URL such as "/" is served by index.html.
+      const pageName = url.pathname.split("/").pop().toLowerCase() || "index.html";
       const allowedRoles = allowedPageRoles[pageName];
       if (url.origin !== global.location.origin || !allowedRoles) {
         return "";
@@ -297,15 +299,26 @@
   // A 401 means the saved token is no longer usable. Clear it once and send the
   // user back through the normal login path while preserving their destination.
   global.addEventListener("ocsp:authorization-error", (event) => {
-    if (!event.detail || event.detail.status !== 401) {
+    if (
+      authorizationRedirectStarted ||
+      !event.detail ||
+      event.detail.status !== 401
+    ) {
       return;
     }
 
-    clear("unauthorized");
     const currentPage = global.location.pathname.split("/").pop().toLowerCase();
-    if (!["login.html", "register.html"].includes(currentPage)) {
-      global.location.replace(loginUrl(currentReturnTo()));
+    if (["login.html", "register.html"].includes(currentPage)) {
+      return;
     }
+
+    authorizationRedirectStarted = true;
+    clear("unauthorized");
+    setFlash({
+      message: "Your session expired. Sign in again.",
+      tone: "warning"
+    });
+    global.location.replace(loginUrl(currentReturnTo()));
   });
 
   ocsp.sessionService = Object.freeze({

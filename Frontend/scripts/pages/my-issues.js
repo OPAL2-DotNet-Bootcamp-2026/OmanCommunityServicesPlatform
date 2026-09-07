@@ -5,11 +5,15 @@
   const service = ocsp.dataService;
   const renderers = ocsp.issueRenderers;
   const shell = ocsp.siteSession;
+  const session = ocsp.sessionService;
+  const motion = ocsp.animations;
+  const feedback = ocsp.feedback;
 
   const state = {
     dashboard: null,
     openIssueId: null,
     openIssueTrigger: null,
+
     filters: {
       search: "",
       status: "",
@@ -29,6 +33,12 @@
 
   let elements = {};
   let searchTimer = null;
+  let imageObserver = null;
+  const imageLoadTasks = new Map();
+  const attachmentRevisions = new Map();
+  const pendingAttachments = new Map();
+  const activeIssueImageUpdates = new Set();
+  let activeAttachmentRetryIssueId = null;
 
   function asArray(value) {
     return Array.isArray(value) ? value : [];
@@ -66,9 +76,11 @@
       issueGovernorate: byId("issueGovernorate"),
       issueLatitude: byId("issueLatitude"),
       issueLongitude: byId("issueLongitude"),
+      issueImageUrl: byId("issueImageUrl"),
       locationButton: byId("useCurrentLocation"),
       locationStatus: byId("locationStatus"),
-      pageStatus: byId("pageStatus")
+      pageStatus: byId("pageStatus"),
+      attachmentRetryStatus: byId("attachmentRetryStatus")
     };
   }
 
@@ -88,6 +100,10 @@
       : "info";
     elements.pageStatus.className = `alert alert-${alertTone} mb-4`;
     elements.pageStatus.textContent = message;
+    if (motion) motion.revealStatus(elements.pageStatus);
+    if (feedback && ["success", "danger", "warning"].includes(alertTone)) {
+      feedback.show(message, { tone: alertTone, announce: false });
+    }
   }
 
   function setCreateIssueStatus(message, tone) {
@@ -106,10 +122,10 @@
       : "info";
     elements.createIssueStatus.className = `alert alert-${safeTone} mb-3`;
     elements.createIssueStatus.textContent = message;
-  }
-
-  function firstName(name) {
-    return String(name || "Citizen").trim().split(/\s+/)[0] || "Citizen";
+    if (motion) motion.revealStatus(elements.createIssueStatus);
+    if (feedback && ["success", "danger", "warning"].includes(safeTone)) {
+      feedback.show(message, { tone: safeTone, announce: false });
+    }
   }
 
   function renderAccountSummary() {
@@ -124,19 +140,12 @@
     ).length;
     const activeCount = issues.length - resolvedCount;
 
-    const userName = byId("currentUserName");
-    const userAvatar = byId("currentUserAvatar");
     const notificationCount = byId("notificationCount");
     const heroTotal = byId("heroIssueTotal");
     const heroSummary = byId("heroIssueSummary");
     const heroResolved = byId("heroResolvedCount");
 
-    if (userName) {
-      userName.textContent = firstName(user.name);
-    }
-    if (userAvatar) {
-      userAvatar.textContent = renderers.getInitials(user.name);
-    }
+    // The shared site-session component owns header identity on every page.
     if (notificationCount) {
       notificationCount.textContent = String(unreadCount);
       notificationCount.hidden = unreadCount === 0;
@@ -144,9 +153,16 @@
         "aria-label",
         `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
       );
+      if (motion) motion.pulse(notificationCount, unreadCount);
     }
     if (heroTotal) {
-      heroTotal.textContent = `${issues.length} total issue${issues.length === 1 ? "" : "s"}`;
+      if (motion) {
+        motion.countTo(heroTotal, issues.length, {
+          format: (value) => `${Math.round(value)} total issue${Math.round(value) === 1 ? "" : "s"}`
+        });
+      } else {
+        heroTotal.textContent = `${issues.length} total issue${issues.length === 1 ? "" : "s"}`;
+      }
     }
     if (heroSummary) {
       heroSummary.textContent = issues.length === 0
@@ -156,7 +172,13 @@
           : "All of your reports have been resolved.";
     }
     if (heroResolved) {
-      heroResolved.textContent = `${resolvedCount} resolved`;
+      if (motion) {
+        motion.countTo(heroResolved, resolvedCount, {
+          format: (value) => `${Math.round(value)} resolved`
+        });
+      } else {
+        heroResolved.textContent = `${resolvedCount} resolved`;
+      }
     }
   }
 
@@ -172,7 +194,8 @@
     Object.entries(counts).forEach(([key, value]) => {
       const output = byId(`issueStat${key[0].toUpperCase()}${key.slice(1)}`);
       if (output) {
-        output.textContent = String(value).padStart(2, "0");
+        if (motion) motion.countTo(output, value);
+        else output.textContent = String(value);
       }
     });
   }
@@ -277,32 +300,168 @@
     });
   }
 
+  function getIssueById(issueId) {
+    return asArray(state.dashboard && state.dashboard.issues).find(
+      (issue) => Number(issue.issueId) === Number(issueId)
+    ) || null;
+  }
+
+  function applyAttachmentsToIssue(issueId, attachments) {
+    const issue = getIssueById(issueId);
+    if (!issue) return null;
+
+    const normalized = asArray(attachments);
+    const image = normalized.find(
+      (attachment) => String(attachment.fileType || "").toLowerCase() === "image"
+        && attachment.fileUrl
+    );
+    const ui = { ...(issue.ui || {}), attachmentsLoaded: true };
+
+    if (image) {
+      ui.imageUrl = image.fileUrl;
+      ui.imageAlt = issue.title;
+      ui.previewLabel = "Issue photo";
+    } else {
+      delete ui.imageUrl;
+    }
+
+    issue.attachments = normalized;
+    issue.ui = ui;
+    return issue;
+  }
+
+  function refreshIssueCardImage(issue) {
+    if (!issue || !elements.gallery) return;
+    const card = elements.gallery.querySelector(
+      '[data-issue-id="' + renderers.safeDomId(issue.issueId) + '"]'
+    );
+    const media = card && card.querySelector(".issue-card-media");
+    if (media) media.outerHTML = renderers.renderIssueImage(issue);
+  }
+
+  async function hydrateIssueImage(issueId) {
+    const issue = getIssueById(issueId);
+    if (!issue || (issue.ui && issue.ui.attachmentsLoaded)) return;
+    if (imageLoadTasks.has(issueId)) return imageLoadTasks.get(issueId);
+
+    const revision = attachmentRevisions.get(issueId) || 0;
+    const task = service.getIssueAttachments(issueId)
+      .then((attachments) => {
+        if ((attachmentRevisions.get(issueId) || 0) !== revision) return;
+        const updatedIssue = applyAttachmentsToIssue(issueId, attachments);
+        refreshIssueCardImage(updatedIssue);
+
+        // A previous attachment request may have succeeded on the server even if
+        // the browser timed out. Clear its saved retry once hydration confirms it.
+        const pending = pendingAttachments.get(issueId);
+        const savedImageExists = pending
+          && hasImageAttachment(attachments, pending.imageUrl);
+
+        if (savedImageExists && activeAttachmentRetryIssueId !== issueId) {
+          const activeElement = global.document.activeElement;
+          const focusedRetry = elements.attachmentRetryStatus.contains(activeElement)
+            && activeElement.matches('[data-action="retry-image-attachment"]')
+            ? Number(activeElement.dataset.issueId)
+            : null;
+          pendingAttachments.delete(issueId);
+          persistPendingAttachments();
+          renderAttachmentRetries(
+            focusedRetry && pendingAttachments.has(focusedRetry) ? focusedRetry : null
+          );
+          if (focusedRetry === issueId) {
+            setPageStatus("The saved image is already attached.", "success");
+            elements.pageStatus.focus();
+          }
+        }
+      })
+      // Thumbnail hydration is optional. A failed background request can retry
+      // when filters render the card again without blocking the issue list.
+      .catch(() => {})
+      .finally(() => imageLoadTasks.delete(issueId));
+    imageLoadTasks.set(issueId, task);
+    return task;
+  }
+
+  function hydrateVisibleIssueImages() {
+    if (imageObserver) imageObserver.disconnect();
+    const cards = Array.from(elements.gallery.querySelectorAll("[data-issue-id]"));
+    const pendingCards = cards.filter((card) => {
+      const issue = getIssueById(card.dataset.issueId);
+      return issue && !(issue.ui && issue.ui.attachmentsLoaded);
+    });
+    if (!pendingCards.length) return;
+
+    if (typeof global.IntersectionObserver !== "function") {
+      const issueIds = pendingCards.map((card) => Number(card.dataset.issueId));
+      let cursor = 0;
+      const worker = async () => {
+        while (cursor < issueIds.length) {
+          const issueId = issueIds[cursor++];
+          await hydrateIssueImage(issueId);
+        }
+      };
+      Array.from({ length: Math.min(3, issueIds.length) }, () => worker());
+      return;
+    }
+
+    // Load thumbnails only as cards approach the viewport so attachments do
+    // not delay the initial issue list or recreate the previous heavy loading.
+    const observer = new global.IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        hydrateIssueImage(Number(entry.target.dataset.issueId));
+      });
+    }, { rootMargin: "160px 0px" });
+    imageObserver = observer;
+    pendingCards.forEach((card) => observer.observe(card));
+  }
+
   function renderIssues() {
     elements.gallery.setAttribute("aria-busy", "true");
     const visibleIssues = getVisibleIssues();
     const totalIssues = asArray(state.dashboard.issues).length;
 
+    // A new account needs guidance, while an empty filtered result needs filter controls.
     if (totalIssues === 0) {
       elements.gallery.innerHTML = `
-        <div class="ocsp-card p-4 text-center" role="status">
-          <i class="bi bi-clipboard-plus fs-2 text-primary mb-2" aria-hidden="true"></i>
-          <h3 class="h5">No issues submitted yet</h3>
-          <p class="text-muted mb-3">Create your first report to start tracking community service work.</p>
-          <button class="ocsp-button ocsp-button--submit align-self-center" data-bs-toggle="modal" data-bs-target="#createIssueModal" type="button">Report an issue</button>
-        </div>`;
+        <section class="issues-empty-state" aria-labelledby="noIssuesTitle">
+          <div class="issues-empty-state__content">
+            <span class="issues-empty-state__icon" aria-hidden="true">
+              <i class="bi bi-clipboard2-plus"></i>
+            </span>
+            <h3 id="noIssuesTitle">No issues have been created yet</h3>
+            <p>Create your first report using the “Create a new issue” button at the top of this page.</p>
+          </div>
+        </section>`;
     } else if (!visibleIssues.length) {
       elements.gallery.innerHTML = `
-        <div class="ocsp-card p-4 text-center" role="status">
-          <i class="bi bi-search fs-2 text-primary mb-2" aria-hidden="true"></i>
-          <h3 class="h5">No matching issues</h3>
-          <p class="text-muted mb-3">Try changing your search or filters.</p>
-          <button class="ocsp-button ocsp-button--cancel align-self-center" data-action="clear-filters" type="button">Clear filters</button>
-        </div>`;
+        <section class="issues-empty-state issues-empty-state--filtered" aria-labelledby="noMatchingIssuesTitle">
+          <div class="issues-empty-state__content">
+            <span class="issues-empty-state__icon" aria-hidden="true">
+              <i class="bi bi-search"></i>
+            </span>
+            <h3 id="noMatchingIssuesTitle">No matching issues</h3>
+            <p>Try changing your search or filters.</p>
+            <button class="ocsp-button ocsp-button--cancel" data-action="clear-filters" type="button">Clear filters</button>
+          </div>
+        </section>`;
     } else {
       elements.gallery.innerHTML = `
         <div class="issues-list">
           ${visibleIssues.map(renderers.renderIssueCard).join("")}
         </div>`;
+    }
+
+    if (motion) {
+      const firstRender = elements.gallery.dataset.ocspMotionRendered !== "true";
+      motion.revealList(elements.gallery, ".issue-card, .issues-empty-state, .alert", {
+        stagger: firstRender,
+        interval: firstRender ? 36 : 0,
+        duration: firstRender ? 240 : 160,
+        distance: firstRender ? 12 : 6
+      });
+      elements.gallery.dataset.ocspMotionRendered = "true";
     }
 
     if (elements.resultSummary) {
@@ -311,6 +470,7 @@
         : `Showing ${visibleIssues.length} of ${totalIssues} issue${totalIssues === 1 ? "" : "s"}.`;
     }
     elements.gallery.setAttribute("aria-busy", "false");
+    hydrateVisibleIssueImages();
   }
 
   function getActiveFilterDefinitions() {
@@ -365,6 +525,13 @@
           </span>`
       )
       .join("");
+    if (motion) {
+      motion.revealList(elements.activeFilterChips, ":scope > .badge", {
+        interval: 35,
+        duration: 180,
+        distance: 6
+      });
+    }
   }
 
   function syncFilterControls() {
@@ -399,7 +566,7 @@
     renderFilteredContent();
 
     const warnings = asArray(state.dashboard.warnings);
-    if (warnings.length && elements.pageStatus.classList.contains("d-none")) {
+    if (warnings.length) {
       setPageStatus(
         `Some supporting issue data could not be loaded: ${warnings.join(", ")}.`,
         "warning"
@@ -433,8 +600,26 @@
 
     try {
       const issue = await service.getIssueDetails(issueId);
+      const currentUserId = Number(
+        state.dashboard.currentUser && state.dashboard.currentUser.userId
+      );
+      const editableImage = asArray(issue.attachments).find(
+        (attachment) => String(attachment.fileType || "").toLowerCase() === "image"
+          && Number(attachment.uploadedById) === currentUserId
+      ) || null;
+
+      // General issue fields have no citizen update endpoint. Expose the
+      // supported image URL update only when attachments loaded successfully.
+      issue.ui = {
+        ...(issue.ui || {}),
+        imageUpdateAvailable: !asArray(issue.warnings).includes("attachments"),
+        editableImageUrl: editableImage ? editableImage.fileUrl : ""
+      };
       state.openIssueId = Number(issueId);
       elements.detailHost.innerHTML = renderers.renderIssueDetailModal(issue);
+      if (motion) {
+        motion.revealWithin(elements.detailHost, { interval: 45, distance: 8 });
+      }
       const modalElement = byId(`citizenIssueDetails-${renderers.safeDomId(issueId)}`);
 
       modalElement.addEventListener("hidden.bs.modal", () => {
@@ -480,7 +665,8 @@
     status.textContent = "Adding comment...";
     form.dataset.submitting = "true";
     input.disabled = true;
-    submitButton.disabled = true;
+    if (motion) motion.setButtonBusy(submitButton, true, "Adding comment...");
+    else submitButton.disabled = true;
 
     try {
       const response = await service.addComment(issueId, content);
@@ -500,14 +686,25 @@
       // failure cannot invite the citizen to submit the same comment twice.
       thread.querySelector("[data-empty-comments]")?.remove();
       thread.insertAdjacentHTML("beforeend", renderers.renderComments([comment]));
+      if (motion) {
+        motion.revealList(thread, ".comment-card", {
+          stagger: false,
+          duration: 220,
+          distance: 7
+        });
+      }
       input.value = "";
       status.textContent = "Comment added.";
+      if (feedback) feedback.success("Comment added.", { announce: false });
     } catch (error) {
-      status.textContent = error.message || "The comment could not be added.";
+      const message = error.message || "The comment could not be added.";
+      status.textContent = message;
+      if (feedback) feedback.error(message, { announce: false });
     } finally {
       delete form.dataset.submitting;
       input.disabled = false;
-      submitButton.disabled = false;
+      if (motion) motion.setButtonBusy(submitButton, false);
+      else submitButton.disabled = false;
       input.focus();
     }
   }
@@ -530,7 +727,7 @@
     const issueId = Number(panel.dataset.issueId);
     const ratingId = Number(panel.dataset.ratingId) || null;
     const score = Number(panel.dataset.selectedRating);
-    const feedback = panel.querySelector("[data-rating-feedback]").value.trim();
+    const feedbackText = panel.querySelector("[data-rating-feedback]").value.trim();
     const status = panel.querySelector("[data-rating-status]");
 
     if (!Number.isInteger(score) || score < 1 || score > 5) {
@@ -538,18 +735,22 @@
       return;
     }
 
-    button.disabled = true;
+    if (motion) {
+      motion.setButtonBusy(button, true, ratingId ? "Updating feedback..." : "Saving feedback...");
+    } else {
+      button.disabled = true;
+    }
     status.textContent = ratingId ? "Updating feedback..." : "Saving feedback...";
 
     try {
-      const response = await service.saveRating(ratingId, issueId, score, feedback);
+      const response = await service.saveRating(ratingId, issueId, score, feedbackText);
       const user = state.dashboard.currentUser || {};
       const savedRating = {
         ratingId,
         issueId,
         userId: user.userId,
         score,
-        feedback: feedback || null,
+        feedback: feedbackText || null,
         ratedAt: new Date().toISOString(),
         ...(response && typeof response === "object" ? response : {})
       };
@@ -565,10 +766,17 @@
       }
       button.innerHTML = '<i class="bi bi-send-fill" aria-hidden="true"></i> Update Feedback';
       status.textContent = "Thank you. Your feedback has been saved.";
+      if (feedback) feedback.success("Your feedback has been saved.", { announce: false });
     } catch (error) {
-      status.textContent = error.message || "The rating could not be saved.";
+      const message = error.message || "The rating could not be saved.";
+      status.textContent = message;
+      if (feedback) feedback.error(message, { announce: false });
     } finally {
-      button.disabled = false;
+      if (motion) motion.setButtonBusy(button, false);
+      else button.disabled = false;
+      if (panel.dataset.ratingId) {
+        button.innerHTML = '<i class="bi bi-send-fill" aria-hidden="true"></i> Update Feedback';
+      }
     }
   }
 
@@ -590,11 +798,425 @@
     }
   }
 
+  function isSupportedImageUrl(value) {
+    try {
+      const parsed = new URL(value);
+      return ["http:", "https:"].includes(parsed.protocol);
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function isMatchingImageAttachment(attachment, imageUrl) {
+    return String(attachment && attachment.fileUrl || "").trim() === imageUrl
+      && String(attachment && attachment.fileType || "").toLowerCase() === "image";
+  }
+
+  function hasImageAttachment(attachments, imageUrl) {
+    return asArray(attachments).some(
+      (attachment) => isMatchingImageAttachment(attachment, imageUrl)
+    );
+  }
+
+  async function findExistingImageAttachment(issueId, imageUrl) {
+    try {
+      const attachments = await service.getIssueAttachments(issueId);
+      return attachments.find(
+        (attachment) => isMatchingImageAttachment(attachment, imageUrl)
+      ) || null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  async function attachImageToIssue(issueId, imageUrl, reconcileFirst) {
+    if (reconcileFirst) {
+      const existing = await findExistingImageAttachment(issueId, imageUrl);
+      if (existing) return existing;
+    }
+
+    try {
+      return await service.createAttachment({ issueId, fileUrl: imageUrl, fileType: "Image" });
+    } catch (error) {
+      // A timeout can happen after the server commits. Reconcile before showing
+      // Retry so a second click never creates a misleading duplicate request.
+      const existing = await findExistingImageAttachment(issueId, imageUrl);
+      if (existing) return existing;
+      throw error;
+    }
+  }
+
+  async function updateImageAttachmentForIssue(issueId, attachmentId, imageUrl) {
+    try {
+      return await service.updateAttachment(attachmentId, {
+        fileUrl: imageUrl,
+        fileType: "Image"
+      });
+    } catch (error) {
+      // A timed-out PUT can still have committed. Confirm the exact attachment
+      // before reporting a failure or inviting another submission.
+      const saved = await findExistingImageAttachment(issueId, imageUrl);
+      if (saved && Number(saved.attachmentId) === Number(attachmentId)) return saved;
+      throw error;
+    }
+  }
+
+  function mergeAttachmentIntoIssue(issueId, attachment, baseAttachments) {
+    const issue = getIssueById(issueId);
+    if (!issue || !attachment) return;
+    attachmentRevisions.set(issueId, (attachmentRevisions.get(issueId) || 0) + 1);
+    const sourceAttachments = baseAttachments === undefined
+      ? issue.attachments
+      : baseAttachments;
+    const attachments = asArray(sourceAttachments).filter(
+      (item) => Number(item.attachmentId) !== Number(attachment.attachmentId)
+        && String(item.fileUrl || "") !== String(attachment.fileUrl || "")
+    );
+    attachments.unshift(attachment);
+    refreshIssueCardImage(applyAttachmentsToIssue(issueId, attachments));
+  }
+
+  function pendingAttachmentStorageKey() {
+    const user = (state.dashboard && state.dashboard.currentUser)
+      || (session && session.getUser ? session.getUser() : null);
+    const userId = Number(user && user.userId);
+    return userId > 0 ? "ocsp:pending-image-attachments:" + userId : "";
+  }
+
+  function persistPendingAttachments() {
+    const key = pendingAttachmentStorageKey();
+    if (!key) return;
+    try {
+      const storage = global.sessionStorage;
+      if (!storage) return;
+      const records = Array.from(pendingAttachments.values()).map((pending) => ({
+        issueId: pending.issueId,
+        imageUrl: pending.imageUrl
+      }));
+      if (records.length) storage.setItem(key, JSON.stringify(records));
+      else storage.removeItem(key);
+    } catch (_error) {
+      // Storage can be disabled; the visible same-page retry remains available.
+    }
+  }
+
+  function renderAttachmentRetries(focusIssueId) {
+    const host = elements.attachmentRetryStatus;
+    host.textContent = "";
+    if (!pendingAttachments.size) {
+      host.className = "d-none";
+      host.removeAttribute("aria-busy");
+      return;
+    }
+
+    host.className = "alert alert-warning mb-4";
+    if (activeAttachmentRetryIssueId !== null) host.setAttribute("aria-busy", "true");
+    else host.removeAttribute("aria-busy");
+
+    const heading = global.document.createElement("strong");
+    heading.className = "d-block mb-2";
+    heading.textContent = "Some issue images still need to be attached.";
+    host.append(heading);
+
+    pendingAttachments.forEach((_pending, issueId) => {
+      const row = global.document.createElement("div");
+      row.className = "d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mt-2";
+      const message = global.document.createElement("span");
+      message.textContent = "Issue #" + issueId
+        + ": retry the saved image URL without creating another issue.";
+      const retryButton = global.document.createElement("button");
+      retryButton.type = "button";
+      retryButton.className = "ocsp-button ocsp-button--cancel flex-shrink-0";
+      retryButton.dataset.action = "retry-image-attachment";
+      retryButton.dataset.issueId = String(issueId);
+      retryButton.setAttribute("aria-label", "Retry image for issue #" + issueId);
+      retryButton.disabled = activeAttachmentRetryIssueId !== null
+        || activeIssueImageUpdates.has(issueId);
+      retryButton.innerHTML = activeAttachmentRetryIssueId === issueId
+        ? '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Retrying image...'
+        : '<i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>Retry image';
+      row.append(message, retryButton);
+      host.append(row);
+    });
+
+    if (focusIssueId) {
+      global.requestAnimationFrame(() => {
+        const selector = '[data-issue-id="' + renderers.safeDomId(focusIssueId) + '"]';
+        host.querySelector(selector)?.focus();
+      });
+    }
+  }
+
+  function restorePendingAttachments() {
+    const key = pendingAttachmentStorageKey();
+    if (!key) return;
+    try {
+      const storage = global.sessionStorage;
+      if (!storage) return;
+      const issueIds = new Set(
+        asArray(state.dashboard.issues).map((issue) => Number(issue.issueId))
+      );
+      const records = JSON.parse(storage.getItem(key) || "[]");
+      pendingAttachments.clear();
+      asArray(records).forEach((record) => {
+        const issueId = Number(record && record.issueId);
+        const imageUrl = String((record && record.imageUrl) || "").trim();
+        if (issueIds.has(issueId) && isSupportedImageUrl(imageUrl)) {
+          pendingAttachments.set(issueId, { issueId, imageUrl });
+        }
+      });
+      persistPendingAttachments();
+      renderAttachmentRetries();
+    } catch (_error) {
+      try {
+        global.sessionStorage.removeItem(key);
+      } catch (_storageError) {
+        // Ignore unavailable storage; the rest of the issue page remains usable.
+      }
+    }
+  }
+
+  function showAttachmentRetry(issueId, imageUrl, focusRetry) {
+    const numericIssueId = Number(issueId);
+    pendingAttachments.set(numericIssueId, { issueId: numericIssueId, imageUrl });
+    persistPendingAttachments();
+    renderAttachmentRetries(focusRetry ? numericIssueId : null);
+    if (feedback) {
+      feedback.warning(
+        "The issue was created, but its image could not be attached. Use Retry image without creating another issue.",
+        { announce: false, key: "attachment-retry-" + numericIssueId }
+      );
+    }
+  }
+
+  async function retryPendingAttachment(button) {
+    const issueId = Number(button.dataset.issueId);
+    const pending = pendingAttachments.get(issueId);
+    if (
+      !pending
+      || activeAttachmentRetryIssueId !== null
+      || activeIssueImageUpdates.has(issueId)
+    ) return;
+    activeAttachmentRetryIssueId = issueId;
+    renderAttachmentRetries();
+
+    try {
+      const attachment = await attachImageToIssue(
+        pending.issueId,
+        pending.imageUrl,
+        true
+      );
+      mergeAttachmentIntoIssue(pending.issueId, attachment);
+      if (pendingAttachments.get(issueId)?.imageUrl === pending.imageUrl) {
+        pendingAttachments.delete(issueId);
+      }
+      activeAttachmentRetryIssueId = null;
+      persistPendingAttachments();
+      renderAttachmentRetries();
+      setPageStatus("The image was attached successfully.", "success");
+      elements.pageStatus.focus();
+    } catch (_error) {
+      activeAttachmentRetryIssueId = null;
+      const currentPending = pendingAttachments.get(issueId);
+      const issue = getIssueById(issueId);
+      if (currentPending?.imageUrl === pending.imageUrl
+        && hasImageAttachment(issue && issue.attachments, pending.imageUrl)) {
+        pendingAttachments.delete(issueId);
+        persistPendingAttachments();
+        renderAttachmentRetries();
+        setPageStatus("The image was attached successfully.", "success");
+        elements.pageStatus.focus();
+      } else if (currentPending?.imageUrl === pending.imageUrl) {
+        showAttachmentRetry(pending.issueId, pending.imageUrl, true);
+      } else {
+        renderAttachmentRetries();
+      }
+    }
+  }
+
+  function canUpdateCitizenIssue(issue) {
+    return Boolean(issue && ["Open", "InProgress"].includes(issue.currentStatus));
+  }
+
+  function setImageUpdateStatus(form, message, tone) {
+    const status = form.querySelector("[data-image-update-status]");
+    if (!status) return;
+    const toneClass = {
+      danger: "text-danger",
+      warning: "text-warning",
+      info: "text-muted"
+    }[tone] || "";
+    status.className = `small mb-3 ${toneClass}`.trim();
+    status.textContent = message || "";
+  }
+
+  function setImageUpdatePanel(toggle, expanded) {
+    const panelId = toggle && toggle.getAttribute("aria-controls");
+    const panel = panelId ? byId(panelId) : null;
+    if (!panel) return;
+    panel.hidden = !expanded;
+    toggle.setAttribute("aria-expanded", String(expanded));
+    if (expanded) {
+      const form = panel.querySelector('form[data-action="update-issue-image"]');
+      if (form) setImageUpdateStatus(form, "", "info");
+      global.requestAnimationFrame(() => panel.querySelector('input[name="imageUrl"]')?.focus());
+    } else {
+      toggle.focus();
+    }
+  }
+
+  function closeCitizenIssueDetails(form) {
+    const modalElement = form.closest(".modal");
+    if (modalElement && global.bootstrap && global.bootstrap.Modal) {
+      global.bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+    }
+  }
+
+  async function updateIssueImage(form) {
+    if (form.dataset.submitting === "true" || !form.reportValidity()) return;
+
+    const issueId = Number(form.dataset.issueId);
+    const localIssue = getIssueById(issueId);
+    const input = form.querySelector('input[name="imageUrl"]');
+    const submitButton = form.querySelector('[type="submit"]');
+    const imageUrl = String(input.value || "").trim();
+
+    if (!canUpdateCitizenIssue(localIssue)) {
+      const message = "Only Open or In Progress issues can update their image.";
+      setImageUpdateStatus(form, message, "warning");
+      if (feedback) feedback.warning(message, { announce: false });
+      return;
+    }
+
+    // Do not let an older queued upload race with a new URL for this issue.
+    if (
+      activeAttachmentRetryIssueId === issueId
+      || activeIssueImageUpdates.has(issueId)
+    ) {
+      const message = "Wait for the current image retry to finish, then update the image.";
+      setImageUpdateStatus(form, message, "warning");
+      if (feedback) feedback.warning(message, { announce: false });
+      return;
+    }
+
+    if (!isSupportedImageUrl(imageUrl)) {
+      setImageUpdateStatus(
+        form,
+        "Enter an image URL beginning with http:// or https://.",
+        "danger"
+      );
+      input.setAttribute("aria-invalid", "true");
+      input.focus();
+      return;
+    }
+
+    input.removeAttribute("aria-invalid");
+    setImageUpdateStatus(form, "Checking the latest issue status...", "info");
+    form.dataset.submitting = "true";
+    form.setAttribute("aria-busy", "true");
+    const originalButtonHtml = submitButton.innerHTML;
+    const cancelButton = form.querySelector('[data-action="cancel-issue-image-update"]');
+    const updateToggle = form.closest(".modal")?.querySelector(
+      '[data-action="toggle-issue-image-update"]'
+    );
+    input.disabled = true;
+    if (cancelButton) cancelButton.disabled = true;
+    if (updateToggle) updateToggle.disabled = true;
+    activeIssueImageUpdates.add(issueId);
+    renderAttachmentRetries();
+    if (motion) motion.setButtonBusy(submitButton, true, "Saving image...");
+    else {
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Saving image...';
+    }
+
+    try {
+      // Re-fetch before writing because status may have changed while the
+      // details dialog was open. The backend does not enforce this UI rule.
+      const latest = await service.getIssueDetails(issueId);
+      if (!canUpdateCitizenIssue(latest)) {
+        localIssue.currentStatus = latest.currentStatus;
+        renderDashboard();
+        state.openIssueTrigger = elements.gallery.querySelector(
+          '[data-action="open-issue"][data-issue-id="'
+            + renderers.safeDomId(issueId)
+            + '"]'
+        );
+        const message = "This issue can no longer be updated because it is resolved.";
+        if (feedback) feedback.warning(message);
+        else setPageStatus(message, "warning");
+        closeCitizenIssueDetails(form);
+        return;
+      }
+
+      if (asArray(latest.warnings).includes("attachments")) {
+        throw new Error("The current image could not be verified. Please try again.");
+      }
+
+      const attachments = asArray(latest.attachments);
+      const currentUserId = Number(
+        state.dashboard.currentUser && state.dashboard.currentUser.userId
+      );
+      const exactImage = attachments.find(
+        (attachment) => isMatchingImageAttachment(attachment, imageUrl)
+      ) || null;
+      const ownedImage = attachments.find(
+        (attachment) => String(attachment.fileType || "").toLowerCase() === "image"
+          && Number(attachment.uploadedById) === currentUserId
+      ) || null;
+      let savedAttachment;
+      let successMessage;
+
+      if (exactImage) {
+        savedAttachment = exactImage;
+        successMessage = "The image URL is already up to date.";
+      } else if (ownedImage) {
+        savedAttachment = await updateImageAttachmentForIssue(
+          issueId,
+          ownedImage.attachmentId,
+          imageUrl
+        );
+        successMessage = "The issue image was updated successfully.";
+      } else {
+        savedAttachment = await attachImageToIssue(issueId, imageUrl, true);
+        successMessage = "The issue image was added successfully.";
+      }
+
+      mergeAttachmentIntoIssue(issueId, savedAttachment, attachments);
+      // A deliberate update supersedes any older create-image retry for this issue.
+      pendingAttachments.delete(issueId);
+      persistPendingAttachments();
+      renderAttachmentRetries();
+      setImageUpdateStatus(form, "", "info");
+      if (feedback) feedback.success(successMessage);
+      else setPageStatus(successMessage, "success");
+      closeCitizenIssueDetails(form);
+    } catch (error) {
+      const message = error.message || "The issue image could not be updated.";
+      setImageUpdateStatus(form, message, "danger");
+      if (feedback) feedback.error(message, { announce: false });
+    } finally {
+      activeIssueImageUpdates.delete(issueId);
+      renderAttachmentRetries();
+      delete form.dataset.submitting;
+      form.removeAttribute("aria-busy");
+      input.disabled = false;
+      if (cancelButton) cancelButton.disabled = false;
+      if (updateToggle) updateToggle.disabled = false;
+      if (motion) motion.setButtonBusy(submitButton, false);
+      else {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonHtml;
+      }
+    }
+  }
+
   async function createIssue(form) {
     const submitButton = form.querySelector('[type="submit"]');
     const formData = new FormData(form);
     const latitude = Number.parseFloat(formData.get("issueLatitude"));
     const longitude = Number.parseFloat(formData.get("issueLongitude"));
+    const imageUrl = String(formData.get("issueImageUrl") || "").trim();
     const payload = {
       title: String(formData.get("issueTitle") || "").trim(),
       description: String(formData.get("issueDescription") || "").trim(),
@@ -606,13 +1228,37 @@
       regionId: Number(formData.get("issueRegion"))
     };
 
+    if (imageUrl && !isSupportedImageUrl(imageUrl)) {
+      setCreateIssueStatus("Enter an image URL beginning with http:// or https://.", "danger");
+      elements.issueImageUrl.setAttribute("aria-invalid", "true");
+      elements.issueImageUrl.focus();
+      return;
+    }
+    elements.issueImageUrl.removeAttribute("aria-invalid");
+
     setCreateIssueStatus("", "info");
-    submitButton.disabled = true;
     form.setAttribute("aria-busy", "true");
-    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Submitting issue...';
+    if (motion) motion.setButtonBusy(submitButton, true, "Submitting issue...");
+    else {
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Submitting issue...';
+    }
 
     try {
       const created = await service.createIssue(payload);
+      let createdAttachment = null;
+      let attachmentError = null;
+
+      // The backend stores attachments separately, so create the issue first
+      // and then associate the optional image URL with its returned issue ID.
+      if (imageUrl) {
+        try {
+          createdAttachment = await attachImageToIssue(created.issueId, imageUrl, false);
+        } catch (error) {
+          attachmentError = error;
+        }
+      }
+
       const category = asArray(state.dashboard.categories).find(
         (item) => Number(item.categoryId) === payload.categoryId
       );
@@ -631,7 +1277,21 @@
         governorate: created.governorate || (region && region.governorate) || "",
         assignedDepartmentName: created.assignedDepartmentName
           || (category && category.departmentName)
-          || null
+          || null,
+        attachments: createdAttachment
+          ? [createdAttachment]
+          : asArray(created.attachments),
+        ui: {
+          ...(created.ui || {}),
+          attachmentsLoaded: !attachmentError,
+          ...(createdAttachment
+            ? {
+                imageUrl: createdAttachment.fileUrl,
+                imageAlt: payload.title,
+                previewLabel: "Issue photo"
+              }
+            : {})
+        }
       }, ...asArray(state.dashboard.issues)];
 
       form.reset();
@@ -639,17 +1299,27 @@
       elements.issueGovernorate.value = "";
       elements.issueLatitude.value = "";
       elements.issueLongitude.value = "";
+      elements.issueImageUrl.removeAttribute("aria-invalid");
       renderDashboard();
       setCreateIssueStatus("", "info");
       closeCreateModal();
-      setPageStatus("The issue was added successfully.", "success");
+      if (attachmentError) {
+        showAttachmentRetry(created.issueId, imageUrl);
+      } else if (createdAttachment) {
+        setPageStatus("The issue and its image were added successfully.", "success");
+      } else {
+        setPageStatus("The issue was added successfully.", "success");
+      }
     } catch (error) {
       setCreateIssueStatus(error.message || "The issue could not be created.", "danger");
       elements.createIssueStatus.focus();
     } finally {
       form.removeAttribute("aria-busy");
-      submitButton.disabled = false;
-      submitButton.innerHTML = '<i class="bi bi-send-fill me-2" aria-hidden="true"></i>Submit Issue';
+      if (motion) motion.setButtonBusy(submitButton, false);
+      else {
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="bi bi-send-fill me-2" aria-hidden="true"></i>Submit Issue';
+      }
     }
   }
 
@@ -679,11 +1349,14 @@
         elements.issueLongitude.value = position.coords.longitude.toFixed(6);
         elements.locationStatus.className = "location-capture__status is-success";
         elements.locationStatus.textContent = "Coordinates captured. Add a nearby street or landmark before submitting.";
+        if (feedback) feedback.success("Location coordinates captured.", { announce: false });
         elements.locationButton.disabled = false;
       },
       (error) => {
+        const message = error.message || "Location permission was not granted.";
         elements.locationStatus.className = "location-capture__status is-error";
-        elements.locationStatus.textContent = error.message || "Location permission was not granted.";
+        elements.locationStatus.textContent = message;
+        if (feedback) feedback.error(message, { announce: false });
         elements.locationButton.disabled = false;
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
@@ -748,28 +1421,108 @@
     });
 
     elements.detailHost.addEventListener("submit", (event) => {
-      const form = event.target.closest('form[data-action="add-comment"]');
-      if (form) {
+      const imageForm = event.target.closest('form[data-action="update-issue-image"]');
+      const commentForm = event.target.closest('form[data-action="add-comment"]');
+      if (imageForm) {
         event.preventDefault();
-        addComment(form);
+        updateIssueImage(imageForm);
+      } else if (commentForm) {
+        event.preventDefault();
+        addComment(commentForm);
       }
     });
 
     elements.detailHost.addEventListener("click", (event) => {
+      const updateToggle = event.target.closest('[data-action="toggle-issue-image-update"]');
+      const updateCancel = event.target.closest('[data-action="cancel-issue-image-update"]');
       const ratingButton = event.target.closest('[data-action="select-rating"]');
       const submitButton = event.target.closest('[data-action="submit-rating"]');
-      if (ratingButton) {
+      if (updateToggle) {
+        const expanded = updateToggle.getAttribute("aria-expanded") !== "true";
+        setImageUpdatePanel(updateToggle, expanded);
+      } else if (updateCancel) {
+        const form = updateCancel.closest('form[data-action="update-issue-image"]');
+        const modal = updateCancel.closest(".modal");
+        const toggle = modal && modal.querySelector(
+          '[data-action="toggle-issue-image-update"]'
+        );
+        if (form) {
+          form.reset();
+          form.querySelector('input[name="imageUrl"]')?.removeAttribute("aria-invalid");
+          setImageUpdateStatus(form, "", "info");
+        }
+        if (toggle) setImageUpdatePanel(toggle, false);
+      } else if (ratingButton) {
         selectRating(ratingButton);
       } else if (submitButton) {
         submitRating(submitButton);
       }
     });
+
+    elements.detailHost.addEventListener("input", (event) => {
+      const input = event.target.closest('input[name="imageUrl"]');
+      const form = input && input.closest('form[data-action="update-issue-image"]');
+      if (!input || !form) return;
+      input.removeAttribute("aria-invalid");
+      setImageUpdateStatus(form, "", "info");
+    });
+
+    elements.attachmentRetryStatus.addEventListener("click", (event) => {
+      const retryButton = event.target.closest('[data-action="retry-image-attachment"]');
+      if (retryButton) retryPendingAttachment(retryButton);
+    });
+
+    // Broken or non-image URLs return to the existing placeholder instead of
+    // leaving a browser error icon on the issue card.
+    elements.gallery.addEventListener("error", (event) => {
+      const image = event.target.closest(".issue-card-media__image");
+      const card = image && image.closest("[data-issue-id]");
+      const media = image && image.closest(".issue-card-media");
+      const issue = card && getIssueById(card.dataset.issueId);
+      if (!image || !media || !issue) return;
+      issue.ui = { ...(issue.ui || {}) };
+      delete issue.ui.imageUrl;
+      media.outerHTML = renderers.renderIssueImage(issue);
+    }, true);
   }
 
   function bindFormEvents() {
     const createModal = byId("createIssueModal");
     if (createModal) {
+      let restoreDeepLinkFocus = false;
       createModal.addEventListener("show.bs.modal", () => setCreateIssueStatus("", "info"));
+      createModal.addEventListener("hidden.bs.modal", () => {
+        if (!restoreDeepLinkFocus) return;
+        restoreDeepLinkFocus = false;
+        byId("createIssueHeroTrigger")?.focus();
+      });
+
+      const clearCreateModalHash = () => {
+        if (global.location.hash !== "#createIssueModal") return;
+        global.history.replaceState(
+          global.history.state,
+          "",
+          global.location.pathname + global.location.search
+        );
+      };
+      createModal.addEventListener("click", (event) => {
+        if (!event.target.closest('[data-bs-dismiss="modal"]')) return;
+        clearCreateModalHash();
+        if (!global.bootstrap || !global.bootstrap.Modal) {
+          global.setTimeout(() => byId("createIssueHeroTrigger")?.focus(), 0);
+        }
+      });
+
+      // Home links arrive with #createIssueModal. Convert that CSS target into
+      // a real Bootstrap modal so its X and Cancel controls can dismiss it.
+      if (
+        global.location.hash === "#createIssueModal" &&
+        global.bootstrap && global.bootstrap.Modal
+      ) {
+        restoreDeepLinkFocus = true;
+        clearCreateModalHash();
+        global.bootstrap.Modal.getOrCreateInstance(createModal).show();
+      }
     }
 
     elements.createIssueForm.addEventListener("submit", (event) => {
@@ -779,6 +1532,9 @@
       }
     });
     elements.issueRegion.addEventListener("change", updateGovernorate);
+    elements.issueImageUrl.addEventListener("input", () => {
+      elements.issueImageUrl.removeAttribute("aria-invalid");
+    });
     elements.locationButton.addEventListener("click", captureCurrentLocation);
   }
 
@@ -804,25 +1560,38 @@
   }
 
   async function loadDashboard() {
+    const flash = session && session.consumeFlash ? session.consumeFlash() : null;
     setPageStatus("", "info");
+    if (flash && flash.message) setPageStatus(flash.message, flash.tone);
     elements.gallery.setAttribute("aria-busy", "true");
-    elements.gallery.innerHTML = `
-      <div class="ocsp-card p-4 text-center" role="status">
-        <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
-        <span>Loading issues...</span>
-      </div>`;
+    if (motion) {
+      motion.renderSkeletons(elements.gallery, {
+        count: 4,
+        variant: "issue",
+        label: "Loading issues..."
+      });
+    } else {
+      elements.gallery.innerHTML = `
+        <div class="ocsp-card p-4 text-center" role="status">
+          <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
+          <span>Loading issues...</span>
+        </div>`;
+    }
 
     try {
       state.dashboard = await service.getDashboardData();
+      restorePendingAttachments();
       renderDashboard();
       await openLinkedIssueFromUrl();
     } catch (error) {
+      const message = error.message || "The issue data could not be loaded.";
       elements.gallery.innerHTML = `
         <div class="alert alert-danger" role="alert">
-          <p>${renderers.escapeHtml(error.message || "The issue data could not be loaded.")}</p>
+          <p>${renderers.escapeHtml(message)}</p>
           <button class="ocsp-button ocsp-button--submit" data-action="retry-issues" type="button">Try again</button>
         </div>`;
       elements.gallery.setAttribute("aria-busy", "false");
+      if (feedback) feedback.error(message, { announce: false });
     }
   }
 

@@ -5,6 +5,8 @@
   const auth = ocsp.authService;
   const session = ocsp.sessionService;
   const shell = ocsp.siteSession;
+  const motion = ocsp.animations;
+  const feedback = ocsp.feedback;
   let elements = {};
   let submitting = false;
 
@@ -30,15 +32,23 @@
       : "info";
     elements.status.className = `alert alert-${safeTone} mb-3`;
     elements.status.textContent = message;
+    if (motion) motion.revealStatus(elements.status);
+    if (feedback && ["success", "danger", "warning"].includes(safeTone)) {
+      feedback.show(message, { tone: safeTone, announce: false });
+    }
   }
 
   function setSubmitting(isSubmitting) {
     submitting = isSubmitting;
-    elements.submit.disabled = isSubmitting;
     elements.form.setAttribute("aria-busy", String(isSubmitting));
-    elements.submit.innerHTML = isSubmitting
-      ? '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Signing in...'
-      : '<i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Sign In';
+    if (motion) {
+      motion.setButtonBusy(elements.submit, isSubmitting, "Signing in...");
+    } else {
+      elements.submit.disabled = isSubmitting;
+      elements.submit.innerHTML = isSubmitting
+        ? '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Signing in...'
+        : '<i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Sign In';
+    }
   }
 
   async function submitLogin(event) {
@@ -56,6 +66,7 @@
       });
       const requestedTarget = new URLSearchParams(global.location.search).get("returnTo");
       const returnTo = session.safeReturnTo(requestedTarget, activeSession.user.role);
+      session.setFlash({ message: "Signed in successfully.", tone: "success" });
       global.location.replace(returnTo || session.roleHome(activeSession.user.role));
     } catch (error) {
       setStatus(error.message || "Sign in could not be completed.", "danger");

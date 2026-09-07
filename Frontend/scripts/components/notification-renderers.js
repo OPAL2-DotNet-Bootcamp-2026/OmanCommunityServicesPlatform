@@ -3,6 +3,9 @@
 
   const ocsp = global.OCSP || {};
   const config = ocsp.config || {};
+  const parseApiDate = typeof config.parseApiDate === "function"
+    ? config.parseApiDate
+    : (value) => new Date(value);
   const session = ocsp.sessionService;
 
   function escapeHtml(value) {
@@ -36,7 +39,7 @@
   }
 
   function formatRelativeTime(value) {
-    const date = new Date(value);
+    const date = parseApiDate(value);
     if (Number.isNaN(date.getTime())) {
       return "Time unavailable";
     }
@@ -133,9 +136,9 @@
     const nowKey = dateKey(new Date());
     const groups = { Today: [], Earlier: [] };
     [...notifications]
-      .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+      .sort((left, right) => parseApiDate(right.createdAt).getTime() - parseApiDate(left.createdAt).getTime())
       .forEach((notification) => {
-        const key = dateKey(new Date(notification.createdAt)) === nowKey ? "Today" : "Earlier";
+        const key = dateKey(parseApiDate(notification.createdAt)) === nowKey ? "Today" : "Earlier";
         groups[key].push(notification);
       });
     return groups;

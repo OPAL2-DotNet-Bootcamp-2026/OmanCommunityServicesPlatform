@@ -134,6 +134,7 @@
 
       event.preventDefault();
       sessionService.clear("logout");
+      sessionService.setFlash({ message: "Signed out successfully.", tone: "success" });
       global.location.assign(sessionService.loginUrl(""));
     });
   }
