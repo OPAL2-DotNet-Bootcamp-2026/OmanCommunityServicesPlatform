@@ -15,7 +15,7 @@
     configScript ? configScript.src : `${global.location.origin}/scripts/config.js`
   );
   const frontendPageUrl = (path) => new URL(path, frontendBaseUrl).href;
-  const apiBaseUrl = String(runtime.apiBaseUrl || "http://localhost:5037")
+  const apiBaseUrl = String(runtime.apiBaseUrl || "http://localhost:7130") // port: 7130 for https
     .replace(/\/+$/, "");
 
   // SQL Server DateTime values are UTC, but ASP.NET may serialize them without
