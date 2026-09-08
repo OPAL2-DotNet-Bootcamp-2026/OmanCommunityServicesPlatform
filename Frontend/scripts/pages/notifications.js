@@ -6,6 +6,8 @@
   const renderers = ocsp.notificationRenderers;
   const shell = ocsp.siteSession;
   const session = ocsp.sessionService;
+  const motion = ocsp.animations;
+  const feedback = ocsp.feedback;
   const state = {
     notifications: [],
     pendingNotificationIds: new Set()
@@ -35,6 +37,10 @@
       : "info";
     elements.pageStatus.className = `alert alert-${safeTone} mb-4`;
     elements.pageStatus.textContent = message;
+    if (motion) motion.revealStatus(elements.pageStatus);
+    if (feedback && ["success", "danger", "warning"].includes(safeTone)) {
+      feedback.show(message, { tone: safeTone, announce: false });
+    }
   }
 
   function updateUnreadSummary() {
@@ -45,9 +51,24 @@
       "aria-label",
       `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
     );
-    elements.heroValue.textContent = unreadCount === 0
-      ? "No unread notifications"
-      : `${unreadCount} notification${unreadCount === 1 ? "" : "s"}`;
+    if (motion) motion.pulse(elements.navCount, unreadCount);
+    if (unreadCount === 0) {
+      if (motion) {
+        // Retargeting to zero also cancels any count animation that is still running.
+        motion.countTo(elements.heroValue, 0, {
+          duration: 0,
+          format: () => "No unread notifications"
+        });
+      } else {
+        elements.heroValue.textContent = "No unread notifications";
+      }
+    } else if (motion) {
+      motion.countTo(elements.heroValue, unreadCount, {
+        format: (value) => `${Math.round(value)} notification${Math.round(value) === 1 ? "" : "s"}`
+      });
+    } else {
+      elements.heroValue.textContent = `${unreadCount} notification${unreadCount === 1 ? "" : "s"}`;
+    }
     elements.unreadSummary.textContent = unreadCount === 0
       ? "You have no unread notifications."
       : `You have ${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}.`;
@@ -56,31 +77,53 @@
   function renderLoading() {
     elements.footer.hidden = true;
     elements.list.setAttribute("aria-busy", "true");
-    elements.list.innerHTML = `
-      <div class="ocsp-card p-4 text-center" role="status">
-        <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
-        <span class="d-block">Loading notifications...</span>
-      </div>`;
+    if (motion) {
+      motion.renderSkeletons(elements.list, {
+        count: 3,
+        variant: "notification",
+        label: "Loading notifications..."
+      });
+    } else {
+      elements.list.innerHTML = `
+        <div class="ocsp-card p-4 text-center" role="status">
+          <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
+          <span class="d-block">Loading notifications...</span>
+        </div>`;
+    }
   }
 
   function renderError(error) {
+    const message = error.message || "The notifications could not be loaded.";
     elements.footer.hidden = true;
+    if (feedback) feedback.error(message, { announce: false });
     elements.list.innerHTML = `
       <div class="alert alert-danger" role="alert">
-        <p class="mb-3">${renderers.escapeHtml(error.message || "The notifications could not be loaded.")}</p>
+        <p class="mb-3">${renderers.escapeHtml(message)}</p>
         <button class="ocsp-button ocsp-button--submit" data-action="retry-notifications" type="button">Try again</button>
       </div>`;
   }
 
   function renderList() {
     elements.list.innerHTML = renderers.renderNotificationList(state.notifications);
+    if (motion) {
+      const firstRender = elements.list.dataset.ocspMotionRendered !== "true";
+      motion.revealList(elements.list, ".notification-card", {
+        stagger: firstRender,
+        interval: firstRender ? 32 : 0,
+        duration: firstRender ? 220 : 160,
+        distance: firstRender ? 10 : 5
+      });
+      elements.list.dataset.ocspMotionRendered = "true";
+    }
     elements.list.setAttribute("aria-busy", "false");
     elements.footer.hidden = state.notifications.length === 0;
     updateUnreadSummary();
   }
 
   async function loadNotifications() {
+    const flash = session && session.consumeFlash ? session.consumeFlash() : null;
     setPageStatus("", "info");
+    if (flash && flash.message) setPageStatus(flash.message, flash.tone);
     renderLoading();
     try {
       state.notifications = await service.getNotifications();
@@ -119,6 +162,9 @@
       trigger.classList.remove("is-unread");
       trigger.querySelector(".unread-dot")?.remove();
       updateUnreadSummary();
+      if (!targetHref && feedback) {
+        feedback.success("Notification marked as read.");
+      }
     } catch (error) {
       if ([401, 403].includes(Number(error && error.status))) {
         setPageStatus(error.message || "Your session could not be verified.", "danger");

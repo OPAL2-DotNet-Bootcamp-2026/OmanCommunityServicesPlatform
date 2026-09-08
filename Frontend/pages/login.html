@@ -10,7 +10,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/custome.css">
+    <link rel="stylesheet" href="../styles/custome.css?v=20260826-27">
 </head>
 
 <body class="site-page" data-auth-page="guest">
@@ -18,7 +18,7 @@
 
     <nav class="site-nav" aria-label="Primary navigation">
         <div class="container-xxl px-3 px-md-4 site-nav__inner">
-            <a class="site-brand" href="home.html" aria-label="OCSP home">
+            <a class="site-brand" href="../index.html" aria-label="OCSP home">
                 <span class="site-brand__mark" aria-hidden="true"><i class="bi bi-buildings"></i></span>
                 <span>
                     <span class="site-brand__name">OCSP</span>
@@ -33,7 +33,7 @@
             </label>
 
             <div class="nav-menu" id="loginNavMenu">
-                <a class="nav-link-ocsp" href="home.html">Home</a>
+                <a class="nav-link-ocsp" href="../index.html">Home</a>
                 <a class="nav-link-ocsp" data-nav-roles="Citizen" href="my-issues.html">My Issues</a>
                 <a class="nav-link-ocsp" data-nav-roles="Staff Admin" href="dashboard.html">Dashboard</a>
                 <a class="nav-link-ocsp" data-nav-auth="authenticated" href="notifications.html">
@@ -119,21 +119,25 @@
         </div>
     </main>
 
-    <footer class="site-footer">
+    <div class="site-footer-scene">
+      <footer class="site-footer">
         <div class="container-xxl px-3 px-md-4 site-footer__inner">
+          <div class="site-footer__brand">
             <p class="site-footer__title">Oman Community Services Platform</p>
             <p class="site-footer__copy">Report and track community issues across Oman.</p>
-            <hr class="my-3 border-secondary-subtle">
-            <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
+          </div>
+          <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
         </div>
-    </footer>
+      </footer>
+    </div>
 
-    <script src="../scripts/config.js" defer></script>
-    <script src="../scripts/services/api-client.js" defer></script>
-    <script src="../scripts/services/session-service.js" defer></script>
-    <script src="../scripts/services/auth-service.js" defer></script>
-    <script src="../scripts/components/site-session.js" defer></script>
-    <script src="../scripts/pages/login.js" defer></script>
+    <script src="../scripts/config.js?v=20260826-27" defer></script>
+    <script src="../scripts/services/api-client.js?v=20260826-27" defer></script>
+    <script src="../scripts/services/session-service.js?v=20260826-27" defer></script>
+    <script src="../scripts/services/auth-service.js?v=20260826-27" defer></script>
+    <script src="../scripts/components/site-session.js?v=20260826-27" defer></script>
+    <script src="../scripts/animations.js?v=20260826-27" defer></script>
+    <script src="../scripts/pages/login.js?v=20260826-27" defer></script>
 </body>
 
 </html>

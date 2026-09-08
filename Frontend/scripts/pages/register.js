@@ -5,6 +5,8 @@
   const auth = ocsp.authService;
   const session = ocsp.sessionService;
   const shell = ocsp.siteSession;
+  const motion = ocsp.animations;
+  const feedback = ocsp.feedback;
   let elements = {};
   let submitting = false;
 
@@ -32,15 +34,23 @@
       : "info";
     elements.status.className = `alert alert-${safeTone} mb-3`;
     elements.status.textContent = message;
+    if (motion) motion.revealStatus(elements.status);
+    if (feedback && ["success", "danger", "warning"].includes(safeTone)) {
+      feedback.show(message, { tone: safeTone, announce: false });
+    }
   }
 
   function setSubmitting(isSubmitting) {
     submitting = isSubmitting;
-    elements.submit.disabled = isSubmitting;
     elements.form.setAttribute("aria-busy", String(isSubmitting));
-    elements.submit.innerHTML = isSubmitting
-      ? '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Creating account...'
-      : '<i class="bi bi-person-check" aria-hidden="true"></i>Register';
+    if (motion) {
+      motion.setButtonBusy(elements.submit, isSubmitting, "Creating account...");
+    } else {
+      elements.submit.disabled = isSubmitting;
+      elements.submit.innerHTML = isSubmitting
+        ? '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Creating account...'
+        : '<i class="bi bi-person-check" aria-hidden="true"></i>Register';
+    }
   }
 
   async function submitRegistration(event) {
