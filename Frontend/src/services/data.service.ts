@@ -5,7 +5,7 @@
  * the essential request, and the lookups around it are allowed to fail
  * independently. Failed section names come back in warnings[].
  */
-import type { ApiClient } from "../core/api-client";
+import { ApiError, type ApiClient } from "../core/api-client";
 import { config } from "../core/config";
 import { asArray, rejectedSections, settledValue } from "../core/settled";
 import { parseApiDate } from "../date";
@@ -250,6 +250,18 @@ export class DataService {
     const userId = Number(this.currentUser()?.userId);
     const ownRating = ratings.find((rating) => Number(rating.userId) === userId) ?? null;
 
+    // A 403 on the history is a permission answer, not an outage: an API that
+    // predates citizen-visible history simply refuses it. Warning about that
+    // tells the reader something is broken when nothing is. Anything else -
+    // a timeout, a 500 - is a real failure and still warns.
+    const historyResult = results[3];
+    const historyForbidden =
+      historyResult.status === "rejected" &&
+      historyResult.reason instanceof ApiError &&
+      historyResult.reason.status === 403;
+
+    const optionalSections = historyForbidden ? results.slice(0, 3) : results;
+
     return {
       ...this.normalizeIssue(issue, [], []),
       comments: asArray<Comment>(settledValue(results[0], [])),
@@ -259,7 +271,7 @@ export class DataService {
           new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime()
       ),
       rating: ownRating,
-      warnings: rejectedSections(results, [
+      warnings: rejectedSections(optionalSections, [
         "comments",
         "attachments",
         "ratings",

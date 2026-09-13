@@ -869,6 +869,52 @@ export class MyIssuesPage {
     }
   }
 
+  /**
+   * Clears the "New update" ribbon once the reader has actually opened the
+   * issue, and marks the notification behind it read so it does not come back
+   * on the next load.
+   *
+   * decorateIssuesWithFreshUpdates stored freshUpdateNotificationId for exactly
+   * this, but nothing consumed it - so the ribbon sat on the card until the
+   * notification happened to be read elsewhere, or the day rolled over.
+   *
+   * Best-effort: opening the issue is the point, and a failed mark-read must
+   * not interfere with that. The ribbon still clears locally either way, since
+   * the reader has plainly seen the update.
+   */
+  private async clearFreshUpdate(issueId: number): Promise<void> {
+    const issue = this.findIssue(issueId);
+    if (!issue?.ui?.hasFreshUpdate) {
+      return;
+    }
+
+    const notificationId = Number(issue.ui.freshUpdateNotificationId);
+
+    issue.ui = { ...issue.ui, hasFreshUpdate: false };
+    const card = this.elements.gallery.querySelector<HTMLElement>(
+      `[data-issue-id="${safeDomId(issueId)}"]`
+    );
+    card?.classList.remove("is-updated");
+    card?.querySelector(".fresh-update")?.remove();
+
+    if (!Number.isInteger(notificationId) || notificationId < 1) {
+      return;
+    }
+
+    try {
+      await this.data.markNotificationAsRead(notificationId);
+      const notification = this.dashboard?.notifications.find(
+        (item) => Number(item.notificationId) === notificationId
+      );
+      if (notification) {
+        notification.isRead = true;
+      }
+    } catch {
+      // The ribbon is already gone for this session; it will reappear on the
+      // next load, which is the honest outcome of a failed write.
+    }
+  }
+
   private async showIssueDetails(issueId: number, trigger: HTMLElement | null): Promise<void> {
     this.setPageStatus("");
     this.openIssueTrigger = trigger ?? (document.activeElement as HTMLElement | null);
@@ -927,6 +973,7 @@ export class MyIssuesPage {
       }
       window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
       this.consumeIssueLink();
+      void this.clearFreshUpdate(issueId);
     } catch (error) {
       this.openIssueTrigger = null;
       this.elements.detailHost.replaceChildren();
