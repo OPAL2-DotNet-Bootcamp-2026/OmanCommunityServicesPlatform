@@ -12,15 +12,17 @@ namespace OmanCommunityServicesPlatform.Services
         private CategoryRepo categoryRepo;
         private RegionRepo regionRepo;
         private UserRepo userRepo;
+        private StatusUpdateRepo statusUpdateRepo;
         private EmailService emailService;
         private NotificationService notificationService;
-        
-        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, RegionRepo _regionRepo, UserRepo _userRepo, EmailService _emailService, NotificationService _notificationService)
+
+        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, RegionRepo _regionRepo, UserRepo _userRepo, StatusUpdateRepo _statusUpdateRepo, EmailService _emailService, NotificationService _notificationService)
         {
             issueRepo = _issueRepo;
             categoryRepo = _categoryRepo;    
             regionRepo = _regionRepo;
             userRepo = _userRepo;
+            statusUpdateRepo = _statusUpdateRepo;
             emailService = _emailService;
             notificationService = _notificationService;
         }
@@ -56,6 +58,23 @@ namespace OmanCommunityServicesPlatform.Services
 
             issueRepo.Add(issue);
 
+            // Record the creation itself, so the activity timeline starts where
+            // the issue starts instead of at the first status CHANGE. Without
+            // this row an issue's Open period has no history at all.
+            // previousStatus is a required, non-nullable enum, so a creation
+            // record is Open -> Open; that is what identifies it as the
+            // submission rather than a transition.
+            StatusUpdate submission = new StatusUpdate
+            {
+                issueId = issue.issueId,
+                previousStatus = IssueStatus.Open,
+                newStatus = IssueStatus.Open,
+                notes = "Issue reported.",
+                updatedAt = issue.reportedDate,
+                updatedById = reportedById
+            };
+            statusUpdateRepo.Add(submission);
+
             User? reporter = userRepo.GetById(reportedById);
 
             notificationService.CreateNotification(new CreateNotificationDTO
@@ -88,7 +107,11 @@ namespace OmanCommunityServicesPlatform.Services
             response.reportedById = issue.reportedById;
             response.categoryName = category.categoryName;
             response.regionName = region.regionName;
-            response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+            // Not issue.assignedDepartment - that navigation property is never
+            // loaded on an entity constructed moments ago, so it was always
+            // null here and the create response did not match the list
+            // response. CategoryRepo.GetCategoryById includes the department.
+            response.assignedDepartmentName = category.department?.departmentName;
 
             return response;
         }
