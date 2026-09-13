@@ -26,6 +26,7 @@ import type { IssueDetail } from "../models";
 import type { CitizenDashboardData, DataService } from "../services/data.service";
 import { formString } from "../text";
 import { mountMapsIn, setMapPin, type MapPickDetail } from "../components/map";
+import { reverseGeocode } from "../services/geocoding.service";
 
 type FilterKey = "search" | "status" | "priority" | "department" | "category" | "sort";
 type Filters = Record<FilterKey, string>;
@@ -53,6 +54,7 @@ interface MyIssuesElements {
   createIssueStatus: HTMLElement;
   issueCategory: HTMLSelectElement;
   issueRegion: HTMLSelectElement;
+  issueLocation: HTMLInputElement;
   issueGovernorate: HTMLInputElement;
   issueLatitude: HTMLInputElement;
   issueLongitude: HTMLInputElement;
@@ -87,6 +89,12 @@ export class MyIssuesPage {
   /** The issue whose modal is open, so a new attachment can be added to it. */
   private openIssue: IssueDetail | null = null;
   private searchTimer = 0;
+  /**
+   * The last address this page wrote into the location field. Used to tell a
+   * value we filled in from one the citizen typed, so moving the pin never
+   * overwrites their own words.
+   */
+  private lastGeocodedLocation = "";
 
   constructor(private readonly data: DataService) {}
 
@@ -108,6 +116,7 @@ export class MyIssuesPage {
       createIssueStatus: byId<HTMLElement>("createIssueStatus"),
       issueCategory: byId<HTMLSelectElement>("issueCategory"),
       issueRegion: byId<HTMLSelectElement>("issueRegion"),
+      issueLocation: byId<HTMLInputElement>("issueLocation"),
       issueGovernorate: byId<HTMLInputElement>("issueGovernorate"),
       issueLatitude: byId<HTMLInputElement>("issueLatitude"),
       issueLongitude: byId<HTMLInputElement>("issueLongitude"),
@@ -790,6 +799,7 @@ export class MyIssuesPage {
       this.elements.locationStatus.className = "location-capture__status";
       this.elements.locationStatus.textContent =
         "Use your device location, or enter the location manually.";
+      this.lastGeocodedLocation = "";
 
       this.renderDashboard();
       this.setCreateIssueStatus("");
@@ -821,16 +831,56 @@ export class MyIssuesPage {
 
     container.addEventListener("ocsp:map-pick", (event) => {
       const detail = (event as CustomEvent<MapPickDetail>).detail;
-      this.elements.issueLatitude.value = detail.latitude.toFixed(6);
-      this.elements.issueLongitude.value = detail.longitude.toFixed(6);
-      this.elements.locationStatus.className = "location-capture__status is-success";
-      this.elements.locationStatus.textContent =
-        "Location pinned. Add a nearby street or landmark below before submitting.";
+      void this.applyPinnedLocation(detail.latitude, detail.longitude, "Location pinned.");
     });
 
     optionalById<HTMLElement>("createIssueModal")?.addEventListener("shown.bs.modal", () => {
       void mountMapsIn(document);
     });
+  }
+
+  /**
+   * Records a chosen point: fills the coordinate fields, then asks OpenStreetMap
+   * what is there and fills the written location too.
+   *
+   * The address is only written into a field the citizen has not typed in
+   * themselves - their own wording always wins, and moving the pin afterwards
+   * will not wipe it.
+   */
+  private async applyPinnedLocation(
+    latitude: number,
+    longitude: number,
+    prefix: string
+  ): Promise<void> {
+    this.elements.issueLatitude.value = latitude.toFixed(6);
+    this.elements.issueLongitude.value = longitude.toFixed(6);
+
+    const current = this.elements.issueLocation.value.trim();
+    const mayOverwrite = current === "" || current === this.lastGeocodedLocation;
+
+    this.elements.locationStatus.className = "location-capture__status is-loading";
+    this.elements.locationStatus.textContent = `${prefix} Looking up the address...`;
+
+    const address = await reverseGeocode(latitude, longitude);
+
+    this.elements.locationStatus.className = "location-capture__status is-success";
+
+    if (!address) {
+      this.elements.locationStatus.textContent =
+        `${prefix} The address could not be looked up - please describe the location below.`;
+      return;
+    }
+
+    if (!mayOverwrite) {
+      this.elements.locationStatus.textContent =
+        `${prefix} Your own location text was kept. Nearby: ${address}`;
+      return;
+    }
+
+    this.elements.issueLocation.value = address;
+    this.lastGeocodedLocation = address;
+    this.elements.locationStatus.textContent =
+      `${prefix} Location set to "${address}" - edit it if a landmark would be clearer.`;
   }
 
   private initializeLocationCapture(): void {
@@ -853,15 +903,12 @@ export class MyIssuesPage {
 
     navigator.geolocation.getCurrentPosition(
       (position: GeolocationPosition) => {
-        this.elements.issueLatitude.value = position.coords.latitude.toFixed(6);
-        this.elements.issueLongitude.value = position.coords.longitude.toFixed(6);
+        const { latitude, longitude } = position.coords;
         const mapContainer = optionalById<HTMLElement>("issueLocationMap");
         if (mapContainer) {
-          setMapPin(mapContainer, position.coords.latitude, position.coords.longitude);
+          setMapPin(mapContainer, latitude, longitude);
         }
-        this.elements.locationStatus.className = "location-capture__status is-success";
-        this.elements.locationStatus.textContent =
-          "Coordinates captured. Add a nearby street or landmark before submitting.";
+        void this.applyPinnedLocation(latitude, longitude, "Using your current position.");
         this.elements.locationButton.disabled = false;
       },
       (error: GeolocationPositionError) => {
