@@ -223,23 +223,30 @@ export function renderAttachments(attachments: Attachment[]): string {
 }
 
 /**
+ * True for the row that records an issue being reported, rather than a
+ * transition between states.
+ *
+ * Two shapes count. IssueService.Create writes Open -> Open, because
+ * previousStatus is a required non-nullable enum and there is no "none" member.
+ * A synthesised entry has no previousStatus at all, which covers issues created
+ * before the backend started writing the row.
+ */
+export function isSubmissionEntry(update: StatusUpdate): boolean {
+  return update.newStatus === "Open" && (!update.previousStatus || update.previousStatus === "Open");
+}
+
+/**
  * The status history with the issue's own creation at the front.
  *
- * The backend never writes a StatusUpdate row for creation - the code that
- * would is commented out in IssueService.cs - so the history starts at the
- * FIRST status change and an issue's Open period is invisible. Every issue was
- * Open at reportedDate by definition, so the entry is synthesised here.
- *
- * previousStatus is left empty, which is exactly what renderTimeline keys on to
- * label an entry "Issue Submitted". If the backend ever starts writing a real
- * creation row, the guard below stops it being shown twice.
+ * The backend records creation now, but issues created before that change have
+ * no such row, and their Open period would otherwise be invisible - the history
+ * would begin at the first status CHANGE. Every issue was Open at reportedDate
+ * by definition, so the entry is synthesised when it is missing.
  */
 export function buildTimeline(issue: Issue): StatusUpdate[] {
   const updates = Array.isArray(issue.statusUpdates) ? [...issue.statusUpdates] : [];
 
-  const alreadyHasSubmission = updates.some(
-    (update) => !update.previousStatus && update.newStatus === "Open"
-  );
+  const alreadyHasSubmission = updates.some(isSubmissionEntry);
   if (alreadyHasSubmission || !issue.reportedDate) {
     return updates;
   }
@@ -267,7 +274,7 @@ export function renderTimeline(statusUpdates: StatusUpdate[], emptyMessage?: str
   const items = statusUpdates
     .map((update) => {
       const status = getStatusMeta(update.newStatus);
-      const isSubmission = !update.previousStatus && update.newStatus === "Open";
+      const isSubmission = isSubmissionEntry(update);
       const label = isSubmission ? "Issue Submitted" : status.label;
       const notes = String(update.notes ?? "").trim();
       const staffLine =

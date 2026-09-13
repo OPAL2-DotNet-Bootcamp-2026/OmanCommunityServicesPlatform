@@ -145,17 +145,12 @@ export class DataService {
   }
 
   /**
-   * Creates the issue, then reads it back so the new card is byte-identical to
-   * every other card.
+   * Creates the issue and returns it in the same shape as a list entry.
    *
-   * The read-back exists because the create response is not the same shape as
-   * the list response: IssueService.Create sets assignedDepartmentName from a
-   * navigation property it never loaded, so that field is always null on
-   * create. Synthesising the gaps locally is what made a new card look
-   * different from an existing one.
-   *
-   * The POST has already succeeded by the time the GET runs, so a failed GET
-   * must never look like a failed create - it falls back to the local record.
+   * This used to read the issue back, because IssueService.Create set
+   * assignedDepartmentName from a navigation property it never loaded, so the
+   * create response did not match the list response. The backend sets it from
+   * the category's department now, so the extra request is gone.
    */
   async createIssue(
     payload: CreateIssueRequest,
@@ -164,7 +159,7 @@ export class DataService {
   ): Promise<Issue> {
     const created = await this.api.post<Issue>(this.api.endpoints.createIssue, payload);
 
-    const local = this.normalizeIssue(
+    return this.normalizeIssue(
       {
         ...created,
         categoryId: Number(payload.categoryId) || null,
@@ -173,17 +168,6 @@ export class DataService {
       categories,
       regions
     );
-
-    if (!local.issueId) {
-      return local;
-    }
-
-    try {
-      const canonical = await this.api.get<Issue>(this.api.endpoints.issueById(local.issueId));
-      return this.normalizeIssue(canonical, categories, regions);
-    } catch {
-      return local;
-    }
   }
 
   /**
