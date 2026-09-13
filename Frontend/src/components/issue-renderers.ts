@@ -222,6 +222,43 @@ export function renderAttachments(attachments: Attachment[]): string {
       </div>`;
 }
 
+/**
+ * The status history with the issue's own creation at the front.
+ *
+ * The backend never writes a StatusUpdate row for creation - the code that
+ * would is commented out in IssueService.cs - so the history starts at the
+ * FIRST status change and an issue's Open period is invisible. Every issue was
+ * Open at reportedDate by definition, so the entry is synthesised here.
+ *
+ * previousStatus is left empty, which is exactly what renderTimeline keys on to
+ * label an entry "Issue Submitted". If the backend ever starts writing a real
+ * creation row, the guard below stops it being shown twice.
+ */
+export function buildTimeline(issue: Issue): StatusUpdate[] {
+  const updates = Array.isArray(issue.statusUpdates) ? [...issue.statusUpdates] : [];
+
+  const alreadyHasSubmission = updates.some(
+    (update) => !update.previousStatus && update.newStatus === "Open"
+  );
+  if (alreadyHasSubmission || !issue.reportedDate) {
+    return updates;
+  }
+
+  const submission: StatusUpdate = {
+    statusUpdateId: 0,
+    issueId: issue.issueId,
+    updatedById: issue.reportedById,
+    previousStatus: "" as StatusUpdate["previousStatus"],
+    newStatus: "Open",
+    notes: null,
+    updatedAt: issue.reportedDate
+  };
+
+  return [submission, ...updates].sort(
+    (left, right) => new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime()
+  );
+}
+
 export function renderTimeline(statusUpdates: StatusUpdate[], emptyMessage?: string): string {
   if (!Array.isArray(statusUpdates) || !statusUpdates.length) {
     return `<p class="text-muted small mb-0">${escapeHtml(emptyMessage || "No status updates are available.")}</p>`;
@@ -286,6 +323,109 @@ export function renderComments(comments: Comment[]): string {
     .join("");
 }
 
+/* ------------------------------------------------------------------
+   Shared detail blocks.
+
+   The citizen and staff modals used to build these independently, with
+   different markup and different classes, so the same issue looked like two
+   different products. They compose the same functions now.
+   ------------------------------------------------------------------ */
+
+export function renderDescriptionBlock(issue: Issue): string {
+  return `
+      <div class="description-block">
+        <span class="content-label">Description</span>
+        <p>${escapeHtml(issue.description)}</p>
+      </div>`;
+}
+
+export interface LocationBlockOptions {
+  /** Staff dispatch crews from the numbers, so they stay on screen there. */
+  showCoordinates?: boolean;
+  mapHeight?: string;
+}
+
+export function renderLocationBlock(issue: Issue, options: LocationBlockOptions = {}): string {
+  const mapAreaName = issue.ui?.mapAreaName || issue.regionName || "Issue location";
+  const latitude = issue.latitude === null ? null : Number(issue.latitude);
+  const longitude = issue.longitude === null ? null : Number(issue.longitude);
+  const hasCoordinates =
+    latitude !== null &&
+    longitude !== null &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude);
+
+  const coordinateLine =
+    options.showCoordinates && hasCoordinates
+      ? `
+        <p class="text-muted small mt-2 mb-0">
+          <i class="bi bi-pin-map me-1" aria-hidden="true"></i>Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}
+        </p>`
+      : "";
+
+  return `
+      <div class="mt-4">
+        <span class="content-label">Location</span>
+        <div class="location-value">
+          <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+          <span>${escapeHtml(issue.location)}</span>
+        </div>
+        ${renderMapContainer({
+          latitude: hasCoordinates ? latitude : null,
+          longitude: hasCoordinates ? longitude : null,
+          label: mapAreaName,
+          height: options.mapHeight
+        })}
+        ${coordinateLine}
+      </div>`;
+}
+
+export interface AttachmentsBlockOptions {
+  label?: string;
+}
+
+export function renderAttachmentsBlock(
+  issue: Issue,
+  options: AttachmentsBlockOptions = {}
+): string {
+  const label = options.label ?? "Attachments";
+
+  return `
+      <div class="mt-4">
+        <span class="content-label"><i class="bi bi-paperclip me-1" aria-hidden="true"></i>${escapeHtml(label)}</span>
+        <div data-attachment-grid>
+          ${renderAttachments(issue.attachments)}
+        </div>
+      </div>`;
+}
+
+export interface TimelineBlockOptions {
+  compact?: boolean;
+  /** Shown under the timeline when the backend withheld the detail. */
+  note?: string;
+}
+
+export function renderTimelineBlock(issue: Issue, options: TimelineBlockOptions = {}): string {
+  const entries = buildTimeline(issue);
+  const timeline = renderTimeline(entries, "No status updates are available.");
+  const body = options.compact
+    ? timeline.replace(
+        'class="activity-timeline"',
+        'class="activity-timeline activity-timeline--compact"'
+      )
+    : timeline;
+  const note = options.note
+    ? `<p class="text-muted small mt-2 mb-0">${escapeHtml(options.note)}</p>`
+    : "";
+
+  return `
+      <div class="mt-4">
+        <span class="content-label">Activity Timeline</span>
+        ${body}
+        ${note}
+      </div>`;
+}
+
 /** Only shown once an issue is Resolved - there is nothing to rate before that. */
 function renderRatingPanel(issue: IssueDetail): string {
   if (issue.currentStatus !== "Resolved") {
@@ -345,7 +485,6 @@ function renderStatusBanner(issue: IssueDetail): string {
 
 export function renderIssueDetailModal(issue: IssueDetail): string {
   const issueDomId = safeDomId(issue.issueId);
-  const mapAreaName = issue.ui?.mapAreaName || issue.regionName || "Issue location";
   const warnings = Array.isArray(issue.warnings) ? issue.warnings : [];
   const warningAlert = warnings.length
     ? `
@@ -372,29 +511,13 @@ export function renderIssueDetailModal(issue: IssueDetail): string {
               ${warningAlert}
               <div class="row g-4">
                 <div class="col-lg-7 pe-lg-4 border-lg-end">
-                  <div class="description-block">
-                    <span class="content-label">Description</span>
-                    <p>${escapeHtml(issue.description)}</p>
-                  </div>
-                  <div class="mt-4">
-                    <span class="content-label">Location</span>
-                    <div class="location-value">
-                      <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
-                      <span>${escapeHtml(issue.location)}</span>
-                    </div>
-                    ${renderMapContainer({
-                      latitude: issue.latitude,
-                      longitude: issue.longitude,
-                      label: mapAreaName
-                    })}
-                  </div>
-                  <div class="mt-4">
-                    <span class="content-label">Attachments</span>
-                    ${renderAttachments(issue.attachments)}
-                  </div>
+                  ${renderDescriptionBlock(issue)}
+                  ${renderLocationBlock(issue)}
+                  ${renderAttachmentsBlock(issue)}
                   <hr class="my-4">
-                  <span class="content-label">Activity Timeline</span>
-                  ${renderTimeline(issue.statusUpdates, "Detailed activity history is available to municipal staff. Your current status is shown on the issue card.")}
+                  ${renderTimelineBlock(issue, {
+                    note: "Detailed status history is available to municipal staff. Your current status is shown on the issue card."
+                  })}
                 </div>
                 <div class="col-lg-5 ps-lg-4 comments-column">
                   <span class="content-label"><i class="bi bi-chat-text me-2" aria-hidden="true"></i>Comments</span>

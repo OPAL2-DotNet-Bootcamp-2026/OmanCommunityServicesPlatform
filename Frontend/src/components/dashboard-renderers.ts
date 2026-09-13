@@ -2,20 +2,21 @@
  * Pure presentation for the staff and admin dashboard. Builds on the shared
  * citizen renderers rather than redefining formatting and escaping.
  */
-import type { Issue, Rating, StatusUpdate } from "../models";
+import type { Issue, Rating } from "../models";
 import type { StaffIssueDetail } from "../services/dashboard.service";
 import {
   escapeHtml,
   formatDate,
   getPriorityMeta,
   getStatusMeta,
-  renderAttachments,
+  renderAttachmentsBlock,
   renderComments,
+  renderDescriptionBlock,
   renderIssueImage,
-  renderTimeline,
+  renderLocationBlock,
+  renderTimelineBlock,
   safeDomId
 } from "./issue-renderers";
-import { renderMapContainer } from "./map";
 
 const STATUS_CARD_CLASS: Record<string, string> = {
   open: "open",
@@ -150,24 +151,8 @@ function renderStaffActionPanel(issue: StaffIssueDetail): string {
       </form>`;
 }
 
-function renderCompactTimeline(statusUpdates: StatusUpdate[]): string {
-  return renderTimeline(statusUpdates).replace(
-    'class="activity-timeline"',
-    'class="activity-timeline activity-timeline--compact"'
-  );
-}
-
 export function renderStaffIssueDetailModal(issue: StaffIssueDetail): string {
   const issueDomId = safeDomId(issue.issueId);
-  const mapName = issue.regionName || "Issue location";
-  const latitude = issue.latitude === null ? NaN : Number(issue.latitude);
-  const longitude = issue.longitude === null ? NaN : Number(issue.longitude);
-  const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
-  // Staff dispatch crews from this, so the exact numbers stay on screen next to
-  // the map rather than only being implied by the pin.
-  const coordinateCopy = hasCoordinates
-    ? `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
-    : "Coordinates unavailable";
   const warnings = Array.isArray(issue.warnings) ? issue.warnings : [];
   const warningAlert = warnings.length
     ? `
@@ -189,34 +174,14 @@ export function renderStaffIssueDetailModal(issue: StaffIssueDetail): string {
               </div>
               <a class="btn-close" href="#staffIssueTrigger-${issueDomId}" data-action="close-issue" aria-label="Close issue details"></a>
             </div>
-            <div class="modal-body issue-detail-modal__body bg-white p-4">
+            <div class="modal-body issue-body issue-detail-modal__body">
               ${warningAlert}
-              <div class="row">
+              <div class="row g-4">
                 <div class="col-md-7 pe-md-4 border-end">
-                  <p class="mb-2"><strong>Description:</strong> ${escapeHtml(issue.description)}</p>
-                  <p class="mb-3 text-muted small">
-                    <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
-                    ${escapeHtml(issue.location)}
-                  </p>
-                  <div class="mb-4">
-                    ${renderMapContainer({
-                      latitude: hasCoordinates ? latitude : null,
-                      longitude: hasCoordinates ? longitude : null,
-                      label: mapName,
-                      height: "240px"
-                    })}
-                    <p class="text-muted small mt-2 mb-0">
-                      <i class="bi bi-pin-map me-1" aria-hidden="true"></i>${escapeHtml(coordinateCopy)}
-                    </p>
-                  </div>
-                  <div class="attachments-section">
-                    <span class="content-label"><i class="bi bi-paperclip me-1" aria-hidden="true"></i>Citizen Attachments</span>
-                    ${renderAttachments(issue.attachments)}
-                  </div>
-                  <div class="mt-4">
-                    <span class="content-label">Activity Timeline</span>
-                    ${renderCompactTimeline(issue.statusUpdates)}
-                  </div>
+                  ${renderDescriptionBlock(issue)}
+                  ${renderLocationBlock(issue, { showCoordinates: true, mapHeight: "240px" })}
+                  ${renderAttachmentsBlock(issue, { label: "Citizen attachments" })}
+                  ${renderTimelineBlock(issue, { compact: true })}
                   <hr class="my-4">
                   ${renderStaffActionPanel(issue)}
                 </div>
