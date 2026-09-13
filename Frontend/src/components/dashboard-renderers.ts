@@ -15,6 +15,7 @@ import {
   renderTimeline,
   safeDomId
 } from "./issue-renderers";
+import { renderMapContainer } from "./map";
 
 const STATUS_CARD_CLASS: Record<string, string> = {
   open: "open",
@@ -161,10 +162,12 @@ export function renderStaffIssueDetailModal(issue: StaffIssueDetail): string {
   const mapName = issue.regionName || "Issue location";
   const latitude = issue.latitude === null ? NaN : Number(issue.latitude);
   const longitude = issue.longitude === null ? NaN : Number(issue.longitude);
-  const coordinateCopy =
-    Number.isFinite(latitude) && Number.isFinite(longitude)
-      ? `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
-      : "Coordinates unavailable";
+  const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+  // Staff dispatch crews from this, so the exact numbers stay on screen next to
+  // the map rather than only being implied by the pin.
+  const coordinateCopy = hasCoordinates
+    ? `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
+    : "Coordinates unavailable";
   const warnings = Array.isArray(issue.warnings) ? issue.warnings : [];
   const warningAlert = warnings.length
     ? `
@@ -195,11 +198,16 @@ export function renderStaffIssueDetailModal(issue: StaffIssueDetail): string {
                     <i class="bi bi-geo-alt-fill me-1" aria-hidden="true"></i>
                     ${escapeHtml(issue.location)}
                   </p>
-                  <div class="mb-4 rounded overflow-hidden border bg-light d-flex align-items-center justify-content-center issue-map-preview" role="img" aria-label="Map placeholder showing ${escapeHtml(mapName)}">
-                    <div class="text-muted text-center">
-                      <i class="bi bi-map text-secondary mb-2 issue-map-preview__icon" aria-hidden="true"></i>
-                      <p class="mb-0">${escapeHtml(mapName)}<br><small>${escapeHtml(coordinateCopy)}</small></p>
-                    </div>
+                  <div class="mb-4">
+                    ${renderMapContainer({
+                      latitude: hasCoordinates ? latitude : null,
+                      longitude: hasCoordinates ? longitude : null,
+                      label: mapName,
+                      height: "240px"
+                    })}
+                    <p class="text-muted small mt-2 mb-0">
+                      <i class="bi bi-pin-map me-1" aria-hidden="true"></i>${escapeHtml(coordinateCopy)}
+                    </p>
                   </div>
                   <div class="attachments-section">
                     <span class="content-label"><i class="bi bi-paperclip me-1" aria-hidden="true"></i>Citizen Attachments</span>

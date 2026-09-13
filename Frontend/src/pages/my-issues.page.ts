@@ -15,6 +15,7 @@ import {
 import type { Category, Comment, CreateIssueRequest, Issue, Rating } from "../models";
 import type { CitizenDashboardData, DataService } from "../services/data.service";
 import { formString } from "../text";
+import { mountMapsIn, setMapPin, type MapPickDetail } from "../components/map";
 
 type FilterKey = "search" | "status" | "priority" | "department" | "category" | "sort";
 type Filters = Record<FilterKey, string>;
@@ -461,6 +462,17 @@ export class MyIssuesPage {
       this.elements.detailHost.innerHTML = renderIssueDetailModal(issue);
       const modalElement = byId<HTMLElement>(`citizenIssueDetails-${safeDomId(issueId)}`);
 
+      // Leaflet measures the element, so the map can only be built once the
+      // markup is in the document. Bootstrap's shown event is the point at
+      // which the modal actually has a size.
+      modalElement.addEventListener(
+        "shown.bs.modal",
+        () => {
+          void mountMapsIn(modalElement);
+        },
+        { once: true }
+      );
+
       modalElement.addEventListener(
         "hidden.bs.modal",
         () => {
@@ -656,7 +668,14 @@ export class MyIssuesPage {
       '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Submitting issue...';
 
     try {
-      const created = await this.data.createIssue(payload);
+      // The service reads the issue back so the new card matches every other
+      // card. The lookups are passed in so it can resolve the same
+      // client-side fields the dashboard load resolves.
+      const created = await this.data.createIssue(
+        payload,
+        this.loaded.categories,
+        this.loaded.regions
+      );
       const category = this.loaded.categories.find(
         (item) => Number(item.categoryId) === payload.categoryId
       );
@@ -664,16 +683,16 @@ export class MyIssuesPage {
         (item) => Number(item.regionId) === payload.regionId
       );
 
-      // The create response is the new database record. Add it locally rather
-      // than making a second request that could misreport a successful POST.
       this.loaded.issues = [
         {
           ...created,
-          categoryId: payload.categoryId,
-          regionId: payload.regionId,
+          categoryId: created.categoryId ?? payload.categoryId,
+          regionId: created.regionId ?? payload.regionId,
           categoryName: created.categoryName || category?.categoryName || "",
           regionName: created.regionName || region?.regionName || "",
           governorate: created.governorate || region?.governorate || "",
+          // Always null from the create endpoint; the read-back usually fills
+          // it, and the category lookup covers the case where it does not.
           assignedDepartmentName:
             created.assignedDepartmentName ?? category?.departmentName ?? null
         },
@@ -688,6 +707,9 @@ export class MyIssuesPage {
       this.elements.issueGovernorate.value = "";
       this.elements.issueLatitude.value = "";
       this.elements.issueLongitude.value = "";
+      this.elements.locationStatus.className = "location-capture__status";
+      this.elements.locationStatus.textContent =
+        "Use your device location, or enter the location manually.";
 
       this.renderDashboard();
       this.setCreateIssueStatus("");
@@ -705,6 +727,30 @@ export class MyIssuesPage {
       submitButton.innerHTML =
         '<i class="bi bi-send-fill me-2" aria-hidden="true"></i>Submit Issue';
     }
+  }
+
+  /**
+   * The create dialog's map. Mounted on first open rather than at start-up,
+   * because a map built inside a display:none dialog measures itself as zero.
+   */
+  private initializeCreateMap(): void {
+    const container = optionalById<HTMLElement>("issueLocationMap");
+    if (!container) {
+      return;
+    }
+
+    container.addEventListener("ocsp:map-pick", (event) => {
+      const detail = (event as CustomEvent<MapPickDetail>).detail;
+      this.elements.issueLatitude.value = detail.latitude.toFixed(6);
+      this.elements.issueLongitude.value = detail.longitude.toFixed(6);
+      this.elements.locationStatus.className = "location-capture__status is-success";
+      this.elements.locationStatus.textContent =
+        "Location pinned. Add a nearby street or landmark below before submitting.";
+    });
+
+    optionalById<HTMLElement>("createIssueModal")?.addEventListener("shown.bs.modal", () => {
+      void mountMapsIn(document);
+    });
   }
 
   private initializeLocationCapture(): void {
@@ -729,6 +775,10 @@ export class MyIssuesPage {
       (position: GeolocationPosition) => {
         this.elements.issueLatitude.value = position.coords.latitude.toFixed(6);
         this.elements.issueLongitude.value = position.coords.longitude.toFixed(6);
+        const mapContainer = optionalById<HTMLElement>("issueLocationMap");
+        if (mapContainer) {
+          setMapPin(mapContainer, position.coords.latitude, position.coords.longitude);
+        }
         this.elements.locationStatus.className = "location-capture__status is-success";
         this.elements.locationStatus.textContent =
           "Coordinates captured. Add a nearby street or landmark before submitting.";
@@ -932,6 +982,7 @@ export class MyIssuesPage {
     this.bindDelegatedEvents();
     this.bindFormEvents();
     this.initializeLocationCapture();
+    this.initializeCreateMap();
     void this.loadDashboard();
   }
 }

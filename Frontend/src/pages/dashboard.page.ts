@@ -40,6 +40,7 @@ import type {
 import type { DashboardService, StaffDashboardData } from "../services/dashboard.service";
 import type { SessionService } from "../services/session.service";
 import { asText, formString } from "../text";
+import { mountMapsIn } from "../components/map";
 
 type FilterKey = "search" | "sort" | "status" | "priority" | "department" | "category";
 type Filters = Record<FilterKey, string>;
@@ -609,6 +610,9 @@ export class DashboardPage {
 
       requestAnimationFrame(() => {
         optionalById<HTMLElement>(modalAnchor)?.focus();
+        // The dialog is CSS :target driven, so there is no shown event - by
+        // this frame the hash is applied and the element has a real size.
+        void mountMapsIn(this.elements.detailHost);
       });
     } catch (error) {
       this.openIssueId = null;

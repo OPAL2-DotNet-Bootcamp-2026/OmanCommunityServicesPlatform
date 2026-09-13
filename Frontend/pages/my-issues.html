@@ -426,6 +426,25 @@
                 </small>
               </div>
               <div class="mb-3">
+                <span class="form-label d-block" id="issueLocationMapLabel">Pin the location on the map</span>
+                <div
+                  id="issueLocationMap"
+                  class="issue-map issue-map--picker"
+                  data-map
+                  data-lat=""
+                  data-lng=""
+                  data-label="Choose the issue location"
+                  data-pickable="true"
+                  style="height: 220px"
+                  role="application"
+                  aria-labelledby="issueLocationMapLabel"
+                  aria-describedby="issueLocationMapHint"></div>
+                <p class="form-text" id="issueLocationMapHint">
+                  Click the map to drop a pin, or use the button above to take your current position.
+                  The written location below is still required.
+                </p>
+              </div>
+              <div class="mb-3">
                 <label class="form-label" for="issueLocation">
                   Street / landmark
                 </label>
