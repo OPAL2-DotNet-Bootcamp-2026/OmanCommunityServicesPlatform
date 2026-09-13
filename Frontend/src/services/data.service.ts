@@ -186,8 +186,6 @@ export class DataService {
         });
 
     // Create returns the rating directly; update wraps it in { rating }.
-    return isRecord(response) && "rating" in response
-      ? (response as { rating: Rating }).rating
-      : (response as Rating);
+    return "rating" in response ? response.rating : response;
   }
 }

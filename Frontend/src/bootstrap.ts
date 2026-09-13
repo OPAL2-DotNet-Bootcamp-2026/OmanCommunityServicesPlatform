@@ -18,6 +18,7 @@
 import { ApiClient } from "./core/api-client";
 import { config } from "./core/config";
 import { SessionService } from "./services/session.service";
+import { SiteSession } from "./components/site-session";
 
 /** Every page class exposes this. It becomes ngOnInit under Angular. */
 export interface Page {
@@ -57,7 +58,7 @@ const routes: Record<string, () => Promise<Page>> = {
       import("./pages/my-issues.page"),
       import("./services/data.service")
     ]);
-    return new MyIssuesPage(new DataService(api, session), session);
+    return new MyIssuesPage(new DataService(api, session));
   },
 
   "notifications.html": async () => {
@@ -82,6 +83,11 @@ function currentPage(): string {
 }
 
 async function startPage(): Promise<void> {
+  // The shell owns route protection. If it redirects, the page never starts.
+  if (!new SiteSession(session).start()) {
+    return;
+  }
+
   const load = routes[currentPage()];
   if (!load) {
     return;

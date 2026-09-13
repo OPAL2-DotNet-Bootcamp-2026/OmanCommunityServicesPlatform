@@ -42,8 +42,5 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # Vite warns that the not-yet-converted <script src="...js"> tags in
-      # scripts/ cannot be bundled. That is expected during the migration and
-      # clears page by page as each member converts theirs.
       - name: Build
         run: npm run build

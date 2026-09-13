@@ -7,6 +7,7 @@
  */
 import { config } from "../core/config";
 import type { Attachment, Comment, Issue, IssueDetail, StatusUpdate } from "../models";
+import { asText } from "../text";
 
 export interface StatusMeta {
   key: string;
@@ -35,7 +36,7 @@ const ATTACHMENT_STYLES = ["road", "water", "night", "fixed", "document"];
 
 /** Takes unknown because it is called on raw API values, which may be anything. */
 export function escapeHtml(value: unknown): string {
-  return String(value ?? "")
+  return asText(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -45,7 +46,7 @@ export function escapeHtml(value: unknown): string {
 
 /** Returns "" for anything that is not a relative path or an http(s) URL. */
 export function safeUrl(value: unknown): string {
-  const candidate = String(value ?? "").trim();
+  const candidate = asText(value).trim();
   if (!candidate) {
     return "";
   }
@@ -64,7 +65,7 @@ export function safeUrl(value: unknown): string {
 }
 
 export function safeDomId(value: unknown): string {
-  return String(value ?? "").replace(/[^a-zA-Z0-9_-]/g, "-") || "unknown";
+  return asText(value).replace(/[^a-zA-Z0-9_-]/g, "-") || "unknown";
 }
 
 export function getStatusMeta(status: string): StatusMeta {

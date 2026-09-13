@@ -1,24 +1,40 @@
 /**
- * Member 3 - convert from scripts/pages/home.js (33 lines).
- *
- * The smallest page in the codebase. Do this one first to get the page shape
- * into your hands before you open my-issues.
- *
- * All it does is fetch the unread notification count and paint a badge, and
- * its notable quality is that a failure is not an error: the catch sets the
- * badge to hidden and carries on, because a count outage must never block
- * navigation on the landing page. Keep that.
+ * Landing page. Its only behaviour is the unread notification badge, and a
+ * failure there must never block navigation - the badge just hides itself.
  */
+import { optionalById } from "../dom";
 import type { DataService } from "../services/data.service";
 import type { SessionService } from "../services/session.service";
 
 export class HomePage {
   constructor(
-    protected readonly data: DataService,
-    protected readonly session: SessionService
+    private readonly data: DataService,
+    private readonly session: SessionService
   ) {}
 
+  private async loadUnreadNotificationCount(): Promise<void> {
+    const badge = optionalById<HTMLElement>("homeNotificationCount");
+    if (!badge || !this.session.getUser()) {
+      return;
+    }
+
+    try {
+      const notifications = await this.data.getUnreadNotifications();
+      const count = notifications.length;
+      badge.textContent = String(count);
+      badge.hidden = count === 0;
+      badge.setAttribute(
+        "aria-label",
+        `${count} unread notification${count === 1 ? "" : "s"}`
+      );
+    } catch {
+      badge.textContent = "0";
+      badge.hidden = true;
+      badge.setAttribute("aria-label", "Unread notification count unavailable");
+    }
+  }
+
   start(): void {
-    throw new Error("HomePage.start - Member 3, from scripts/pages/home.js:10");
+    void this.loadUnreadNotificationCount();
   }
 }

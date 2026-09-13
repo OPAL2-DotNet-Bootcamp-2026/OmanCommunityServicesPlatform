@@ -8,6 +8,7 @@
 import type { ApiClient, AuthorizationErrorDetail } from "../core/api-client";
 import type { AppConfig } from "../core/config";
 import type { LoginResponse, SessionRole, User } from "../models";
+import { asText } from "../text";
 
 /** The session's own view of a user: the DTO plus the department name. */
 export interface SessionUser extends Omit<User, "registrationDate"> {
@@ -40,6 +41,7 @@ const ALLOWED_PAGE_ROLES: Record<string, SessionRole[]> = {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
+
 
 function currentPageName(): string {
   return (window.location.pathname.split("/").pop() ?? "").toLowerCase();
@@ -75,9 +77,7 @@ export class SessionService {
   }
 
   normalizeRole(value: unknown): SessionRole {
-    const role = String(value ?? "")
-      .trim()
-      .toLowerCase();
+    const role = asText(value).trim().toLowerCase();
     if (role === "admin") return "Admin";
     if (role === "staff") return "Staff";
     if (role === "citizen") return "Citizen";
@@ -88,8 +88,8 @@ export class SessionService {
     const user: Record<string, unknown> = isRecord(value) ? value : {};
     return {
       userId: Number(user.userId) || 0,
-      name: String(user.name ?? "User").trim() || "User",
-      email: String(user.email ?? "").trim(),
+      name: asText(user.name, "User").trim() || "User",
+      email: asText(user.email).trim(),
       phoneNumber: typeof user.phoneNumber === "string" ? user.phoneNumber : null,
       role: this.normalizeRole(user.role) as SessionUser["role"],
       regionId: Number(user.regionId) || null,
@@ -198,7 +198,7 @@ export class SessionService {
   /** Throws if the sign-in response carries no token or no usable profile. */
   start(loginResult: LoginResponse): Session {
     const result: Record<string, unknown> = isRecord(loginResult) ? loginResult : {};
-    const token = String(result.token ?? result.Token ?? "").trim();
+    const token = (asText(result.token) || asText(result.Token)).trim();
     if (!token) {
       throw new Error("The sign-in response did not include an access token.");
     }
