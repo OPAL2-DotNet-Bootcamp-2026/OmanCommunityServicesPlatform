@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    /* Target the browsers Vite already targets. */
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "useDefineForClassFields": true,
+
+    /* Vite transpiles; tsc only ever type-checks (npm run typecheck). */
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+
+    /* Strict from day one. The sources are small and already well factored,
+       so a second tightening pass would cost more than it saves.
+       noUncheckedIndexedAccess stays off: the dashboard and my-issues pages
+       index their filter state by key, and turning it on adds non-null
+       assertions everywhere without catching a real bug. */
+    "strict": true,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* No path aliases on purpose. The tree is two levels deep, so "../models"
+       is perfectly readable, and aliases would have to be declared twice -
+       here and in vite.config.ts - and kept in step by hand. */
+
+    /* "node" is for vite.config.ts, which imports node:url. */
+    "types": ["vite/client", "bootstrap", "node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"]
+}
