@@ -12,7 +12,6 @@ import type {
   Attachment,
   AttachmentFileType,
   Category,
-  IssueStatus,
   Comment,
   CreateIssueRequest,
   Issue,
@@ -95,60 +94,6 @@ function decorateIssuesWithFreshUpdates(issues: Issue[], notifications: Notifica
         freshUpdateNotificationId: Number(notification.notificationId) || null
       }
     };
-  });
-}
-
-/**
- * A status history reconstructed from the citizen's own notifications.
- *
- * Citizens cannot read /api/StatusUpdate (an API without the citizen-history
- * change refuses it), so their timeline would show only the submission even
- * for an issue that has since moved to In Progress and Resolved.
- *
- * Every transition does raise a StatusChange notification carrying the new
- * status and the time it happened, so the shape of the history is recoverable
- * from data the citizen already has. This is a fallback: when the real history
- * is available it is used instead, because it is authoritative and carries the
- * officer and notes fields this cannot know.
- */
-const STATUS_FROM_MESSAGE = /status changed to\s+([A-Za-z]+)/i;
-const KNOWN_STATUSES: IssueStatus[] = ["Open", "InProgress", "Resolved"];
-
-export function deriveTimelineFromNotifications(
-  issue: Issue,
-  notifications: Notification[]
-): StatusUpdate[] {
-  const changes = notifications
-    .filter(
-      (notification) =>
-        Number(notification.issueId) === Number(issue.issueId) &&
-        String(notification.type ?? "").toLowerCase() === "statuschange"
-    )
-    .map((notification) => {
-      const match = STATUS_FROM_MESSAGE.exec(String(notification.message ?? ""));
-      const status = KNOWN_STATUSES.find(
-        (known) => known.toLowerCase() === (match?.[1] ?? "").toLowerCase()
-      );
-      return status ? { status, at: notification.createdAt } : null;
-    })
-    .filter((entry): entry is { status: IssueStatus; at: string } => entry !== null)
-    .sort((left, right) => parseApiDate(left.at).getTime() - parseApiDate(right.at).getTime());
-
-  let previous: IssueStatus = "Open";
-  return changes.map((change) => {
-    const update: StatusUpdate = {
-      statusUpdateId: 0,
-      issueId: issue.issueId,
-      // Unknown from a notification, and deliberately not guessed - the
-      // renderer omits the officer line when this is 0.
-      updatedById: 0,
-      previousStatus: previous,
-      newStatus: change.status,
-      notes: null,
-      updatedAt: change.at
-    };
-    previous = change.status;
-    return update;
   });
 }
 

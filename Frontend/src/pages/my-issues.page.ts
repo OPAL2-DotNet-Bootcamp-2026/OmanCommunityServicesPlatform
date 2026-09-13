@@ -21,11 +21,7 @@ import type {
   Issue,
   Rating
 } from "../models";
-import {
-  deriveTimelineFromNotifications,
-  type CitizenDashboardData,
-  type DataService
-} from "../services/data.service";
+import type { CitizenDashboardData, DataService } from "../services/data.service";
 import { formString } from "../text";
 import * as feedback from "../components/feedback";
 import {
@@ -940,17 +936,6 @@ export class MyIssuesPage {
         imageUpdateAvailable: !issue.warnings.includes("attachments"),
         editableImageUrl: editableImage?.fileUrl ?? ""
       };
-
-      // The API refuses the real history to a citizen unless it carries the
-      // citizen-history change, which leaves the timeline showing only the
-      // submission even for an issue that has since been resolved. Their own
-      // notifications record every transition, so fall back to those.
-      if (!issue.statusUpdates.length) {
-        issue.statusUpdates = deriveTimelineFromNotifications(
-          issue,
-          this.loaded.notifications
-        );
-      }
 
       this.elements.detailHost.innerHTML = renderIssueDetailModal(issue);
       revealWithin(this.elements.detailHost, { interval: 45, distance: 8 });
