@@ -143,7 +143,7 @@ function renderStaffActionPanel(issue: StaffIssueDetail): string {
           <textarea class="form-control bg-light" id="internalNotes-${issueDomId}" name="notes" maxlength="500" rows="3" placeholder="Add resolution steps..."></textarea>
         </div>
         <div class="d-flex justify-content-end">
-          <button type="submit" class="btn ocsp-button ocsp-button--submit staff-status-update">
+          <button type="submit" class="ocsp-button ocsp-button--submit staff-status-update">
             Update Status
           </button>
         </div>
@@ -177,7 +177,7 @@ export function renderStaffIssueDetailModal(issue: StaffIssueDetail): string {
             <div class="modal-body issue-body issue-detail-modal__body">
               ${warningAlert}
               <div class="row g-4">
-                <div class="col-md-7 pe-md-4 border-end">
+                <div class="col-lg-7 pe-lg-4 issue-detail-divider">
                   ${renderDescriptionBlock(issue)}
                   ${renderLocationBlock(issue, { showCoordinates: true, mapHeight: "240px" })}
                   ${renderAttachmentsBlock(issue, { label: "Citizen attachments" })}
@@ -185,7 +185,7 @@ export function renderStaffIssueDetailModal(issue: StaffIssueDetail): string {
                   <hr class="my-4">
                   ${renderStaffActionPanel(issue)}
                 </div>
-                <div class="col-md-5 ps-md-4 comments-column">
+                <div class="col-lg-5 ps-lg-4 comments-column">
                   <span class="content-label"><i class="bi bi-chat-text me-2" aria-hidden="true"></i>Comments</span>
                   <div class="comment-thread mb-3" data-comment-thread aria-label="Issue updates and comments" role="list">
                     ${renderComments(issue.comments)}
@@ -193,7 +193,7 @@ export function renderStaffIssueDetailModal(issue: StaffIssueDetail): string {
                   <form class="comment-composer" data-action="add-staff-comment" data-issue-id="${issueDomId}">
                     <label class="visually-hidden" for="staffComment-${issueDomId}">Add a public comment</label>
                     <input class="form-control" id="staffComment-${issueDomId}" name="content" data-comment-input maxlength="1000" placeholder="Add a public comment..." required type="text">
-                    <button class="btn ocsp-button ocsp-button--submit ocsp-button--icon" type="submit" aria-label="Send comment">
+                    <button class="ocsp-button ocsp-button--submit ocsp-button--icon" type="submit" aria-label="Send comment">
                       <i class="bi bi-send" aria-hidden="true"></i>
                     </button>
                   </form>

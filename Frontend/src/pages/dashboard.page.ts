@@ -445,7 +445,7 @@ export class DashboardPage {
           <i class="bi bi-search fs-2 text-primary" aria-hidden="true"></i>
           <h3 class="h5 mt-3">No matching issues</h3>
           <p class="text-muted mb-3">Try changing your search or filters.</p>
-          <button class="btn ocsp-button ocsp-button--cancel" type="button" data-action="clear-filters">Clear filters</button>
+          <button class="ocsp-button ocsp-button--cancel" type="button" data-action="clear-filters">Clear filters</button>
         </div>`;
     } else {
       this.elements.list.innerHTML = visible.map((issue) => renderStaffIssueCard(issue)).join("");
@@ -1201,7 +1201,7 @@ export class DashboardPage {
       this.elements.list.innerHTML = `
         <div class="alert alert-danger" role="alert">
           <p class="mb-3">${escapeHtml(message)}</p>
-          <button class="btn ocsp-button ocsp-button--submit" type="button" data-action="retry-dashboard">Try again</button>
+          <button class="ocsp-button ocsp-button--submit" type="button" data-action="retry-dashboard">Try again</button>
         </div>`;
       this.elements.list.setAttribute("aria-busy", "false");
     }

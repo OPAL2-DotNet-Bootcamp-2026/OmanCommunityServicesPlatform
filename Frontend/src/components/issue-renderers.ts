@@ -559,14 +559,12 @@ export function renderIssueDetailModal(issue: IssueDetail): string {
               ${renderStatusBanner(issue)}
               ${warningAlert}
               <div class="row g-4">
-                <div class="col-lg-7 pe-lg-4 border-lg-end">
+                <div class="col-lg-7 pe-lg-4 issue-detail-divider">
                   ${renderDescriptionBlock(issue)}
                   ${renderLocationBlock(issue)}
                   ${renderAttachmentsBlock(issue, { allowAdd: true, issueDomId })}
                   <hr class="my-4">
-                  ${renderTimelineBlock(issue, {
-                    note: "Detailed status history is available to municipal staff. Your current status is shown on the issue card."
-                  })}
+                  ${renderTimelineBlock(issue)}
                 </div>
                 <div class="col-lg-5 ps-lg-4 comments-column">
                   <span class="content-label"><i class="bi bi-chat-text me-2" aria-hidden="true"></i>Comments</span>

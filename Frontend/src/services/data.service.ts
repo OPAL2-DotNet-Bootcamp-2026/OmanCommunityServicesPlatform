@@ -17,7 +17,8 @@ import type {
   IssueDetail,
   Notification,
   Rating,
-  Region
+  Region,
+  StatusUpdate
 } from "../models";
 import type { SessionService, SessionUser } from "./session.service";
 
@@ -65,9 +66,9 @@ export class DataService {
       governorate: value.governorate || region?.governorate || "",
       attachments: asArray<Attachment>(value.attachments),
       comments: asArray<Comment>(value.comments),
-      // The backend restricts status history to Staff and Admin. Citizens see
-      // the real currentStatus and reportedDate from the issue DTO instead.
-      statusUpdates: [],
+      // Empty on a LIST entry, which carries no history. getIssueDetails fills
+      // it from the status-update endpoint.
+      statusUpdates: asArray<StatusUpdate>(value.statusUpdates),
       rating: value.rating ?? null,
       ui: value.ui ?? {}
     };
@@ -126,7 +127,11 @@ export class DataService {
     const results = await Promise.allSettled([
       this.api.get<Comment[]>(this.api.endpoints.commentsByIssue(issueId)),
       this.api.get<Attachment[]>(this.api.endpoints.attachmentsByIssue(issueId)),
-      this.api.get<Rating[]>(this.api.endpoints.ratingsByIssue(issueId))
+      this.api.get<Rating[]>(this.api.endpoints.ratingsByIssue(issueId)),
+      // The reporter may now read their own history. The API strips the staff
+      // internal notes and the officer id before it leaves the server, so what
+      // arrives here is already what a citizen is allowed to see.
+      this.api.get<StatusUpdate[]>(this.api.endpoints.statusUpdatesByIssue(issueId))
     ]);
 
     const ratings = asArray<Rating>(settledValue(results[2], []));
@@ -139,8 +144,17 @@ export class DataService {
       attachments: asArray<Attachment>(settledValue(results[1], [])).map((attachment) =>
         this.normalizeAttachment(attachment)
       ),
+      statusUpdates: asArray<StatusUpdate>(settledValue(results[3], [])).sort(
+        (left, right) =>
+          new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime()
+      ),
       rating: ownRating,
-      warnings: rejectedSections(results, ["comments", "attachments", "ratings"])
+      warnings: rejectedSections(results, [
+        "comments",
+        "attachments",
+        "ratings",
+        "activity timeline"
+      ])
     };
   }
 

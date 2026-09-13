@@ -5135,3 +5135,22 @@ body.ocsp-portal .issue-map,
     flex: 1 1 100%;
   }
 }
+
+/* ============================================================
+   Issue dialog: divider between the details column and comments
+
+   The citizen dialog used "border-lg-end", which is not a
+   Bootstrap 5 class and was not defined here either, so it drew
+   nothing - that is why only the staff dialog had the line. The
+   staff dialog used plain "border-end", which also drew the line
+   on narrow screens where the columns stack and it made no sense.
+
+   One class, on both, that appears only once the columns are
+   actually side by side.
+   ============================================================ */
+
+@media (min-width: 992px) {
+  .issue-detail-divider {
+    border-right: 1px solid #e2e8f0;
+  }
+}
