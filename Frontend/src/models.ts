@@ -200,6 +200,8 @@ export interface Comment {
   content: string;
   isStaffComment: boolean;
   commentDate: string;
+  /** Set by the pages to flash a newly posted comment; never sent by the API. */
+  highlighted?: boolean;
 }
 
 export interface CreateCommentRequest {
@@ -219,6 +221,7 @@ export interface Attachment {
   /** Presentation labels the services attach; never sent by the API. */
   label?: string;
   style?: string;
+  fileName?: string;
 }
 
 /* ---------- Rating ---------- */
