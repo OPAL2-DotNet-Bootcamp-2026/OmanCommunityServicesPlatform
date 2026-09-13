@@ -2,7 +2,8 @@
  * Sign-in form. On success it honours a validated returnTo parameter, falling
  * back to the home page for the user's role.
  */
-import { byId, errorMessage, setAlert } from "../dom";
+import { announceStatus, byId, errorMessage, setAlert } from "../dom";
+import { setButtonBusy } from "../components/motion";
 import type { AuthService } from "../services/auth.service";
 import type { SessionService } from "../services/session.service";
 
@@ -35,11 +36,9 @@ export class LoginPage {
 
   private setSubmitting(isSubmitting: boolean): void {
     this.submitting = isSubmitting;
-    this.elements.submit.disabled = isSubmitting;
     this.elements.form.setAttribute("aria-busy", String(isSubmitting));
-    this.elements.submit.innerHTML = isSubmitting
-      ? '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Signing in...'
-      : '<i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Sign In';
+    // Snapshots and restores the button's own markup, so the label survives.
+    setButtonBusy(this.elements.submit, isSubmitting, "Signing in...");
   }
 
   private submitLogin = async (event: SubmitEvent): Promise<void> => {
@@ -57,11 +56,14 @@ export class LoginPage {
         password: this.elements.password.value
       });
 
+      // Read on the next page, so the landing screen can confirm the sign-in.
+      this.session.setFlash({ message: "Signed in successfully.", tone: "success" });
+
       const requestedTarget = new URLSearchParams(window.location.search).get("returnTo");
       const returnTo = this.session.safeReturnTo(requestedTarget, activeSession.user.role);
       window.location.replace(returnTo || this.session.roleHome(activeSession.user.role));
     } catch (error) {
-      setAlert(
+      announceStatus(
         this.elements.status,
         errorMessage(error, "Sign in could not be completed."),
         "danger"
@@ -91,7 +93,7 @@ export class LoginPage {
     // A flash set by registration carries the new account's email across.
     const flash = this.session.consumeFlash();
     if (flash) {
-      setAlert(this.elements.status, flash.message, flash.tone);
+      announceStatus(this.elements.status, flash.message, flash.tone);
       if (flash.email) {
         this.elements.email.value = flash.email;
       }

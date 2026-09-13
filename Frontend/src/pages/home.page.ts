@@ -2,7 +2,9 @@
  * Landing page. Its only behaviour is the unread notification badge, and a
  * failure there must never block navigation - the badge just hides itself.
  */
-import { optionalById } from "../dom";
+import { optionalById, toTone } from "../dom";
+import * as feedback from "../components/feedback";
+import { pulse } from "../components/motion";
 import type { DataService } from "../services/data.service";
 import type { SessionService } from "../services/session.service";
 
@@ -27,6 +29,8 @@ export class HomePage {
         "aria-label",
         `${count} unread notification${count === 1 ? "" : "s"}`
       );
+      // Only animates when the number actually changed.
+      pulse(badge, count);
     } catch {
       badge.textContent = "0";
       badge.hidden = true;
@@ -34,7 +38,20 @@ export class HomePage {
     }
   }
 
+  /**
+   * A flash is set before a redirect, so it has to be consumed here too.
+   * Otherwise a "signed in successfully" message set on the way out of login
+   * would surface later on some unrelated portal page.
+   */
+  private showPendingFlash(): void {
+    const flash = this.session.consumeFlash();
+    if (flash?.message) {
+      feedback.show(flash.message, { tone: toTone(flash.tone) });
+    }
+  }
+
   start(): void {
+    this.showPendingFlash();
     void this.loadUnreadNotificationCount();
   }
 }

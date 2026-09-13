@@ -2,7 +2,8 @@
  * Account creation. On success it sets a flash message and sends the user to
  * login rather than signing them straight in.
  */
-import { byId, errorMessage, setAlert } from "../dom";
+import { announceStatus, byId, errorMessage, setAlert } from "../dom";
+import { setButtonBusy } from "../components/motion";
 import type { AuthService } from "../services/auth.service";
 import type { SessionService } from "../services/session.service";
 
@@ -39,11 +40,8 @@ export class RegisterPage {
 
   private setSubmitting(isSubmitting: boolean): void {
     this.submitting = isSubmitting;
-    this.elements.submit.disabled = isSubmitting;
     this.elements.form.setAttribute("aria-busy", String(isSubmitting));
-    this.elements.submit.innerHTML = isSubmitting
-      ? '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Creating account...'
-      : '<i class="bi bi-person-check" aria-hidden="true"></i>Register';
+    setButtonBusy(this.elements.submit, isSubmitting, "Creating account...");
   }
 
   private submitRegistration = async (event: SubmitEvent): Promise<void> => {
@@ -75,7 +73,7 @@ export class RegisterPage {
       });
       window.location.replace("login.html");
     } catch (error) {
-      setAlert(
+      announceStatus(
         this.elements.status,
         errorMessage(error, "Registration could not be completed."),
         "danger"

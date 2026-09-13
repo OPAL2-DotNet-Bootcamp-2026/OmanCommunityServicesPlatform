@@ -6,6 +6,9 @@
  * rather than silently producing "cannot read property of null" later.
  */
 
+import * as feedback from "./components/feedback";
+import { revealStatus } from "./components/motion";
+
 export type Tone = "success" | "danger" | "warning" | "info";
 
 const TONES: Tone[] = ["success", "danger", "warning", "info"];
@@ -48,6 +51,30 @@ export function setAlert(
   }
   element.className = `alert alert-${toTone(tone)} ${extraClass}`.trim();
   element.textContent = message;
+}
+
+/**
+ * Sets a page's status line AND raises a toast for the outcomes worth
+ * interrupting for.
+ *
+ * Every page repeated this trio - write the alert, animate it in, toast it -
+ * so it lives here once. The toast is raised with announce:false because the
+ * alert element is already a live region; announcing both would read the
+ * message to a screen reader twice.
+ */
+export function announceStatus(
+  element: HTMLElement | null,
+  message: string,
+  tone: string | null | undefined = "info",
+  extraClass = "mb-3"
+): void {
+  setAlert(element, message, tone, extraClass);
+  revealStatus(element);
+
+  const resolved = toTone(tone);
+  if (message && resolved !== "info") {
+    feedback.show(message, { tone: resolved, announce: false });
+  }
 }
 
 /** The message from an unknown throw, for a catch block. */

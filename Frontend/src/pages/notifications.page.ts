@@ -5,7 +5,9 @@
  * is what makes the page feel instant.
  */
 import { ApiError } from "../core/api-client";
-import { byId, errorMessage, setAlert } from "../dom";
+import { announceStatus, byId, errorMessage, setAlert } from "../dom";
+import * as feedback from "../components/feedback";
+import { countTo, pulse, renderSkeletons, revealList } from "../components/motion";
 import {
   escapeHtml,
   renderNotificationList
@@ -45,7 +47,7 @@ export class NotificationsPage {
   }
 
   private setPageStatus(message: string, tone?: string): void {
-    setAlert(this.elements.pageStatus, message, tone, "mb-4");
+    announceStatus(this.elements.pageStatus, message, tone, "mb-4");
     if (!message) {
       this.elements.pageStatus.className = "d-none";
     }
@@ -61,8 +63,20 @@ export class NotificationsPage {
       "aria-label",
       `${unreadCount} unread notification${plural}`
     );
-    this.elements.heroValue.textContent =
-      unreadCount === 0 ? "No unread notifications" : `${unreadCount} notification${plural}`;
+    pulse(this.elements.navCount, unreadCount);
+
+    if (unreadCount === 0) {
+      // Retargeting to zero also cancels a count that is still animating.
+      countTo(this.elements.heroValue, 0, {
+        duration: 0,
+        format: () => "No unread notifications"
+      });
+    } else {
+      countTo(this.elements.heroValue, unreadCount, {
+        format: (value) =>
+          `${Math.round(value)} notification${Math.round(value) === 1 ? "" : "s"}`
+      });
+    }
     this.elements.unreadSummary.textContent =
       unreadCount === 0
         ? "You have no unread notifications."
@@ -71,17 +85,18 @@ export class NotificationsPage {
 
   private renderLoading(): void {
     this.elements.footer.hidden = true;
-    this.elements.list.setAttribute("aria-busy", "true");
-    this.elements.list.innerHTML = `
-      <div class="ocsp-card p-4 text-center" role="status">
-        <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
-        <span class="d-block">Loading notifications...</span>
-      </div>`;
+    // Skeletons hold the final layout so the page does not collapse and jump.
+    renderSkeletons(this.elements.list, {
+      count: 3,
+      variant: "notification",
+      label: "Loading notifications..."
+    });
   }
 
   private renderError(error: unknown): void {
     this.elements.footer.hidden = true;
     const message = errorMessage(error, "The notifications could not be loaded.");
+    feedback.error(message, { announce: false });
     this.elements.list.innerHTML = `
       <div class="alert alert-danger" role="alert">
         <p class="mb-3">${escapeHtml(message)}</p>
@@ -94,6 +109,17 @@ export class NotificationsPage {
     this.elements.list.innerHTML = renderNotificationList(this.notifications, role);
     this.elements.list.setAttribute("aria-busy", "false");
     this.elements.footer.hidden = this.notifications.length === 0;
+
+    // Stagger only the first paint; later re-renders are a filter, not an entry.
+    const firstRender = this.elements.list.dataset.ocspMotionRendered !== "true";
+    revealList(this.elements.list, ".notification-card", {
+      stagger: firstRender,
+      interval: firstRender ? 32 : 0,
+      duration: firstRender ? 220 : 160,
+      distance: firstRender ? 10 : 5
+    });
+    this.elements.list.dataset.ocspMotionRendered = "true";
+
     this.updateUnreadSummary();
   }
 
@@ -146,6 +172,10 @@ export class NotificationsPage {
       trigger.classList.remove("is-unread");
       trigger.querySelector(".unread-dot")?.remove();
       this.updateUnreadSummary();
+      // Following a link navigates away, so a toast there would never be seen.
+      if (!targetHref) {
+        feedback.success("Notification marked as read.");
+      }
     } catch (error) {
       if (error instanceof ApiError && [401, 403].includes(error.status)) {
         this.setPageStatus(
