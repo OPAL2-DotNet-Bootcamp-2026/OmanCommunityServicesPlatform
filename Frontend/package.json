@@ -1,0 +1,24 @@
+{
+  "name": "ocsp-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Oman Community Services Platform web client",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@types/bootstrap": "^5.2.10",
+    "@types/node": "^22.9.0",
+    "eslint": "^9.15.0",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.15.0",
+    "vite": "^5.4.11"
+  }
+}

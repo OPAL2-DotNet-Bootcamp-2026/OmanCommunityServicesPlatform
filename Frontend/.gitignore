@@ -1,0 +1,15 @@
+# Frontend build and tooling artifacts.
+# The repository-root .gitignore covers the .NET side.
+
+node_modules/
+dist/
+.vite/
+
+# Local environment overrides. .env.example is committed; real values are not.
+.env
+.env.local
+.env.*.local
+
+# Tool caches
+*.tsbuildinfo
+.eslintcache
