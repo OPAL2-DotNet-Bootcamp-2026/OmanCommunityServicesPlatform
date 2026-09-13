@@ -28,15 +28,19 @@ export interface AppConfig {
 const runtime = window.OCSP_RUNTIME_CONFIG ?? {};
 
 /**
- * launchSettings.json binds https to 7130 and http to 5037, and
- * UseHttpsRedirection is skipped in Development, so both are live locally.
+ * Port 5037, because launchSettings.json binds it under BOTH launch profiles:
  *
- * https is the default because that is the profile the team runs. If the dev
- * certificate is not trusted on a machine, fetch fails with an opaque network
- * error - set VITE_API_BASE_URL=http://localhost:5037 in .env.local there, or
- * run `dotnet dev-certs https --trust` once.
+ *   http   ->  http://localhost:5037
+ *   https  ->  https://localhost:7130;http://localhost:5037
+ *
+ * 7130 exists only under the https profile, so defaulting to it means the app
+ * cannot reach the API whenever someone runs the http one - which surfaces as
+ * "The server could not be reached", with nothing to say it was the port.
+ * 5037 works either way, and needs no dev certificate.
+ *
+ * Override with VITE_API_BASE_URL in .env.local to point at a deployed API.
  */
-const DEFAULT_API_BASE_URL = "https://localhost:7130";
+const DEFAULT_API_BASE_URL = "http://localhost:5037";
 
 const apiBaseUrl = String(
   import.meta.env.VITE_API_BASE_URL || runtime.apiBaseUrl || DEFAULT_API_BASE_URL

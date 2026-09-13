@@ -231,10 +231,12 @@ export class ApiClient {
       if (error instanceof DOMException && error.name === "AbortError") {
         throw new ApiError("The request timed out. Please try again.", 0, null);
       }
-      // fetch rejects with TypeError when the network or DNS fails.
+      // fetch rejects with TypeError when the connection itself fails - wrong
+      // port, API not running, DNS, or a rejected certificate. Naming the
+      // address turns an unanswerable message into a checkable one.
       if (error instanceof TypeError) {
         throw new ApiError(
-          "The server could not be reached. Check the connection and try again.",
+          `The server at ${this.config.apiBaseUrl} could not be reached. Check that the API is running and that the address is right.`,
           0,
           error
         );
