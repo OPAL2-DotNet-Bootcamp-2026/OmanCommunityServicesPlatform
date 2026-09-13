@@ -19,6 +19,7 @@ import { ApiClient } from "./core/api-client";
 import { config } from "./core/config";
 import { SessionService } from "./services/session.service";
 import { SiteSession } from "./components/site-session";
+import { initializePage as initializeMotion } from "./components/motion";
 
 /** Every page class exposes this. It becomes ngOnInit under Angular. */
 export interface Page {
@@ -87,6 +88,10 @@ async function startPage(): Promise<void> {
   if (!new SiteSession(session).start()) {
     return;
   }
+
+  // Entrance animations and counters for whatever is already in the markup.
+  // Called here rather than on import, so loading the module has no effect.
+  initializeMotion();
 
   const load = routes[currentPage()];
   if (!load) {

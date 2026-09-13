@@ -94,6 +94,10 @@ export interface IssueUi {
   hasFreshUpdate?: boolean;
   /** Wording of the "new update" flash on a card. */
   freshUpdateLabel?: string;
+  /** When the status change behind the flash happened. */
+  freshUpdateAt?: string;
+  /** The notification the flash was derived from. */
+  freshUpdateNotificationId?: number | null;
   updateTitle?: string;
   updateMessage?: string;
   mapAreaName?: string;

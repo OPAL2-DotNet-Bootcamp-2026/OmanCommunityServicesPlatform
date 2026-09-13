@@ -3,7 +3,9 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**"]
+    // scripts/ holds the legacy IIFE JavaScript still being converted. It is
+    // not linted; the directory goes away when the last module lands.
+    ignores: ["dist/**", "node_modules/**", "scripts/**"]
   },
 
   js.configs.recommended,
