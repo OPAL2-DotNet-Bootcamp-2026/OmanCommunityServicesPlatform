@@ -136,6 +136,33 @@ namespace OmanCommunityServicesPlatform.Services
         }
 
         // Get Status Updates By Issue Id
+        /// <summary>
+        /// The history of an issue as its own reporter may see it.
+        /// Returns null when the issue does not exist or belongs to someone
+        /// else, so the caller can answer identically in both cases.
+        ///
+        /// The staff-only fields are stripped HERE rather than hidden in the
+        /// UI: notes are the internal notes staff write while working an
+        /// issue, and updatedById identifies the individual officer. Neither
+        /// should leave the server for a citizen.
+        /// </summary>
+        public List<StatusUpdateResponseDto>? GetByIssueIdForReporter(int issueId, int reporterId)
+        {
+            Issue? issue = issueRepo.GetById(issueId);
+            if (issue == null || issue.reportedById != reporterId)
+                return null;
+
+            List<StatusUpdateResponseDto> updates = GetByIssueId(issueId);
+
+            foreach (StatusUpdateResponseDto update in updates)
+            {
+                update.notes = null;
+                update.updatedById = 0;
+            }
+
+            return updates;
+        }
+
         public List<StatusUpdateResponseDto> GetByIssueId(int issueId)
         {
             List<StatusUpdate> updates = statusUpdateRepo.GetByIssueId(issueId);
