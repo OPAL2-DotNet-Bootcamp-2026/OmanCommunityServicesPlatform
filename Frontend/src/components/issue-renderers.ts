@@ -7,6 +7,8 @@
  */
 import { config } from "../core/config";
 import type { Attachment, Comment, Issue, IssueDetail, StatusUpdate } from "../models";
+import { resolveIssueImage } from "./issue-media";
+import { renderMapContainer } from "./map";
 import { asText } from "../text";
 
 export interface StatusMeta {
@@ -127,15 +129,9 @@ export function formatDateTime(value: string | null | undefined): string {
 }
 
 export function renderIssueImage(issue: Issue): string {
-  const ui = issue.ui ?? {};
-  const imageUrl = safeUrl(ui.imageUrl);
-  const alt = escapeHtml(ui.imageAlt || issue.title);
-  const imageStyle = ATTACHMENT_STYLES.includes(ui.imageStyle ?? "")
-    ? (ui.imageStyle as string)
-    : "document";
-  const previewLabel = escapeHtml(ui.previewLabel || "Issue photo");
+  const image = resolveIssueImage(issue);
 
-  if (!imageUrl) {
+  if (!image) {
     return `
         <span class="issue-card-media issue-card-media--attachment issue-card-media--document" data-preview-label="No preview" aria-hidden="true">
           <i class="bi bi-image"></i>
@@ -143,8 +139,8 @@ export function renderIssueImage(issue: Issue): string {
   }
 
   return `
-      <span class="issue-card-media issue-card-media--attachment issue-card-media--${imageStyle}" data-preview-label="${previewLabel}" role="img" aria-label="${alt}">
-        <img class="issue-card-media__image" src="${escapeHtml(imageUrl)}" alt="" width="720" height="480" loading="lazy" decoding="async">
+      <span class="issue-card-media issue-card-media--attachment issue-card-media--${image.style}" data-preview-label="${escapeHtml(image.previewLabel)}" role="img" aria-label="${escapeHtml(image.alt)}">
+        <img class="issue-card-media__image" src="${escapeHtml(image.url)}" alt="" width="720" height="480" loading="lazy" decoding="async">
       </span>`;
 }
 
@@ -349,9 +345,6 @@ function renderStatusBanner(issue: IssueDetail): string {
 
 export function renderIssueDetailModal(issue: IssueDetail): string {
   const issueDomId = safeDomId(issue.issueId);
-  const mapVariant = ["park", "city"].includes(issue.ui?.mapVariant ?? "")
-    ? ` map-preview--${issue.ui.mapVariant}`
-    : "";
   const mapAreaName = issue.ui?.mapAreaName || issue.regionName || "Issue location";
   const warnings = Array.isArray(issue.warnings) ? issue.warnings : [];
   const warningAlert = warnings.length
@@ -389,10 +382,11 @@ export function renderIssueDetailModal(issue: IssueDetail): string {
                       <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
                       <span>${escapeHtml(issue.location)}</span>
                     </div>
-                    <div aria-label="Map placeholder showing ${escapeHtml(mapAreaName)}" class="map-preview${mapVariant}" role="img">
-                      <span class="map-area-name">${escapeHtml(mapAreaName)}</span>
-                      <i aria-hidden="true" class="bi bi-geo-alt-fill map-pin"></i>
-                    </div>
+                    ${renderMapContainer({
+                      latitude: issue.latitude,
+                      longitude: issue.longitude,
+                      label: mapAreaName
+                    })}
                   </div>
                   <div class="mt-4">
                     <span class="content-label">Attachments</span>
