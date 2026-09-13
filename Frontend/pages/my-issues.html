@@ -442,6 +442,25 @@
                 </small>
               </div>
               <div class="mb-3">
+                <span class="form-label d-block" id="issueLocationMapLabel">Pin the location on the map</span>
+                <div
+                  id="issueLocationMap"
+                  class="issue-map issue-map--picker"
+                  data-map
+                  data-lat=""
+                  data-lng=""
+                  data-label="Choose the issue location"
+                  data-pickable="true"
+                  style="height: 220px"
+                  role="application"
+                  aria-labelledby="issueLocationMapLabel"
+                  aria-describedby="issueLocationMapHint"></div>
+                <p class="form-text" id="issueLocationMapHint">
+                  Click the map to drop a pin, or use the button above to take your current
+                  position. The street below is filled in automatically and can be edited.
+                </p>
+              </div>
+              <div class="mb-3">
                 <label class="form-label" for="issueLocation">
                   Street / landmark
                 </label>
@@ -517,14 +536,7 @@
   <div id="issueDetailModalHost"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
-  <script src="../scripts/config.js?v=20260826-27" defer></script>
-  <script src="../scripts/services/api-client.js?v=20260826-27" defer></script>
-  <script src="../scripts/services/session-service.js?v=20260826-27" defer></script>
-  <script src="../scripts/components/site-session.js?v=20260826-27" defer></script>
-  <script src="../scripts/services/data-service.js?v=20260826-27" defer></script>
-  <script src="../scripts/components/issue-renderers.js?v=20260826-27" defer></script>
-  <script src="../scripts/animations.js?v=20260826-27" defer></script>
-  <script src="../scripts/pages/my-issues.js?v=20260826-27" defer></script>
+  <script type="module" src="/src/bootstrap.ts"></script>
 </body>
 
 </html>
