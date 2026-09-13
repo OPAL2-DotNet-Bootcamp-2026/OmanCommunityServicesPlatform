@@ -5659,3 +5659,32 @@ body.ocsp-portal .issue-map,
     border-right: 1px solid #e2e8f0;
   }
 }
+
+/* ============================================================
+   Dialog action buttons
+
+   The comment send button and the rating submit were sized for
+   a full-width page control, which is far too heavy inside the
+   issue dialog's narrow column - the send button in particular
+   read as the loudest thing on screen.
+   ============================================================ */
+
+.issue-detail-modal .ocsp-button--icon,
+.comment-composer .ocsp-button--icon {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  font-size: 0.85rem;
+}
+
+/* The rating submit sits under a textarea, so it should read as the
+   end of that form rather than as a page-level call to action. */
+.rating-panel .ocsp-button--submit {
+  align-self: flex-start;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.rating-panel .ocsp-button--submit i {
+  font-size: 0.8rem;
+}

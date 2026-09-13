@@ -12,7 +12,7 @@
  *    the two CSS :target dialogs (the filter drawer and admin setup).
  */
 import { config } from "../core/config";
-import { announceStatus, byId, errorMessage, optionalById, setAlert } from "../dom";
+import { announceStatus, byId, errorMessage, optionalById, setAlert, toTone } from "../dom";
 import {
   escapeHtml,
   getStatusMeta,
@@ -1333,7 +1333,9 @@ export class DashboardPage {
     // data loads, so it is shown even if the dashboard request then fails.
     const flash = this.session.consumeFlash();
     if (flash?.message) {
-      this.setPageStatus(flash.message, flash.tone);
+      // Toast only. A flash is a note about the PREVIOUS page - showing it in
+      // the page's own status region as well reads as a second, stuck message.
+      feedback.show(flash.message, { tone: toTone(flash.tone) });
     }
 
     // The filter drawer is visible from its initial :target before data loads,

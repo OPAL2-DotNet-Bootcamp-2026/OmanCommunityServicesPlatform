@@ -5,7 +5,7 @@
  * is what makes the page feel instant.
  */
 import { ApiError } from "../core/api-client";
-import { announceStatus, byId, errorMessage, setAlert } from "../dom";
+import { announceStatus, byId, errorMessage, setAlert, toTone } from "../dom";
 import * as feedback from "../components/feedback";
 import { countTo, pulse, renderSkeletons, revealList } from "../components/motion";
 import {
@@ -237,7 +237,9 @@ export class NotificationsPage {
     this.bindEvents();
     void this.loadNotifications();
     if (flash) {
-      this.setPageStatus(flash.message, flash.tone);
+      // Toast only. A flash is a note about the PREVIOUS page - showing it in
+      // the page's own status region as well reads as a second, stuck message.
+      feedback.show(flash.message, { tone: toTone(flash.tone) });
     }
   }
 }

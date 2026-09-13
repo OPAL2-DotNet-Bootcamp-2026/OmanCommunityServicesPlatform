@@ -6,13 +6,13 @@
  * independently. Failed section names come back in warnings[].
  */
 import { ApiError, type ApiClient } from "../core/api-client";
-import { config } from "../core/config";
 import { asArray, rejectedSections, settledValue } from "../core/settled";
 import { parseApiDate } from "../date";
 import type {
   Attachment,
   AttachmentFileType,
   Category,
+  IssueStatus,
   Comment,
   CreateIssueRequest,
   Issue,
@@ -38,33 +38,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/** Calendar day in the portal's own time zone, for "did this happen today". */
-function portalDateKey(value: string | Date): string {
-  const date = parseApiDate(value instanceof Date ? value.toISOString() : value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  try {
-    const values: Record<string, string> = {};
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: config.timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    })
-      .formatToParts(date)
-      .forEach((part) => {
-        if (part.type !== "literal") {
-          values[part.type] = part.value;
-        }
-      });
-    return `${values.year}-${values.month}-${values.day}`;
-  } catch {
-    return date.toISOString().slice(0, 10);
-  }
-}
-
 /**
  * Flags issues that have moved recently, so their card can show a ribbon.
  *
@@ -73,9 +46,13 @@ function portalDateKey(value: string | Date): string {
  * already fetched gives the same signal with no extra request and no backend
  * change.
  *
- * An issue is "fresh" if its newest status-change notification is unread, or
- * happened today - so a citizen who read the notification still sees the
- * ribbon for the rest of the day, and it clears on its own tomorrow.
+ * An issue is "fresh" while its newest status-change notification is UNREAD.
+ *
+ * This originally also kept the ribbon for anything that happened today, read
+ * or not. That made it impossible to dismiss: opening the issue marked the
+ * notification read, and the ribbon came straight back on the next render
+ * because the update was still from today. Reading it is the signal that
+ * matters; the date is not.
  */
 function decorateIssuesWithFreshUpdates(issues: Issue[], notifications: Notification[]): Issue[] {
   const latestByIssue = new Map<number, { notification: Notification; createdTime: number }>();
@@ -97,19 +74,16 @@ function decorateIssuesWithFreshUpdates(issues: Issue[], notifications: Notifica
     }
   });
 
-  const todayKey = portalDateKey(new Date());
-
   return issues.map((issue) => {
     const latest = latestByIssue.get(Number(issue.issueId));
     if (!latest) {
       return issue;
     }
 
-    const notification = latest.notification;
-    const updatedToday = portalDateKey(notification.createdAt) === todayKey;
-    if (notification.isRead && !updatedToday) {
+    if (latest.notification.isRead) {
       return issue;
     }
+    const notification = latest.notification;
 
     return {
       ...issue,
@@ -121,6 +95,60 @@ function decorateIssuesWithFreshUpdates(issues: Issue[], notifications: Notifica
         freshUpdateNotificationId: Number(notification.notificationId) || null
       }
     };
+  });
+}
+
+/**
+ * A status history reconstructed from the citizen's own notifications.
+ *
+ * Citizens cannot read /api/StatusUpdate (an API without the citizen-history
+ * change refuses it), so their timeline would show only the submission even
+ * for an issue that has since moved to In Progress and Resolved.
+ *
+ * Every transition does raise a StatusChange notification carrying the new
+ * status and the time it happened, so the shape of the history is recoverable
+ * from data the citizen already has. This is a fallback: when the real history
+ * is available it is used instead, because it is authoritative and carries the
+ * officer and notes fields this cannot know.
+ */
+const STATUS_FROM_MESSAGE = /status changed to\s+([A-Za-z]+)/i;
+const KNOWN_STATUSES: IssueStatus[] = ["Open", "InProgress", "Resolved"];
+
+export function deriveTimelineFromNotifications(
+  issue: Issue,
+  notifications: Notification[]
+): StatusUpdate[] {
+  const changes = notifications
+    .filter(
+      (notification) =>
+        Number(notification.issueId) === Number(issue.issueId) &&
+        String(notification.type ?? "").toLowerCase() === "statuschange"
+    )
+    .map((notification) => {
+      const match = STATUS_FROM_MESSAGE.exec(String(notification.message ?? ""));
+      const status = KNOWN_STATUSES.find(
+        (known) => known.toLowerCase() === (match?.[1] ?? "").toLowerCase()
+      );
+      return status ? { status, at: notification.createdAt } : null;
+    })
+    .filter((entry): entry is { status: IssueStatus; at: string } => entry !== null)
+    .sort((left, right) => parseApiDate(left.at).getTime() - parseApiDate(right.at).getTime());
+
+  let previous: IssueStatus = "Open";
+  return changes.map((change) => {
+    const update: StatusUpdate = {
+      statusUpdateId: 0,
+      issueId: issue.issueId,
+      // Unknown from a notification, and deliberately not guessed - the
+      // renderer omits the officer line when this is 0.
+      updatedById: 0,
+      previousStatus: previous,
+      newStatus: change.status,
+      notes: null,
+      updatedAt: change.at
+    };
+    previous = change.status;
+    return update;
   });
 }
 
