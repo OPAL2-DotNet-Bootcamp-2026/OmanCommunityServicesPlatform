@@ -5577,3 +5577,85 @@ body.ocsp-portal .issue-filter-drawer:is(.show,:target) .offcanvas-body {
     transition: none!important;
   }
 }
+
+/* ============================================================
+   Interactive maps (Leaflet)
+   Replaces the .map-preview CSS drawing that used to stand in
+   for a map. Leaflet's own stylesheet is imported by the map
+   module; these rules only cover the container and the pin.
+   ============================================================ */
+
+body.ocsp-portal .issue-map,
+.issue-map {
+  position: relative;
+  width: 100%;
+  min-height: 180px;
+  border: 1px solid #dde7e3;
+  border-radius: 13px;
+  overflow: hidden;
+  background: #eef1f5;
+  z-index: 0; /* keeps Leaflet panes from covering modal chrome */
+}
+
+.issue-map--picker {
+  cursor: crosshair;
+}
+
+/* The "no coordinates" panel, shown instead of a map of nowhere. */
+.issue-map--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 145px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.issue-map--empty i {
+  font-size: 1.75rem;
+  color: #adb5bd;
+}
+
+.issue-map--empty span {
+  font-weight: 600;
+  color: #495057;
+}
+
+/* A divIcon rather than Leaflet's default PNG, which a bundler breaks. */
+.issue-map__pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: #dc3545;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* Leaflet's controls default to a font size that fights the site's scale. */
+.issue-map .leaflet-control-attribution {
+  font-size: 0.65rem;
+}
+
+/* ============================================================
+   Issue dialog: divider between the details column and comments
+
+   The citizen dialog used "border-lg-end", which is not a
+   Bootstrap 5 class and was not defined here either, so it drew
+   nothing - that is why only the staff dialog had the line. The
+   staff dialog used plain "border-end", which also drew the line
+   on narrow screens where the columns stack and it made no sense.
+
+   One class, on both, that appears only once the columns are
+   actually side by side.
+   ============================================================ */
+
+@media (min-width: 992px) {
+  .issue-detail-divider {
+    border-right: 1px solid #e2e8f0;
+  }
+}

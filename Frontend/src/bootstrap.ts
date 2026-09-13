@@ -30,7 +30,7 @@ const api = new ApiClient(config);
 const session = new SessionService(config, api);
 
 const routes: Record<string, () => Promise<Page>> = {
-  "home.html": async () => {
+  "index.html": async () => {
     const [{ HomePage }, { DataService }] = await Promise.all([
       import("./pages/home.page"),
       import("./services/data.service")
@@ -79,8 +79,9 @@ const routes: Record<string, () => Promise<Page>> = {
   }
 };
 
+/** A directory URL such as "/" is served by index.html. */
 function currentPage(): string {
-  return window.location.pathname.split("/").pop() || "home.html";
+  return window.location.pathname.split("/").pop() || "index.html";
 }
 
 async function startPage(): Promise<void> {

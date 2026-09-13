@@ -4,9 +4,15 @@ import { fileURLToPath, URL } from "node:url";
 const fromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 /**
- * Multi-page build. Every HTML file under pages/ is its own Rollup entry and
- * loads src/bootstrap.ts, which routes to the right page module. When the app
- * moves to Angular these entries collapse into one index.html plus app.routes.ts.
+ * Multi-page build. Each HTML file is its own Rollup entry and loads
+ * src/bootstrap.ts, which routes to the right page module.
+ *
+ * index.html is the home page - it sits at the root rather than under pages/,
+ * which is why config.ts resolves routes against BASE_URL instead of assuming
+ * one directory depth.
+ *
+ * When the app moves to Angular these entries collapse into one index.html
+ * plus app.routes.ts.
  */
 export default defineConfig({
   root: fromRoot("."),
@@ -22,7 +28,7 @@ export default defineConfig({
     // so the API needs no change now, nor when Angular takes over this port.
     port: 4200,
     strictPort: true,
-    open: "/pages/home.html"
+    open: "/index.html"
   },
 
   preview: {
@@ -38,7 +44,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: fromRoot("./index.html"),
-        home: fromRoot("./pages/home.html"),
         login: fromRoot("./pages/login.html"),
         register: fromRoot("./pages/register.html"),
         myIssues: fromRoot("./pages/my-issues.html"),

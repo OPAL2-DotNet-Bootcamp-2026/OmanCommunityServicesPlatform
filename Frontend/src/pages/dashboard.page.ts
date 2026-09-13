@@ -12,12 +12,12 @@
  *    the two CSS :target dialogs (the filter drawer and admin setup).
  */
 import { config } from "../core/config";
-import { byId, errorMessage, optionalById, setAlert } from "../dom";
+import { announceStatus, byId, errorMessage, optionalById, setAlert } from "../dom";
 import {
   escapeHtml,
-  getInitials,
   getStatusMeta,
   renderComments,
+  renderIssueImage,
   safeDomId
 } from "../components/issue-renderers";
 import {
@@ -40,6 +40,17 @@ import type {
 import type { DashboardService, StaffDashboardData } from "../services/dashboard.service";
 import type { SessionService } from "../services/session.service";
 import { asText, formString } from "../text";
+import { parseApiDate } from "../date";
+import * as feedback from "../components/feedback";
+import {
+  countTo,
+  pulse,
+  renderSkeletons,
+  revealList,
+  revealWithin,
+  setButtonBusy
+} from "../components/motion";
+import { IssueImageHydrator, applyAttachmentsToIssue } from "../components/issue-images";
 import { mountMapsIn } from "../components/map";
 
 type FilterKey = "search" | "sort" | "status" | "priority" | "department" | "category";
@@ -119,6 +130,8 @@ export class DashboardPage {
   private openIssueTrigger: HTMLElement | null = null;
   private searchTimer = 0;
   private readonly busy = { detail: false, status: false, comment: false, setup: false };
+  /** Lazily loads card thumbnails; the list has no attachments of its own. */
+  private imageHydrator: IssueImageHydrator | null = null;
 
   constructor(
     private readonly dashboardService: DashboardService,
@@ -149,6 +162,39 @@ export class DashboardPage {
     };
   }
 
+  private findIssue(issueId: number): Issue | null {
+    return (
+      this.dashboard?.issues.find((issue) => Number(issue.issueId) === Number(issueId)) ?? null
+    );
+  }
+
+  /** Replaces one card's media element in place, without re-rendering the list. */
+  private refreshIssueCardImage(issue: Issue | null): void {
+    if (!issue) {
+      return;
+    }
+    const card = this.elements.list.querySelector(
+      `[data-issue-id="${safeDomId(issue.issueId)}"]`
+    );
+    const media = card?.querySelector(".issue-card-media");
+    if (media) {
+      media.outerHTML = renderIssueImage(issue);
+    }
+  }
+
+  private hydrateVisibleIssueImages(): void {
+    this.imageHydrator ??= new IssueImageHydrator({
+      list: this.elements.list,
+      cardSelector: ".issue-card[data-issue-id]",
+      findIssue: (issueId) => this.findIssue(issueId),
+      fetchAttachments: (issueId) => this.dashboardService.getStaffIssueAttachments(issueId),
+      onLoaded: (issue, attachments) => {
+        this.refreshIssueCardImage(applyAttachmentsToIssue(issue, attachments));
+      }
+    });
+    this.imageHydrator.observe();
+  }
+
   private get loaded(): StaffDashboardData {
     if (!this.dashboard) {
       throw new Error("The dashboard data has not been loaded yet.");
@@ -157,14 +203,14 @@ export class DashboardPage {
   }
 
   private setPageStatus(message: string, tone?: string): void {
-    setAlert(this.elements.pageStatus, message, tone, "mb-4");
+    announceStatus(this.elements.pageStatus, message, tone, "mb-4");
     if (!message) {
       this.elements.pageStatus.className = "d-none";
     }
   }
 
   private setAdminStatus(message: string, tone?: string): void {
-    setAlert(this.elements.adminStatus, message, tone, "mb-3");
+    announceStatus(this.elements.adminStatus, message, tone, "mb-3");
     if (!message) {
       this.elements.adminStatus.className = "d-none";
     }
@@ -238,7 +284,8 @@ export class DashboardPage {
   }
 
   private timeZoneDateKey(value: string | Date): string {
-    const date = value instanceof Date ? value : new Date(value);
+    const date =
+      value instanceof Date ? value : parseApiDate(value);
     if (Number.isNaN(date.getTime())) {
       return "";
     }
@@ -257,7 +304,6 @@ export class DashboardPage {
   private renderAccountAndHero(): void {
     const dashboard = this.loaded;
     const issues = dashboard.issues;
-    const user = dashboard.currentUser;
     const unreadCount = dashboard.notifications.filter((n) => !n.isRead).length;
     const openCount = issues.filter((issue) => issue.currentStatus === "Open").length;
     const progressCount = issues.filter((issue) => issue.currentStatus === "InProgress").length;
@@ -267,17 +313,13 @@ export class DashboardPage {
         update.newStatus === "Resolved" && this.timeZoneDateKey(update.updatedAt) === today
     ).length;
 
-    const values: Record<string, string> = {
-      dashboardUserAvatar: getInitials(user.name),
-      dashboardUserName: user.name || user.role || "Staff",
-      dashboardHeroAssigned: `${issues.length} issue${issues.length === 1 ? "" : "s"}`,
-      dashboardHeroResolvedToday: `${resolvedToday} resolved`
-    };
-    Object.entries(values).forEach(([id, value]) => {
-      const element = optionalById<HTMLElement>(id);
-      if (element) {
-        element.textContent = value;
-      }
+    // Header identity is the shared site-session component's job on every
+    // page; writing it here too would mean two owners for one element.
+    countTo(optionalById<HTMLElement>("dashboardHeroAssigned"), issues.length, {
+      format: (value) => `${Math.round(value)} issue${Math.round(value) === 1 ? "" : "s"}`
+    });
+    countTo(optionalById<HTMLElement>("dashboardHeroResolvedToday"), resolvedToday, {
+      format: (value) => `${Math.round(value)} resolved`
     });
 
     const workload = optionalById<HTMLElement>("dashboardHeroWorkloadCopy");
@@ -310,6 +352,7 @@ export class DashboardPage {
         "aria-label",
         `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
       );
+      pulse(notificationCount, unreadCount);
     }
   }
 
@@ -323,10 +366,7 @@ export class DashboardPage {
     };
 
     Object.entries(counts).forEach(([key, value]) => {
-      const output = optionalById<HTMLElement>(`issueStat${key}`);
-      if (output) {
-        output.textContent = String(value).padStart(2, "0");
-      }
+      countTo(optionalById<HTMLElement>(`issueStat${key}`), value);
     });
   }
 
@@ -457,6 +497,18 @@ export class DashboardPage {
         : "No issues are available.";
     }
     this.elements.list.setAttribute("aria-busy", "false");
+
+    // Stagger only the first paint; a later render is a filter, not an entrance.
+    const firstRender = this.elements.list.dataset.ocspMotionRendered !== "true";
+    revealList(this.elements.list, '.issue-card, .ocsp-card[role="status"], .alert', {
+      stagger: firstRender,
+      interval: firstRender ? 36 : 0,
+      duration: firstRender ? 240 : 160,
+      distance: firstRender ? 12 : 6
+    });
+    this.elements.list.dataset.ocspMotionRendered = "true";
+
+    this.hydrateVisibleIssueImages();
   }
 
   private activeFilterDefinitions(): ActiveFilter[] {
@@ -509,6 +561,12 @@ export class DashboardPage {
       </span>`
       )
       .join("");
+
+    revealList(this.elements.activeFilterChips, ":scope > .badge", {
+      interval: 35,
+      duration: 180,
+      distance: 6
+    });
   }
 
   private syncFilterControls(): void {
@@ -597,6 +655,15 @@ export class DashboardPage {
 
       this.openIssueId = issueId;
       this.elements.detailHost.innerHTML = renderStaffIssueDetailModal(issue);
+      revealWithin(this.elements.detailHost, { interval: 45, distance: 8 });
+
+      // Only when the request actually succeeded - a failed optional
+      // attachments call must not wipe a preview the card already loaded.
+      if (!issue.warnings.includes("attachments")) {
+        this.refreshIssueCardImage(
+          applyAttachmentsToIssue(this.findIssue(issueId), issue.attachments)
+        );
+      }
       const modalAnchor = `issueModal-${safeDomId(issueId)}`;
       const isDeepLink = new URLSearchParams(window.location.search).has("issueId");
 
@@ -661,7 +728,7 @@ export class DashboardPage {
 
     this.busy.status = true;
     form.setAttribute("aria-busy", "true");
-    submitButton.disabled = true;
+    setButtonBusy(submitButton, true, "Updating status...");
     status.textContent = "Updating status...";
 
     try {
@@ -699,7 +766,10 @@ export class DashboardPage {
       this.renderAccountAndHero();
       this.renderStatistics();
       this.renderFilteredContent();
-      this.setPageStatus("The issue status was updated successfully.", "success");
+      // The toast is the confirmation; leaving the page region empty stops the
+      // same sentence appearing twice on screen.
+      this.setPageStatus("");
+      feedback.success("The issue status was updated successfully.");
 
       const newTrigger = this.elements.list.querySelector<HTMLElement>(
         `[data-action="open-issue"][data-issue-id="${safeDomId(issueId)}"]`
@@ -707,14 +777,16 @@ export class DashboardPage {
       if (newTrigger) {
         newTrigger.focus();
       } else {
-        this.elements.pageStatus.focus();
+        this.elements.searchInput.focus();
       }
     } catch (error) {
-      status.textContent = errorMessage(error, "The issue status could not be updated.");
+      const message = errorMessage(error, "The issue status could not be updated.");
+      status.textContent = message;
+      feedback.error(message, { announce: false });
     } finally {
       this.busy.status = false;
       form.removeAttribute("aria-busy");
-      submitButton.disabled = false;
+      setButtonBusy(submitButton, false);
     }
   }
 
@@ -741,7 +813,7 @@ export class DashboardPage {
     this.busy.comment = true;
     form.setAttribute("aria-busy", "true");
     input.disabled = true;
-    submitButton.disabled = true;
+    setButtonBusy(submitButton, true, "Adding comment...");
     status.textContent = "Adding comment...";
 
     try {
@@ -759,15 +831,19 @@ export class DashboardPage {
 
       thread.querySelector("[data-empty-comments]")?.remove();
       thread.insertAdjacentHTML("beforeend", renderComments([comment]));
+      revealList(thread, ".comment-card", { stagger: false, duration: 220, distance: 7 });
       input.value = "";
       status.textContent = "Comment added.";
+      feedback.success("Comment added.", { announce: false });
     } catch (error) {
-      status.textContent = errorMessage(error, "The comment could not be added.");
+      const message = errorMessage(error, "The comment could not be added.");
+      status.textContent = message;
+      feedback.error(message, { announce: false });
     } finally {
       this.busy.comment = false;
       form.removeAttribute("aria-busy");
       input.disabled = false;
-      submitButton.disabled = false;
+      setButtonBusy(submitButton, false);
       input.focus();
     }
   }
@@ -838,7 +914,7 @@ export class DashboardPage {
 
     this.busy.setup = true;
     form.setAttribute("aria-busy", "true");
-    submitButton.disabled = true;
+    setButtonBusy(submitButton, true, `Adding ${request.label.toLocaleLowerCase()}...`);
     this.setAdminStatus(`Adding ${request.label.toLocaleLowerCase()}...`, "info");
 
     try {
@@ -867,7 +943,7 @@ export class DashboardPage {
     } finally {
       this.busy.setup = false;
       form.removeAttribute("aria-busy");
-      submitButton.disabled = false;
+      setButtonBusy(submitButton, false);
     }
   }
 
@@ -1111,6 +1187,38 @@ export class DashboardPage {
     });
   }
 
+  /**
+   * A citizen's image URL points at a host we do not control, so it can expire
+   * or turn out not to be an image at all. Swap the broken <img> for the same
+   * "No preview" card the renderer produces when there is no image.
+   *
+   * Listens in the CAPTURE phase: the error event on an <img> does not bubble.
+   */
+  private bindImageFallback(): void {
+    this.elements.list.addEventListener(
+      "error",
+      (event) => {
+        const image = event.target;
+        if (!(image instanceof HTMLImageElement) || !image.matches(".issue-card-media__image")) {
+          return;
+        }
+
+        const card = image.closest<HTMLElement>("[data-issue-id]");
+        const media = image.closest(".issue-card-media");
+        const issue = card ? this.findIssue(Number(card.dataset.issueId)) : null;
+        if (!issue || !media) {
+          return;
+        }
+
+        issue.ui = { ...issue.ui };
+        delete issue.ui.imageUrl;
+        delete issue.ui.imageAlt;
+        media.outerHTML = renderIssueImage(issue);
+      },
+      true
+    );
+  }
+
   private bindAdminEvents(): void {
     [this.elements.regionForm, this.elements.departmentForm, this.elements.categoryForm].forEach(
       (form) => {
@@ -1170,27 +1278,23 @@ export class DashboardPage {
   }
 
   private loadDashboard = async (): Promise<void> => {
-    this.elements.list.setAttribute("aria-busy", "true");
-    this.elements.list.innerHTML = `
-      <div class="ocsp-card p-4 text-center" role="status">
-        <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
-        <span class="d-block">Loading issues...</span>
-      </div>`;
+    renderSkeletons(this.elements.list, {
+      count: 3,
+      variant: "issue",
+      label: "Loading issues..."
+    });
 
     try {
       this.dashboard = await this.dashboardService.getStaffDashboardData();
       this.renderDashboard();
 
-      const flash = this.session.consumeFlash();
       await this.openLinkedIssueFromUrl();
       if (!this.openIssueId) {
         await this.openIssueFromHash();
       }
 
       const warnings = this.loaded.warnings;
-      if (flash?.message) {
-        this.setPageStatus(flash.message, flash.tone);
-      } else if (warnings.length && this.elements.pageStatus.classList.contains("d-none")) {
+      if (warnings.length) {
         this.setPageStatus(
           `Some supporting dashboard data could not be loaded: ${warnings.join(", ")}.`,
           "warning"
@@ -1198,6 +1302,7 @@ export class DashboardPage {
       }
     } catch (error) {
       const message = errorMessage(error, "The dashboard could not be loaded.");
+      feedback.error(message, { announce: false });
       this.elements.list.innerHTML = `
         <div class="alert alert-danger" role="alert">
           <p class="mb-3">${escapeHtml(message)}</p>
@@ -1221,7 +1326,15 @@ export class DashboardPage {
 
     this.bindFilterEvents();
     this.bindDelegatedEvents();
+    this.bindImageFallback();
     this.bindAdminEvents();
+
+    // A flash set before a redirect is consumed here rather than after the
+    // data loads, so it is shown even if the dashboard request then fails.
+    const flash = this.session.consumeFlash();
+    if (flash?.message) {
+      this.setPageStatus(flash.message, flash.tone);
+    }
 
     // The filter drawer is visible from its initial :target before data loads,
     // so move focus now rather than waiting on the network.

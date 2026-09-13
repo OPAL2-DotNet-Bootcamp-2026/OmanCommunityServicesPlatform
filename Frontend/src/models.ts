@@ -106,6 +106,8 @@ export interface IssueUi {
   editableImageUrl?: string;
   /** Set false to suppress the image-update panel for an issue. */
   imageUpdateAvailable?: boolean;
+  /** True once the separate attachments request for this issue has resolved. */
+  attachmentsLoaded?: boolean;
 }
 
 /**
