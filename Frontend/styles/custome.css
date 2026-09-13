@@ -5102,3 +5102,36 @@ body.ocsp-portal .issue-map,
 .issue-map .leaflet-control-attribution {
   font-size: 0.65rem;
 }
+
+/* ============================================================
+   Add-attachment composer (citizen issue dialog)
+   The backend stores a URL, so an attachment is a link.
+   ============================================================ */
+
+.attachment-composer__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.attachment-composer__row .form-control {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.attachment-composer__row .form-select {
+  flex: 0 0 8.5rem;
+}
+
+.attachment-composer__row .ocsp-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  .attachment-composer__row .form-select,
+  .attachment-composer__row .ocsp-button {
+    flex: 1 1 100%;
+  }
+}

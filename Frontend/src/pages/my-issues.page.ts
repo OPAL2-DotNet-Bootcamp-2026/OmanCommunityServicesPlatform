@@ -7,12 +7,22 @@ import {
   escapeHtml,
   getInitials,
   getStatusMeta,
+  renderAttachments,
   renderComments,
   renderIssueCard,
   renderIssueDetailModal,
   safeDomId
 } from "../components/issue-renderers";
-import type { Category, Comment, CreateIssueRequest, Issue, Rating } from "../models";
+import type {
+  Attachment,
+  AttachmentFileType,
+  Category,
+  Comment,
+  CreateIssueRequest,
+  Issue,
+  Rating
+} from "../models";
+import type { IssueDetail } from "../models";
 import type { CitizenDashboardData, DataService } from "../services/data.service";
 import { formString } from "../text";
 import { mountMapsIn, setMapPin, type MapPickDetail } from "../components/map";
@@ -74,6 +84,8 @@ export class MyIssuesPage {
   private dashboard: CitizenDashboardData | null = null;
   private filters: Filters = emptyFilters();
   private openIssueTrigger: HTMLElement | null = null;
+  /** The issue whose modal is open, so a new attachment can be added to it. */
+  private openIssue: IssueDetail | null = null;
   private searchTimer = 0;
 
   constructor(private readonly data: DataService) {}
@@ -459,6 +471,7 @@ export class MyIssuesPage {
 
     try {
       const issue = await this.data.getIssueDetails(issueId);
+      this.openIssue = issue;
       this.elements.detailHost.innerHTML = renderIssueDetailModal(issue);
       const modalElement = byId<HTMLElement>(`citizenIssueDetails-${safeDomId(issueId)}`);
 
@@ -478,6 +491,7 @@ export class MyIssuesPage {
         () => {
           const returnFocus = this.openIssueTrigger;
           this.openIssueTrigger = null;
+          this.openIssue = null;
           this.elements.detailHost.replaceChildren();
           if (returnFocus?.isConnected) {
             returnFocus.focus();
@@ -496,6 +510,7 @@ export class MyIssuesPage {
       this.consumeIssueLink();
     } catch (error) {
       this.openIssueTrigger = null;
+      this.openIssue = null;
       this.elements.detailHost.replaceChildren();
       this.setPageStatus(errorMessage(error, "The issue details could not be loaded."), "danger");
     }
@@ -550,6 +565,71 @@ export class MyIssuesPage {
       input.disabled = false;
       submitButton.disabled = false;
       input.focus();
+    }
+  }
+
+  private async addAttachment(form: HTMLFormElement): Promise<void> {
+    const issueId = Number(form.dataset.issueId);
+    const urlInput = form.querySelector<HTMLInputElement>('input[name="fileUrl"]');
+    const typeSelect = form.querySelector<HTMLSelectElement>('select[name="fileType"]');
+    const submitButton = form.querySelector<HTMLButtonElement>('[type="submit"]');
+    const status = form.querySelector<HTMLElement>("[data-attachment-status]");
+    const grid = form.parentElement?.querySelector<HTMLElement>("[data-attachment-grid]");
+
+    if (!urlInput || !typeSelect || !submitButton || !status || !grid) {
+      return;
+    }
+    if (form.dataset.submitting === "true" || !form.reportValidity()) {
+      return;
+    }
+
+    const fileUrl = urlInput.value.trim();
+    if (!fileUrl) {
+      urlInput.focus();
+      return;
+    }
+
+    form.dataset.submitting = "true";
+    urlInput.disabled = true;
+    typeSelect.disabled = true;
+    submitButton.disabled = true;
+    status.textContent = "Adding attachment...";
+
+    try {
+      const created = await this.data.addAttachment(
+        issueId,
+        fileUrl,
+        typeSelect.value as AttachmentFileType
+      );
+
+      // The POST succeeded, so render its record rather than refetching and
+      // risking a read failure that looks like the attachment was not saved.
+      const attachment: Attachment = {
+        attachmentId: created?.attachmentId ?? 0,
+        issueId: created?.issueId ?? issueId,
+        uploadedById: created?.uploadedById ?? this.loaded.currentUser?.userId ?? 0,
+        fileUrl: created?.fileUrl ?? fileUrl,
+        fileType: created?.fileType ?? (typeSelect.value as AttachmentFileType),
+        uploadedAt: created?.uploadedAt ?? new Date().toISOString(),
+        label: created?.label,
+        style: created?.style
+      };
+
+      if (this.openIssue) {
+        this.openIssue.attachments = [...this.openIssue.attachments, attachment];
+        grid.innerHTML = renderAttachments(this.openIssue.attachments);
+      }
+
+      urlInput.value = "";
+      status.textContent = "Attachment added.";
+    } catch (error) {
+      status.textContent = errorMessage(error, "The attachment could not be added.");
+    } finally {
+      delete form.dataset.submitting;
+      urlInput.disabled = false;
+      typeSelect.disabled = false;
+      submitButton.disabled = false;
+      urlInput.focus();
     }
   }
 
@@ -876,10 +956,18 @@ export class MyIssuesPage {
       if (!(event.target instanceof Element)) {
         return;
       }
-      const form = event.target.closest<HTMLFormElement>('form[data-action="add-comment"]');
-      if (form) {
+      const commentForm = event.target.closest<HTMLFormElement>('form[data-action="add-comment"]');
+      if (commentForm) {
         event.preventDefault();
-        void this.addComment(form);
+        void this.addComment(commentForm);
+        return;
+      }
+      const attachmentForm = event.target.closest<HTMLFormElement>(
+        'form[data-action="add-attachment"]'
+      );
+      if (attachmentForm) {
+        event.preventDefault();
+        void this.addAttachment(attachmentForm);
       }
     });
 

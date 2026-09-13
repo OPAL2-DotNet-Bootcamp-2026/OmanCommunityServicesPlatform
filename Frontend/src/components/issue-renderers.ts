@@ -382,6 +382,9 @@ export function renderLocationBlock(issue: Issue, options: LocationBlockOptions 
 
 export interface AttachmentsBlockOptions {
   label?: string;
+  /** Renders the citizen's "add a link" form under the grid. */
+  allowAdd?: boolean;
+  issueDomId?: string;
 }
 
 export function renderAttachmentsBlock(
@@ -389,6 +392,7 @@ export function renderAttachmentsBlock(
   options: AttachmentsBlockOptions = {}
 ): string {
   const label = options.label ?? "Attachments";
+  const addForm = options.allowAdd ? renderAddAttachmentForm(options.issueDomId ?? "") : "";
 
   return `
       <div class="mt-4">
@@ -396,7 +400,45 @@ export function renderAttachmentsBlock(
         <div data-attachment-grid>
           ${renderAttachments(issue.attachments)}
         </div>
+        ${addForm}
       </div>`;
+}
+
+/**
+ * The backend stores a URL, not a file - there is no upload endpoint - so this
+ * takes a link. POST /attachment/Create is Citizen-only, which is why the form
+ * appears on the citizen modal and not the staff one.
+ */
+function renderAddAttachmentForm(issueDomId: string): string {
+  return `
+        <form class="attachment-composer mt-3" data-action="add-attachment" data-issue-id="${issueDomId}">
+          <label class="form-label small fw-semibold mb-1" for="attachmentUrl-${issueDomId}">
+            Add an attachment link
+          </label>
+          <div class="attachment-composer__row">
+            <input
+              class="form-control"
+              id="attachmentUrl-${issueDomId}"
+              name="fileUrl"
+              type="url"
+              inputmode="url"
+              maxlength="500"
+              placeholder="https://example.com/photo.jpg"
+              required>
+            <label class="visually-hidden" for="attachmentType-${issueDomId}">Attachment type</label>
+            <select class="form-select" id="attachmentType-${issueDomId}" name="fileType">
+              <option value="Image" selected>Image</option>
+              <option value="Document">Document</option>
+            </select>
+            <button class="ocsp-button ocsp-button--submit" type="submit">
+              <i class="bi bi-plus-lg" aria-hidden="true"></i> Add
+            </button>
+          </div>
+          <p class="form-text mb-0">
+            Paste a link to a photo or document that is already online.
+          </p>
+          <p class="small mt-2 mb-0" data-attachment-status aria-live="polite"></p>
+        </form>`;
 }
 
 export interface TimelineBlockOptions {
@@ -513,7 +555,7 @@ export function renderIssueDetailModal(issue: IssueDetail): string {
                 <div class="col-lg-7 pe-lg-4 border-lg-end">
                   ${renderDescriptionBlock(issue)}
                   ${renderLocationBlock(issue)}
-                  ${renderAttachmentsBlock(issue)}
+                  ${renderAttachmentsBlock(issue, { allowAdd: true, issueDomId })}
                   <hr class="my-4">
                   ${renderTimelineBlock(issue, {
                     note: "Detailed status history is available to municipal staff. Your current status is shown on the issue card."

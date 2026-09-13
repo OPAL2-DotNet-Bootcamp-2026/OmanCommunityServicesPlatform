@@ -9,6 +9,7 @@ import type { ApiClient } from "../core/api-client";
 import { asArray, rejectedSections, settledValue } from "../core/settled";
 import type {
   Attachment,
+  AttachmentFileType,
   Category,
   Comment,
   CreateIssueRequest,
@@ -183,6 +184,27 @@ export class DataService {
     } catch {
       return local;
     }
+  }
+
+  /**
+   * Attaches a link to an issue.
+   *
+   * The backend stores a URL string - there is no upload endpoint anywhere in
+   * the API - so an attachment is a link to something already online. The
+   * route is Citizen-only, which is why nothing on the staff dashboard calls
+   * this.
+   */
+  async addAttachment(
+    issueId: number,
+    fileUrl: string,
+    fileType: AttachmentFileType
+  ): Promise<Attachment> {
+    const created = await this.api.post<Attachment>(this.api.endpoints.createAttachment, {
+      issueId: Number(issueId),
+      fileUrl: String(fileUrl).trim(),
+      fileType
+    });
+    return this.normalizeAttachment(created);
   }
 
   addComment(issueId: number, content: string): Promise<Comment> {
