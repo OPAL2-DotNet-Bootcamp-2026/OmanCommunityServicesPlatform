@@ -1,12 +1,11 @@
 /**
- * Member 1 - convert from scripts/config.js (28 lines).
+ * Application configuration.
  *
- * MIGRATION.md has the complete before/after for this file as its worked
- * example. Read it, then delete the throw below and paste your version in.
+ * Precedence: the build-time env var, then a deployment-injected global, then
+ * the http launch profile of the Web API.
  *
- * The one change from the JavaScript: read import.meta.env.VITE_API_BASE_URL
- * first, and fall back to window.OCSP_RUNTIME_CONFIG. The env var is the
- * environment.ts equivalent and is what Angular will use later.
+ * Under Angular this file becomes environments/environment.ts plus an
+ * APP_CONFIG InjectionToken; the shape does not change.
  */
 
 export interface AppRoutes {
@@ -26,8 +25,23 @@ export interface AppConfig {
   readonly routes: AppRoutes;
 }
 
-function notImplemented(): never {
-  throw new Error("config.ts - Member 1 converts this from scripts/config.js");
-}
+const runtime = window.OCSP_RUNTIME_CONFIG ?? {};
 
-export const config: AppConfig = notImplemented();
+const apiBaseUrl = String(
+  import.meta.env.VITE_API_BASE_URL || runtime.apiBaseUrl || "http://localhost:5037"
+).replace(/\/+$/, "");
+
+export const config: AppConfig = Object.freeze({
+  apiBaseUrl,
+  requestTimeoutMs: Number(runtime.requestTimeoutMs) || 12000,
+  locale: "en-OM",
+  timeZone: "Asia/Muscat",
+  sessionStorageKey: "ocsp.session",
+  routes: Object.freeze({
+    anonymousHome: "home.html",
+    login: "login.html",
+    citizenHome: "my-issues.html",
+    staffHome: "dashboard.html",
+    adminHome: "dashboard.html"
+  })
+});

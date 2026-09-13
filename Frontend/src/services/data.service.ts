@@ -1,91 +1,193 @@
 /**
- * Member 3 - convert from scripts/services/data-service.js (170 lines).
+ * The citizen-facing read layer.
  *
- * The citizen-facing read layer. Its defining trait is that it degrades rather
- * than fails: getDashboardData awaits the issues, then uses Promise.allSettled
- * for the lookups so a categories outage does not hide the user's issues. The
- * names of the failed sections come back in warnings[] and the page shows them.
- *
- * Typing notes:
- *   - Promise.allSettled gives PromiseSettledResult<T>, a discriminated union
- *     on .status. Narrow on it; do not cast. The settledValue helper at
- *     data-service.js:20 is where that narrowing belongs.
- *   - normalizeIssue (:39) fills categoryId and regionId by matching names
- *     against the lookup lists, which is why those fields are nullable on the
- *     Issue model.
- *   - statusUpdates is hard-coded to [] on this path (:52). The backend
- *     restricts status history to Staff and Admin. Keep the comment explaining
- *     why - it looks like a bug otherwise.
+ * Its defining trait is that it degrades rather than fails: the issue list is
+ * the essential request, and the lookups around it are allowed to fail
+ * independently. Failed section names come back in warnings[].
  */
 import type { ApiClient } from "../core/api-client";
+import { asArray, rejectedSections, settledValue } from "../core/settled";
 import type {
+  Attachment,
   Category,
+  Comment,
   CreateIssueRequest,
   Issue,
   IssueDetail,
   Notification,
   Rating,
-  Region,
-  Comment
+  Region
 } from "../models";
 import type { SessionService, SessionUser } from "./session.service";
 
-/** What the citizen dashboard needs in one call. data-service.js:81 */
 export interface CitizenDashboardData {
   currentUser: SessionUser | null;
   notifications: Notification[];
   categories: Category[];
   regions: Region[];
   issues: Issue[];
-  /** Names of the sections whose requests failed, e.g. ["categories"]. */
+  /** Names of sections whose requests failed, e.g. ["categories"]. */
   warnings: string[];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 export class DataService {
   constructor(
-    protected readonly api: ApiClient,
-    protected readonly session: SessionService
+    private readonly api: ApiClient,
+    private readonly session: SessionService
   ) {}
 
-  getNotifications(): Promise<Notification[]> {
-    throw new Error("DataService.getNotifications - Member 3, from data-service.js:60");
+  private currentUser(): SessionUser | null {
+    return this.session.getUser();
   }
 
-  getUnreadNotifications(): Promise<Notification[]> {
-    throw new Error("DataService.getUnreadNotifications - Member 3, from data-service.js:64");
+  private normalizeAttachment(attachment: Attachment): Attachment {
+    return { ...attachment, fileUrl: this.api.resolveApiAssetUrl(attachment.fileUrl) };
   }
 
-  markNotificationAsRead(_notificationId: number): Promise<boolean> {
-    throw new Error("DataService.markNotificationAsRead - Member 3, from data-service.js:68");
+  /**
+   * The DTO carries category and region names but not their ids, so they are
+   * resolved here by matching against the lookup lists.
+   */
+  private normalizeIssue(issue: unknown, categories: Category[], regions: Region[]): Issue {
+    const value = (isRecord(issue) ? issue : {}) as Partial<Issue>;
+    const category = categories.find((item) => item.categoryName === value.categoryName);
+    const region = regions.find((item) => item.regionName === value.regionName);
+
+    return {
+      ...(value as Issue),
+      categoryId: value.categoryId ?? category?.categoryId ?? null,
+      regionId: value.regionId ?? region?.regionId ?? null,
+      governorate: value.governorate || region?.governorate || "",
+      attachments: asArray<Attachment>(value.attachments),
+      comments: asArray<Comment>(value.comments),
+      // The backend restricts status history to Staff and Admin. Citizens see
+      // the real currentStatus and reportedDate from the issue DTO instead.
+      statusUpdates: [],
+      rating: value.rating ?? null,
+      ui: value.ui ?? {}
+    };
   }
 
-  updateNotificationReadStatus(_notificationId: number, _isRead: boolean): Promise<boolean> {
-    throw new Error("DataService.updateNotificationReadStatus - Member 3, data-service.js:73");
+  async getNotifications(): Promise<Notification[]> {
+    return asArray<Notification>(
+      await this.api.get<Notification[]>(this.api.endpoints.myNotifications)
+    );
   }
 
-  getDashboardData(): Promise<CitizenDashboardData> {
-    throw new Error("DataService.getDashboardData - Member 3, from data-service.js:81");
+  async getUnreadNotifications(): Promise<Notification[]> {
+    return asArray<Notification>(
+      await this.api.get<Notification[]>(this.api.endpoints.unreadNotifications)
+    );
   }
 
-  getIssueDetails(_issueId: number): Promise<IssueDetail> {
-    throw new Error("DataService.getIssueDetails - Member 3, from data-service.js:104");
+  async markNotificationAsRead(notificationId: number): Promise<boolean> {
+    await this.api.patch(this.api.endpoints.markNotificationRead(notificationId));
+    return true;
   }
 
-  createIssue(_payload: CreateIssueRequest): Promise<Issue> {
-    throw new Error("DataService.createIssue - Member 3, from data-service.js:129");
+  async updateNotificationReadStatus(notificationId: number, isRead: boolean): Promise<boolean> {
+    await this.api.patch(this.api.endpoints.updateNotificationReadStatus(notificationId), {
+      isRead: Boolean(isRead)
+    });
+    return true;
   }
 
-  addComment(_issueId: number, _content: string): Promise<Comment> {
-    throw new Error("DataService.addComment - Member 3, from data-service.js:138");
+  async getDashboardData(): Promise<CitizenDashboardData> {
+    const issues = asArray<Issue>(await this.api.get<Issue[]>(this.api.endpoints.myIssues));
+
+    const results = await Promise.allSettled([
+      this.api.get<Category[]>(this.api.endpoints.categories),
+      this.api.get<Region[]>(this.api.endpoints.regions),
+      this.api.get<Notification[]>(this.api.endpoints.myNotifications)
+    ]);
+
+    const categories = asArray<Category>(settledValue(results[0], []));
+    const regions = asArray<Region>(settledValue(results[1], []));
+    const notifications = asArray<Notification>(settledValue(results[2], []));
+
+    return {
+      currentUser: this.currentUser(),
+      notifications,
+      categories,
+      regions,
+      issues: issues.map((issue) => this.normalizeIssue(issue, categories, regions)),
+      warnings: rejectedSections(results, ["categories", "regions", "notifications"])
+    };
   }
 
-  /** ratingId null means create, otherwise update. data-service.js:145 */
-  saveRating(
-    _ratingId: number | null,
-    _issueId: number,
-    _score: number,
-    _feedback: string | null
+  async getIssueDetails(issueId: number): Promise<IssueDetail> {
+    const issue = await this.api.get<Issue>(this.api.endpoints.issueById(issueId));
+
+    const results = await Promise.allSettled([
+      this.api.get<Comment[]>(this.api.endpoints.commentsByIssue(issueId)),
+      this.api.get<Attachment[]>(this.api.endpoints.attachmentsByIssue(issueId)),
+      this.api.get<Rating[]>(this.api.endpoints.ratingsByIssue(issueId))
+    ]);
+
+    const ratings = asArray<Rating>(settledValue(results[2], []));
+    const userId = Number(this.currentUser()?.userId);
+    const ownRating = ratings.find((rating) => Number(rating.userId) === userId) ?? null;
+
+    return {
+      ...this.normalizeIssue(issue, [], []),
+      comments: asArray<Comment>(settledValue(results[0], [])),
+      attachments: asArray<Attachment>(settledValue(results[1], [])).map((attachment) =>
+        this.normalizeAttachment(attachment)
+      ),
+      rating: ownRating,
+      warnings: rejectedSections(results, ["comments", "attachments", "ratings"])
+    };
+  }
+
+  async createIssue(payload: CreateIssueRequest): Promise<Issue> {
+    const issue = await this.api.post<Issue>(this.api.endpoints.createIssue, payload);
+    return this.normalizeIssue(
+      {
+        ...issue,
+        categoryId: Number(payload.categoryId) || null,
+        regionId: Number(payload.regionId) || null
+      },
+      [],
+      []
+    );
+  }
+
+  addComment(issueId: number, content: string): Promise<Comment> {
+    return this.api.post<Comment>(this.api.endpoints.createComment, {
+      issueId: Number(issueId),
+      content: String(content ?? "").trim()
+    });
+  }
+
+  /** ratingId null creates, otherwise updates. */
+  async saveRating(
+    ratingId: number | null,
+    issueId: number,
+    score: number,
+    feedback: string | null
   ): Promise<Rating> {
-    throw new Error("DataService.saveRating - Member 3, from data-service.js:145");
+    const payload = {
+      score: Number(score),
+      feedback: String(feedback ?? "").trim() || null
+    };
+
+    const response = ratingId
+      ? await this.api.put<Rating | { rating: Rating }>(
+          this.api.endpoints.updateRating(ratingId),
+          payload
+        )
+      : await this.api.post<Rating | { rating: Rating }>(this.api.endpoints.createRating, {
+          issueId: Number(issueId),
+          ...payload
+        });
+
+    // Create returns the rating directly; update wraps it in { rating }.
+    return isRecord(response) && "rating" in response
+      ? (response as { rating: Rating }).rating
+      : (response as Rating);
   }
 }

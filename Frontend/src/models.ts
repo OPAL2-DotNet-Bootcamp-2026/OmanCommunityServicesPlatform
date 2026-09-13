@@ -2,16 +2,12 @@
  * TypeScript mirrors of the backend contract, hand-written from
  * OmanCommunityServicesPlatform/OmanCommunityServicesPlatform/DTOs/*.cs.
  *
- * MEMBER 1 OWNS THIS FILE. Everyone else only reads from it.
- *
- * Region is finished as the worked example. The rest carry their DTO field
- * list as a comment and one starter field; filling them in is your task.
- *
- * Three translation rules, all visible in Region below:
- *   1. C# "string?" and "int?" become "| null", NOT "?:". The API sends the key
- *      with a null value, it does not omit the key. "?:" is a different claim.
+ * Three translation rules used throughout:
+ *   1. C# "string?" and "int?" become "| null", not "?:". The API sends the key
+ *      with a null value, it does not omit the key.
  *   2. "DateTime" becomes "string" - it arrives as ISO-8601 in JSON.
- *   3. C# enums become the string unions in enums.ts.
+ *   3. C# enums become the string unions in enums.ts, because the backend
+ *      stores and serialises them as strings (StoreEnumsAsStrings migration).
  */
 import type {
   AttachmentFileType,
@@ -26,219 +22,242 @@ import type {
 //   import type { Issue, IssueStatus } from "../models";
 export type * from "./enums";
 
-/* ---------- Region - WORKED EXAMPLE, finished ---------- */
+/* ---------- Region ---------- */
 
-/** RegionResponseDto */
 export interface Region {
   regionId: number;
   regionName: string;
   governorate: Governorate;
 }
 
-/** CreateRegionDto / UpdateRegionDto - same shape. */
 export interface RegionRequest {
   regionName: string;
   governorate: Governorate;
 }
 
-/* ---------- User ----------
- * UserResponseDto   userId int, name string, email string, phoneNumber string?,
- *                   role UserRole, regionId int?, departmentId int?,
- *                   registrationDate DateTime, isActive bool
- * LoginResponseDto  Token string, userId int, name string, role UserRole
- *                   NOTE the capital T. session-service.js:138 accepts both
- *                   spellings; keep that tolerance.
- * LoginDto          email string, password string
- * RegisterUserDto   name, email, password string, phoneNumber string?,
- *                   regionId int?
- */
+/* ---------- User ---------- */
 
 export interface User {
   userId: number;
+  name: string;
+  email: string;
+  phoneNumber: string | null;
   role: UserRole;
-  // TODO(Member 1): the remaining UserResponseDto fields.
+  regionId: number | null;
+  departmentId: number | null;
+  registrationDate: string;
+  isActive: boolean;
 }
 
 export interface LoginRequest {
   email: string;
-  // TODO(Member 1)
+  password: string;
 }
 
+/**
+ * LoginResponseDto. The backend spells the token with a capital T; the session
+ * service accepts either casing, so both are optional here and it picks.
+ */
 export interface LoginResponse {
-  token: string;
-  // TODO(Member 1)
+  Token?: string;
+  token?: string;
+  userId: number;
+  name: string;
+  role: UserRole;
+  email?: string;
+  phoneNumber?: string | null;
+  regionId?: number | null;
+  departmentId?: number | null;
+  departmentName?: string | null;
+  isActive?: boolean;
 }
 
 export interface RegisterRequest {
   name: string;
-  // TODO(Member 1)
+  email: string;
+  password: string;
+  phoneNumber: string | null;
+  regionId: number | null;
 }
 
-/* ---------- Issue ----------
- * IssueResponseDto      issueId int, title string, description string,
- *                       location string, latitude decimal?, longitude decimal?,
- *                       priority IssuePriority, currentStatus IssueStatus,
- *                       reportedDate DateTime, reportedById int,
- *                       categoryName string, regionName string,
- *                       assignedDepartmentName string?
- * CreateIssueDto        title, description, location string, latitude decimal?,
- *                       longitude decimal?, priority IssuePriority,
- *                       categoryId int, regionId int
- * ChangeIssueStatusDto  newStatus IssueStatus, notes string?
- *
- * Two things the DTO does not tell you, both from data-service.js:39 - the
- * frontend decorates an issue after fetching it:
- *   - categoryId, regionId and governorate are resolved client-side by matching
- *     categoryName and regionName against the lookup lists, so they are
- *     nullable here.
- *   - attachments, comments, statusUpdates, rating and a ui bag are attached by
- *     the data service. That is IssueDetail below, not optional fields on Issue.
- *
- * "decimal?" becomes "number | null" - JavaScript has no decimal type.
- */
+/* ---------- Issue ---------- */
 
+/**
+ * Presentation-only fields the pages attach to an issue. Never sent by the API;
+ * the renderers read them to decide imagery and "new update" badges.
+ */
+export interface IssueUi {
+  imageUrl?: string;
+  imageAlt?: string;
+  imageStyle?: string;
+  previewLabel?: string;
+  hasFreshUpdate?: boolean;
+  updateTitle?: string;
+  updateMessage?: string;
+  mapAreaName?: string;
+  mapVariant?: string;
+}
+
+/**
+ * IssueResponseDto, plus the fields the data service resolves client-side.
+ *
+ * categoryId, regionId and governorate are not on the DTO - the data service
+ * fills them by matching categoryName and regionName against the lookup lists,
+ * which is why they are nullable.
+ */
 export interface Issue {
   issueId: number;
   title: string;
-  currentStatus: IssueStatus;
+  description: string;
+  location: string;
+  latitude: number | null;
+  longitude: number | null;
   priority: IssuePriority;
-  // TODO(Member 1): the remaining IssueResponseDto fields.
+  currentStatus: IssueStatus;
+  reportedDate: string;
+  reportedById: number;
+  categoryName: string;
+  regionName: string;
+  assignedDepartmentName: string | null;
+
+  categoryId: number | null;
+  regionId: number | null;
+  governorate: Governorate | "";
+
+  attachments: Attachment[];
+  comments: Comment[];
+  statusUpdates: StatusUpdate[];
+  rating: Rating | null;
+  ui: IssueUi;
 }
 
-/** Issue plus the sections the data service attaches after fetching. */
+/** An issue whose optional sections have been loaded, with any partial failures. */
 export interface IssueDetail extends Issue {
-  // TODO(Member 1): attachments, comments, statusUpdates, rating, ui
-  warnings?: string[];
+  warnings: string[];
 }
 
 export interface CreateIssueRequest {
   title: string;
-  // TODO(Member 1)
+  description: string;
+  location: string;
+  latitude: number | null;
+  longitude: number | null;
+  priority: IssuePriority;
+  categoryId: number;
+  regionId: number;
 }
 
 export interface ChangeIssueStatusRequest {
   newStatus: IssueStatus;
-  // TODO(Member 1)
+  notes: string | null;
 }
 
-/* ---------- Category ----------
- * ResponseCategoryDTO  categoryId int, categoryName string, description string?,
- *                      departmentId int, departmentName string?, issueCount int
- * CreateCategoryDTO    categoryName string, description string?, departmentId int
- */
+/* ---------- Category ---------- */
 
 export interface Category {
   categoryId: number;
   categoryName: string;
-  // TODO(Member 1)
+  description: string | null;
+  departmentId: number;
+  departmentName: string | null;
+  issueCount: number;
 }
 
 export interface CategoryRequest {
   categoryName: string;
-  // TODO(Member 1)
+  description: string | null;
+  departmentId: number;
 }
 
-/* ---------- Department ----------
- * ResponseDepartmentDTO  departmentId int, departmentName string,
- *                        description string?, contactEmail string,
- *                        regionId int?, regionName string?, categoryCount int,
- *                        issueCount int, userCount int
- * CreateDepartmentDTO    departmentName string, description string?,
- *                        contactEmail string, regionId int?
- */
+/* ---------- Department ---------- */
 
 export interface Department {
   departmentId: number;
   departmentName: string;
-  // TODO(Member 1)
+  description: string | null;
+  contactEmail: string;
+  regionId: number | null;
+  regionName: string | null;
+  categoryCount: number;
+  issueCount: number;
+  userCount: number;
 }
 
 export interface DepartmentRequest {
   departmentName: string;
-  // TODO(Member 1)
+  description: string | null;
+  contactEmail: string;
+  regionId: number | null;
 }
 
-/* ---------- Comment ----------
- * CommentResponseDto  commentId int, issueId int, userId int, userName string?,
- *                     content string, isStaffComment bool, commentDate DateTime
- * CreateCommentDto    issueId int, content string
- */
+/* ---------- Comment ---------- */
 
 export interface Comment {
   commentId: number;
+  issueId: number;
+  userId: number;
+  userName: string | null;
   content: string;
-  // TODO(Member 1)
+  isStaffComment: boolean;
+  commentDate: string;
 }
 
 export interface CreateCommentRequest {
   issueId: number;
-  // TODO(Member 1)
+  content: string;
 }
 
-/* ---------- Attachment ----------
- * AttachmentResponseDto  attachmentId int, issueId int, uploadedById int,
- *                        fileUrl string, fileType AttachmentFileType,
- *                        uploadedAt DateTime
- *
- * data-service.js:28 rewrites fileUrl through resolveApiAssetUrl before it
- * reaches a renderer, so a component always sees an absolute URL. The type does
- * not change - that is a comment, not a second interface.
- */
+/* ---------- Attachment ---------- */
 
 export interface Attachment {
   attachmentId: number;
+  issueId: number;
+  uploadedById: number;
   fileUrl: string;
   fileType: AttachmentFileType;
-  // TODO(Member 1)
+  uploadedAt: string;
+  /** Presentation labels the services attach; never sent by the API. */
+  label?: string;
+  style?: string;
 }
 
-/* ---------- Rating ----------
- * ResponseRatingDto  ratingId int, issueId int, userId int, score int,
- *                    feedback string?, ratedAt DateTime
- * CreateRatingDto    issueId int, score int (1-5), feedback string?
- *
- * The backend validates score as 1-5. You could model it as 1 | 2 | 3 | 4 | 5
- * instead of number. Try it and see whether it makes the rating code in
- * my-issues nicer or more annoying - either answer is defensible, knowing why
- * is the point.
- */
+/* ---------- Rating ---------- */
 
 export interface Rating {
   ratingId: number;
+  issueId: number;
+  userId: number;
   score: number;
-  // TODO(Member 1)
+  feedback: string | null;
+  ratedAt: string;
 }
 
 export interface CreateRatingRequest {
   issueId: number;
-  // TODO(Member 1)
+  score: number;
+  feedback: string | null;
 }
 
-/* ---------- Notification ----------
- * NotificationResponseDto  notificationId int, userId int, issueId int?,
- *                          message string, type NotificationType, isRead bool,
- *                          createdAt DateTime
- */
+/* ---------- Notification ---------- */
 
 export interface Notification {
   notificationId: number;
+  userId: number;
+  issueId: number | null;
   message: string;
   type: NotificationType;
   isRead: boolean;
-  // TODO(Member 1)
+  createdAt: string;
 }
 
-/* ---------- StatusUpdate ----------
- * StatusUpdateResponseDto  statusUpdateId int, issueId int, updatedById int,
- *                          previousStatus IssueStatus, newStatus IssueStatus,
- *                          notes string?, updatedAt DateTime
- *
- * Citizens never receive these - the backend restricts status history to Staff
- * and Admin, which is why data-service.js:52 hard-codes statusUpdates to [].
- */
+/* ---------- StatusUpdate ---------- */
 
 export interface StatusUpdate {
   statusUpdateId: number;
+  issueId: number;
+  updatedById: number;
+  previousStatus: IssueStatus;
   newStatus: IssueStatus;
-  // TODO(Member 1)
+  notes: string | null;
+  updatedAt: string;
 }

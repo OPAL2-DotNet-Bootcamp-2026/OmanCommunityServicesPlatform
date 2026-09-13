@@ -1,37 +1,16 @@
 /**
- * Member 2 - convert from scripts/services/session-service.js (332 lines).
+ * Session state: the JWT, the signed-in user, role checks, and the redirect
+ * rules that keep a role off a page it may not see.
  *
- * Convert this FIRST and commit it on its own: Members 1, 3 and 4 all import
- * it. It is the smallest slice by line count and the hardest by type
- * difficulty, which is why it is yours.
- *
- * The three interesting problems:
- *
- * 1. normalizeRole (session-service.js:18) takes anything and returns a closed
- *    set. Its return type is SessionRole - UserRole plus "" - not string. That
- *    union is what makes hasRole and roleHome checkable, so get it right here
- *    and three other files benefit.
- *
- * 2. decodeJwtPayload (:49) base64-decodes an untrusted string and JSON.parses
- *    it. The result is unknown, not an object. You have to narrow before
- *    reading .exp - this is the clearest example in the codebase of why
- *    unknown beats any.
- *
- * 3. getStorage (:41) returns null when sessionStorage throws, which it does in
- *    private mode and with site data blocked. Every caller already handles the
- *    null; keep the fallback to the in-memory session rather than typing the
- *    problem away with a non-null assertion.
- *
- * Also preserve the module-level side effects at the bottom of the JS: the
- * ocsp:authorization-error listener that clears on 401, and the restore() call
- * on load. In a class those belong in the constructor.
+ * Under Angular the role checks become a CanActivate guard and the
+ * authorization-error listener becomes an HttpInterceptor.
  */
-import type { ApiClient } from "../core/api-client";
+import type { ApiClient, AuthorizationErrorDetail } from "../core/api-client";
 import type { AppConfig } from "../core/config";
-import type { SessionRole, User } from "../models";
+import type { LoginResponse, SessionRole, User } from "../models";
 
-/** The session's own view of a user - normalizeUser() at session-service.js:26. */
-export interface SessionUser extends User {
+/** The session's own view of a user: the DTO plus the department name. */
+export interface SessionUser extends Omit<User, "registrationDate"> {
   departmentName: string | null;
 }
 
@@ -47,78 +26,349 @@ export interface Flash {
   email: string;
 }
 
-export class SessionService {
-  constructor(
-    protected readonly config: AppConfig,
-    protected readonly api: ApiClient
-  ) {}
+/**
+ * Which roles may view which page. An empty array means "any role, including
+ * signed out". A page absent from this map is never a valid redirect target.
+ */
+const ALLOWED_PAGE_ROLES: Record<string, SessionRole[]> = {
+  "home.html": [],
+  "my-issues.html": ["Citizen"],
+  "dashboard.html": ["Staff", "Admin"],
+  "notifications.html": ["Citizen", "Staff", "Admin"]
+};
 
-  /** Throws if the login response carries no token or no valid profile. :136 */
-  start(_loginResult: unknown): Session {
-    throw new Error("SessionService.start - Member 2, from session-service.js:136");
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function currentPageName(): string {
+  return (window.location.pathname.split("/").pop() ?? "").toLowerCase();
+}
+
+export class SessionService {
+  private memorySession: Session | null = null;
+  private memoryFlash: Flash | null = null;
+  private readonly storageKey: string;
+  private readonly flashStorageKey: string;
+
+  constructor(
+    private readonly config: AppConfig,
+    private readonly api: ApiClient
+  ) {
+    this.storageKey = config.sessionStorageKey || "ocsp.session";
+    this.flashStorageKey = `${this.storageKey}.flash`;
+
+    // A 401 means the stored token is no longer usable. Clear it once and send
+    // the user back through login, preserving where they were heading.
+    window.addEventListener("ocsp:authorization-error", (event) => {
+      const detail = (event as CustomEvent<AuthorizationErrorDetail>).detail;
+      if (!detail || detail.status !== 401) {
+        return;
+      }
+      this.clear("unauthorized");
+      if (!["login.html", "register.html"].includes(currentPageName())) {
+        window.location.replace(this.loginUrl(this.currentReturnTo()));
+      }
+    });
+
+    this.restore();
+  }
+
+  normalizeRole(value: unknown): SessionRole {
+    const role = String(value ?? "")
+      .trim()
+      .toLowerCase();
+    if (role === "admin") return "Admin";
+    if (role === "staff") return "Staff";
+    if (role === "citizen") return "Citizen";
+    return "";
+  }
+
+  private normalizeUser(value: unknown): SessionUser {
+    const user: Record<string, unknown> = isRecord(value) ? value : {};
+    return {
+      userId: Number(user.userId) || 0,
+      name: String(user.name ?? "User").trim() || "User",
+      email: String(user.email ?? "").trim(),
+      phoneNumber: typeof user.phoneNumber === "string" ? user.phoneNumber : null,
+      role: this.normalizeRole(user.role) as SessionUser["role"],
+      regionId: Number(user.regionId) || null,
+      departmentId: Number(user.departmentId) || null,
+      departmentName: typeof user.departmentName === "string" ? user.departmentName : null,
+      isActive: user.isActive !== false
+    };
+  }
+
+  /** Returns null when storage is unavailable - private mode, blocked site data. */
+  private getStorage(): Storage | null {
+    try {
+      return window.sessionStorage;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * The payload of an untrusted token, so the result is unknown and every
+   * caller has to narrow before reading it.
+   */
+  private decodeJwtPayload(token: string): unknown {
+    if (!token) {
+      return null;
+    }
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      return null;
+    }
+    try {
+      const base64 = (parts[1] ?? "").replace(/-/g, "+").replace(/_/g, "/");
+      const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+      return JSON.parse(window.atob(padded));
+    } catch {
+      return null;
+    }
+  }
+
+  private isExpired(token: string): boolean {
+    const payload = this.decodeJwtPayload(token);
+    if (!isRecord(payload) || typeof payload.exp !== "number") {
+      return true;
+    }
+    return payload.exp * 1000 <= Date.now();
+  }
+
+  private persist(session: Session): void {
+    this.memorySession = session;
+    const storage = this.getStorage();
+    if (!storage) {
+      return;
+    }
+    try {
+      storage.setItem(this.storageKey, JSON.stringify(session));
+    } catch {
+      // The in-memory fallback keeps the current page working.
+    }
+  }
+
+  private removePersistedSession(): void {
+    this.memorySession = null;
+    const storage = this.getStorage();
+    if (!storage) {
+      return;
+    }
+    try {
+      storage.removeItem(this.storageKey);
+    } catch {
+      // Clearing the in-memory token is sufficient for this page.
+    }
+  }
+
+  private readPersistedSession(): Session | null {
+    const storage = this.getStorage();
+    if (storage) {
+      try {
+        const value = storage.getItem(this.storageKey);
+        if (value) {
+          this.memorySession = JSON.parse(value) as Session;
+        }
+      } catch {
+        this.removePersistedSession();
+      }
+    }
+
+    if (!this.memorySession) {
+      return null;
+    }
+
+    if (!this.memorySession.token || this.isExpired(this.memorySession.token)) {
+      this.clear("expired");
+      return null;
+    }
+
+    return {
+      ...this.memorySession,
+      user: this.normalizeUser(this.memorySession.user)
+    };
+  }
+
+  private announce(name: string, detail: unknown): void {
+    window.dispatchEvent(new CustomEvent(name, { detail }));
+  }
+
+  /** Throws if the sign-in response carries no token or no usable profile. */
+  start(loginResult: LoginResponse): Session {
+    const result: Record<string, unknown> = isRecord(loginResult) ? loginResult : {};
+    const token = String(result.token ?? result.Token ?? "").trim();
+    if (!token) {
+      throw new Error("The sign-in response did not include an access token.");
+    }
+
+    const user = this.normalizeUser(isRecord(result.user) ? result.user : result);
+    if (!user.userId || !user.role) {
+      throw new Error("The sign-in response did not include a valid user profile.");
+    }
+
+    const session: Session = { token, user, startedAt: new Date().toISOString() };
+    this.persist(session);
+    this.api.setAccessToken(token);
+    this.announce("ocsp:session-changed", { session });
+    return session;
   }
 
   getSession(): Session | null {
-    throw new Error("SessionService.getSession - Member 2, from session-service.js:163");
+    return this.readPersistedSession();
   }
 
   getUser(): SessionUser | null {
-    throw new Error("SessionService.getUser - Member 2, from session-service.js:167");
+    return this.getSession()?.user ?? null;
   }
 
+  /** Re-arms the API client with the stored token after a page navigation. */
   restore(): Session | null {
-    throw new Error("SessionService.restore - Member 2, from session-service.js:172");
+    const session = this.getSession();
+    this.api.setAccessToken(session ? session.token : "");
+    return session;
   }
 
-  clear(_reason?: string): void {
-    throw new Error("SessionService.clear - Member 2, from session-service.js:180");
+  clear(reason = "logout"): void {
+    this.removePersistedSession();
+    this.api.clearAccessToken();
+    this.announce("ocsp:session-changed", { session: null, reason });
   }
 
-  /** Alias of clear(), kept because the pages call both names. */
-  clearSession(_reason?: string): void {
-    throw new Error("SessionService.clearSession - Member 2, alias of clear()");
+  /** Alias of clear(), kept because both names are called across the pages. */
+  clearSession(reason = "logout"): void {
+    this.clear(reason);
   }
 
   isAuthenticated(): boolean {
-    throw new Error("SessionService.isAuthenticated - Member 2, from session-service.js:313");
+    return Boolean(this.getSession());
   }
 
-  /** Accepts one role or a list. hasAnyRole is the same function. :188 */
-  hasRole(_allowedRoles: SessionRole | SessionRole[]): boolean {
-    throw new Error("SessionService.hasRole - Member 2, from session-service.js:188");
+  hasRole(allowedRoles: SessionRole | SessionRole[]): boolean {
+    const user = this.getUser();
+    if (!user) {
+      return false;
+    }
+    const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+    return roles.map((role) => this.normalizeRole(role)).includes(user.role);
   }
 
-  hasAnyRole(_allowedRoles: SessionRole | SessionRole[]): boolean {
-    throw new Error("SessionService.hasAnyRole - Member 2, alias of hasRole()");
+  /** Alias of hasRole(). */
+  hasAnyRole(allowedRoles: SessionRole | SessionRole[]): boolean {
+    return this.hasRole(allowedRoles);
   }
 
-  roleHome(_role: SessionRole): string {
-    throw new Error("SessionService.roleHome - Member 2, from session-service.js:194");
+  roleHome(role: SessionRole): string {
+    const routes = this.config.routes;
+    const normalized = this.normalizeRole(role);
+    if (normalized === "Admin") return routes.adminHome || "dashboard.html";
+    if (normalized === "Staff") return routes.staffHome || "dashboard.html";
+    return routes.citizenHome || "my-issues.html";
   }
 
-  /** Rejects off-site and role-inappropriate redirect targets. :201 */
-  safeReturnTo(_value: string | null, _role?: SessionRole): string {
-    throw new Error("SessionService.safeReturnTo - Member 2, from session-service.js:201");
+  /**
+   * Validates a redirect target. Rejects anything off-origin, protocol-relative,
+   * scheme-bearing, backslash-containing, over-long, unknown to the page map, or
+   * not permitted for the given role. Returns "" when rejected.
+   */
+  safeReturnTo(value: string | null | undefined, role?: SessionRole): string {
+    const rawValue = String(value ?? "").trim();
+    if (
+      !rawValue ||
+      rawValue.length > 600 ||
+      rawValue.includes("\\") ||
+      rawValue.startsWith("//") ||
+      /^[a-z][a-z\d+.-]*:/i.test(rawValue)
+    ) {
+      return "";
+    }
+
+    try {
+      const url = new URL(rawValue, window.location.href);
+      const pageName = (url.pathname.split("/").pop() ?? "").toLowerCase();
+      const allowedRoles = ALLOWED_PAGE_ROLES[pageName];
+      if (url.origin !== window.location.origin || !allowedRoles) {
+        return "";
+      }
+
+      const normalizedRole = this.normalizeRole(role);
+      if (normalizedRole && allowedRoles.length && !allowedRoles.includes(normalizedRole)) {
+        return "";
+      }
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return "";
+    }
   }
 
-  loginUrl(_returnTo?: string | null): string {
-    throw new Error("SessionService.loginUrl - Member 2, from session-service.js:272");
+  private currentReturnTo(): string {
+    return this.safeReturnTo(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`
+    );
   }
 
-  /** Redirects and returns null when there is no session or the role is wrong. :282 */
-  requireSession(_allowedRoles?: SessionRole | SessionRole[]): Session | null {
-    throw new Error("SessionService.requireSession - Member 2, from session-service.js:282");
+  loginUrl(returnTo?: string | null): string {
+    const url = new URL(this.config.routes.login || "login.html", window.location.href);
+    const safeTarget = this.safeReturnTo(returnTo);
+    if (safeTarget) {
+      url.searchParams.set("returnTo", safeTarget);
+    }
+    return `${url.pathname}${url.search}${url.hash}`;
   }
 
-  setFlash(_value: Partial<Flash> | null): void {
-    throw new Error("SessionService.setFlash - Member 2, from session-service.js:235");
+  /** Redirects and returns null when there is no session, or the role is wrong. */
+  requireSession(allowedRoles?: SessionRole | SessionRole[]): Session | null {
+    const session = this.getSession();
+    if (!session) {
+      window.location.replace(this.loginUrl(this.currentReturnTo()));
+      return null;
+    }
+
+    if (allowedRoles && !this.hasRole(allowedRoles)) {
+      window.location.replace(this.roleHome(session.user.role));
+      return null;
+    }
+
+    return session;
   }
 
+  setFlash(value: Partial<Flash> | null): void {
+    const flash: Flash | null = isRecord(value)
+      ? {
+          message: String(value.message ?? "").trim(),
+          tone: String(value.tone ?? "info").trim(),
+          email: String(value.email ?? "").trim()
+        }
+      : null;
+
+    this.memoryFlash = flash;
+    const storage = this.getStorage();
+    if (storage && flash) {
+      try {
+        storage.setItem(this.flashStorageKey, JSON.stringify(flash));
+      } catch {
+        // In-memory is enough to survive navigation within this document.
+      }
+    }
+  }
+
+  /** Reads and removes the pending flash message. */
   consumeFlash(): Flash | null {
-    throw new Error("SessionService.consumeFlash - Member 2, from session-service.js:254");
-  }
-
-  normalizeRole(_value: unknown): SessionRole {
-    throw new Error("SessionService.normalizeRole - Member 2, from session-service.js:18");
+    const storage = this.getStorage();
+    if (storage) {
+      try {
+        const stored = storage.getItem(this.flashStorageKey);
+        if (stored) {
+          this.memoryFlash = JSON.parse(stored) as Flash;
+        }
+        storage.removeItem(this.flashStorageKey);
+      } catch {
+        // Fall back to the in-memory value.
+      }
+    }
+    const flash = this.memoryFlash;
+    this.memoryFlash = null;
+    return flash;
   }
 }

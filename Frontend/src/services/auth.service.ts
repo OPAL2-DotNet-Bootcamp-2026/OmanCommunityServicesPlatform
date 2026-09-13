@@ -1,37 +1,60 @@
 /**
- * Member 2 - convert from scripts/services/auth-service.js (48 lines).
- *
- * The smallest service, and a good one to do straight after session.service.ts
- * because it shows the constructor-injection pattern with two dependencies and
- * almost no logic in between.
- *
- * Two things to keep:
- *   - both calls pass auth: false and announceAuthorizationError: false. A 401
- *     from login means "wrong password", not "session expired", and must not
- *     trigger the global sign-out listener.
- *   - register() deliberately sends regionId: null. The backend guards its
- *     region lookup, and RegisterUserDto allows null for anonymous sign-up.
+ * Sign-in and registration. Authentication is API-only; the returned JWT is
+ * persisted by SessionService and attached to later protected requests.
  */
 import type { ApiClient } from "../core/api-client";
-import type { LoginRequest, RegisterRequest, User } from "../models";
+import type { LoginRequest, LoginResponse, RegisterRequest, User } from "../models";
 import type { Session, SessionService } from "./session.service";
+
+function normalizeEmail(value: string | null | undefined): string {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
+}
 
 export class AuthService {
   constructor(
-    protected readonly api: ApiClient,
-    protected readonly session: SessionService
+    private readonly api: ApiClient,
+    private readonly session: SessionService
   ) {}
 
-  /** Posts credentials, then hands the response to SessionService.start(). */
-  login(_credentials: LoginRequest): Promise<Session> {
-    throw new Error("AuthService.login - Member 2, from auth-service.js:16");
+  /**
+   * auth:false and announceAuthorizationError:false are deliberate - a 401 here
+   * means "wrong password", not "session expired", and must not trigger the
+   * global sign-out listener.
+   */
+  async login(credentials: LoginRequest): Promise<Session> {
+    const response = await this.api.post<LoginResponse>(
+      this.api.endpoints.login,
+      {
+        email: normalizeEmail(credentials.email),
+        password: String(credentials.password ?? "")
+      },
+      { auth: false, announceAuthorizationError: false }
+    );
+
+    return this.session.start(response);
   }
 
-  register(_payload: RegisterRequest): Promise<User> {
-    throw new Error("AuthService.register - Member 2, from auth-service.js:29");
+  /**
+   * regionId is intentionally null: the backend protects its region lookup, and
+   * RegisterUserDto allows a null region for anonymous sign-up.
+   */
+  register(payload: RegisterRequest): Promise<User> {
+    return this.api.post<User>(
+      this.api.endpoints.register,
+      {
+        name: String(payload.name ?? "").trim(),
+        email: normalizeEmail(payload.email),
+        password: String(payload.password ?? ""),
+        phoneNumber: String(payload.phoneNumber ?? "").trim() || null,
+        regionId: null
+      },
+      { auth: false, announceAuthorizationError: false }
+    );
   }
 
   logout(): void {
-    throw new Error("AuthService.logout - Member 2, from auth-service.js:44");
+    this.session.clear("logout");
   }
 }
