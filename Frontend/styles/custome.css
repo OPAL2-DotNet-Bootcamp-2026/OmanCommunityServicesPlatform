@@ -5730,13 +5730,15 @@ body.ocsp-portal .comment-composer .form-control {
 
 [data-nav-auth],
 [data-role-visible],
-[data-nav-roles] {
+[data-nav-roles],
+[data-role-hidden] {
   visibility: hidden;
 }
 
 body.ocsp-session-ready [data-nav-auth],
 body.ocsp-session-ready [data-role-visible],
-body.ocsp-session-ready [data-nav-roles] {
+body.ocsp-session-ready [data-nav-roles],
+body.ocsp-session-ready [data-role-hidden] {
   visibility: visible;
 }
 
@@ -5905,5 +5907,69 @@ body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).modal.fade.show .m
     6% { --ocsp-fade-top: 22px; }
     94% { --ocsp-fade-bottom: 22px; }
     100% { --ocsp-fade-top: 22px; --ocsp-fade-bottom: 0px; }
+  }
+}
+
+/* ==========================================================================
+   Create-issue floating action
+
+   Fixed to the corner rather than sitting in the toolbar, because the moment
+   someone decides to report something is while they are reading their list,
+   not when they are back at the top of the page.
+   ========================================================================== */
+
+.issues-fab {
+  --ocsp-fab-size: 56px;
+  --ocsp-fab-inset: 1.25rem;
+  position: fixed;
+  z-index: 1065;
+  inset-inline-end: max(var(--ocsp-fab-inset),env(safe-area-inset-right));
+  inset-block-end: max(var(--ocsp-fab-inset),env(safe-area-inset-bottom));
+  width: var(--ocsp-fab-size);
+  min-width: var(--ocsp-fab-size);
+  height: var(--ocsp-fab-size);
+  min-height: var(--ocsp-fab-size);
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  /* It floats above the page rather than resting on it, so the shadow is
+     deeper than a button in the flow. */
+  box-shadow: 0 10px 26px rgba(30,58,138,0.3),0 2px 6px rgba(15,23,42,0.14);
+}
+
+/* The plus and the close mark are the same glyph forty-five degrees apart, so
+   the control turns into its own dismiss rather than being swapped for a
+   different icon. A transition, not an animation: closing mid-open reverses
+   from wherever the icon currently is. */
+.issues-fab i {
+  display: block;
+  transition: transform 240ms var(--ocsp-motion-ease-out);
+}
+
+body:has(#createIssueModal.show) .issues-fab i,
+body:has(#createIssueModal:target) .issues-fab i {
+  transform: rotate(45deg);
+}
+
+/* z-index 1065 keeps it above the dialog it opens - that is the point, it has
+   to stay reachable to close it. Every other dialog on the page would just be
+   obscured by it, so it steps out of the way for those. */
+body.ocsp-portal:has(.issue-detail-modal.show) .issues-fab,
+body.ocsp-portal:has(.issue-filter-drawer.show) .issues-fab {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Toasts appear in the same corner. Lift the stack clear of the button rather
+   than letting a toast bury the only way to create an issue. */
+body:has(.issues-fab) .ocsp-toast-viewport {
+  inset-block-end: calc(max(1.25rem,env(safe-area-inset-bottom)) + 56px + 0.75rem);
+}
+
+/* The rotation is a state, not a journey: it still reads as open/closed, it
+   just stops travelling to get there. */
+@media (prefers-reduced-motion: reduce) {
+  .issues-fab i {
+    transition: none;
   }
 }

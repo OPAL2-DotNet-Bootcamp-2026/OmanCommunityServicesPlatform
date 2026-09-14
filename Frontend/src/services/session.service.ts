@@ -25,7 +25,17 @@ export interface Flash {
   message: string;
   tone: string;
   email: string;
+  /** When the flash was set. See FLASH_MAX_AGE_MS. */
+  createdAt: number;
 }
+
+/**
+ * A flash describes the navigation that just happened - "you have signed in",
+ * "that account cannot open this page". One still sitting in storage minutes
+ * later has missed its moment, and announcing it then reads as a message about
+ * whatever the reader is doing now. Long enough to survive a slow first load.
+ */
+const FLASH_MAX_AGE_MS = 15_000;
 
 /**
  * Which roles may view which page. An empty array means "any role, including
@@ -349,7 +359,8 @@ export class SessionService {
       ? {
           message: String(value.message ?? "").trim(),
           tone: String(value.tone ?? "info").trim(),
-          email: String(value.email ?? "").trim()
+          email: String(value.email ?? "").trim(),
+          createdAt: Date.now()
         }
       : null;
 
@@ -364,7 +375,7 @@ export class SessionService {
     }
   }
 
-  /** Reads and removes the pending flash message. */
+  /** Reads and removes the pending flash message, unless it has gone stale. */
   consumeFlash(): Flash | null {
     const storage = this.getStorage();
     if (storage) {
@@ -380,6 +391,14 @@ export class SessionService {
     }
     const flash = this.memoryFlash;
     this.memoryFlash = null;
-    return flash;
+
+    if (!flash) {
+      return null;
+    }
+
+    // A flash written before this field existed has no age to check, so it is
+    // treated as stale rather than shown late.
+    const age = Date.now() - Number(flash.createdAt ?? 0);
+    return age >= 0 && age <= FLASH_MAX_AGE_MS ? flash : null;
   }
 }

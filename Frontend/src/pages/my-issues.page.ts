@@ -2,7 +2,7 @@
  * The citizen portal: issue list, filters, create-issue dialog, detail modal
  * with comments and ratings.
  */
-import { announceStatus, byId, errorMessage, optionalById, setAlert } from "../dom";
+import { announceStatus, byId, errorMessage, optionalById, setAlert, toTone } from "../dom";
 import {
   escapeHtml,
   getInitials,
@@ -22,6 +22,7 @@ import type {
   Rating
 } from "../models";
 import type { CitizenDashboardData, DataService } from "../services/data.service";
+import type { SessionService } from "../services/session.service";
 import { formString } from "../text";
 import * as feedback from "../components/feedback";
 import {
@@ -119,7 +120,10 @@ export class MyIssuesPage {
    */
   private lastGeocodedLocation = "";
 
-  constructor(private readonly data: DataService) {}
+  constructor(
+    private readonly data: DataService,
+    private readonly session: SessionService
+  ) {}
 
   private cacheElements(): MyIssuesElements {
     return {
@@ -1811,6 +1815,33 @@ export class MyIssuesPage {
     }
   };
 
+  /**
+   * The floating button turns its plus into a close mark while the dialog is
+   * open. That rotation is CSS, and it is invisible to anyone not looking at
+   * it, so the button's state and its name have to change too - otherwise a
+   * screen reader still offers "Create a new issue" for a control that now
+   * closes one.
+   */
+  private bindCreateFab(): void {
+    const fab = optionalById<HTMLElement>("createIssueFab");
+    const modal = optionalById<HTMLElement>("createIssueModal");
+    if (!fab || !modal) {
+      return;
+    }
+
+    const setOpen = (open: boolean): void => {
+      fab.setAttribute("aria-expanded", String(open));
+      fab.setAttribute("aria-label", open ? "Close the new issue form" : "Create a new issue");
+    };
+
+    modal.addEventListener("shown.bs.modal", () => {
+      setOpen(true);
+    });
+    modal.addEventListener("hidden.bs.modal", () => {
+      setOpen(false);
+    });
+  }
+
   start(): void {
     try {
       this.elements = this.cacheElements();
@@ -1823,12 +1854,25 @@ export class MyIssuesPage {
       return;
     }
 
+    // This is where signing in lands a citizen, so it has to consume the flash
+    // that login sets. Leaving it unread does not discard it - it waits in
+    // storage for whichever page reads next, which is how "Signed in
+    // successfully" used to surface on a later visit to notifications.
+    const flash = this.session.consumeFlash();
+
     this.bindFilterEvents();
     this.bindDelegatedEvents();
     this.bindFormEvents();
+    this.bindCreateFab();
     this.initializeLocationCapture();
     this.initializeCreateMap();
     this.openCreateModalFromHash();
     void this.loadDashboard();
+
+    if (flash?.message) {
+      // Toast only. A flash is a note about the previous page; repeating it in
+      // this page's own status region reads as a second, stuck message.
+      feedback.show(flash.message, { tone: toTone(flash.tone) });
+    }
   }
 }
