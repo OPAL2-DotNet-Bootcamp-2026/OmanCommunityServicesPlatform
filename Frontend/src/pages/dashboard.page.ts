@@ -39,7 +39,7 @@ import type {
 } from "../models";
 import type { DashboardService, StaffDashboardData } from "../services/dashboard.service";
 import type { SessionService } from "../services/session.service";
-import { asText, formString } from "../text";
+import { formString, normalizedSearch } from "../text";
 import { parseApiDate } from "../date";
 import * as feedback from "../components/feedback";
 import {
@@ -50,7 +50,12 @@ import {
   revealWithin,
   setButtonBusy
 } from "../components/motion";
-import { IssueImageHydrator, applyAttachmentsToIssue } from "../components/issue-images";
+import {
+  IssueImageHydrator,
+  applyAttachmentsToIssue,
+  findIssueById,
+  refreshIssueCardImage as refreshCardImage
+} from "../components/issue-images";
 import { mountMapsIn } from "../components/map";
 
 type FilterKey = "search" | "sort" | "status" | "priority" | "department" | "category";
@@ -118,10 +123,6 @@ function emptyFilters(): Filters {
   return { search: "", sort: "newest", status: "", priority: "", department: "", category: "" };
 }
 
-function normalizedSearch(value: unknown): string {
-  return asText(value).trim().toLocaleLowerCase();
-}
-
 export class DashboardPage {
   private elements!: DashboardElements;
   private dashboard: StaffDashboardData | null = null;
@@ -163,23 +164,12 @@ export class DashboardPage {
   }
 
   private findIssue(issueId: number): Issue | null {
-    return (
-      this.dashboard?.issues.find((issue) => Number(issue.issueId) === Number(issueId)) ?? null
-    );
+    return findIssueById(this.dashboard?.issues, issueId);
   }
 
   /** Replaces one card's media element in place, without re-rendering the list. */
   private refreshIssueCardImage(issue: Issue | null): void {
-    if (!issue) {
-      return;
-    }
-    const card = this.elements.list.querySelector(
-      `[data-issue-id="${safeDomId(issue.issueId)}"]`
-    );
-    const media = card?.querySelector(".issue-card-media");
-    if (media) {
-      media.outerHTML = renderIssueImage(issue);
-    }
+    refreshCardImage(this.elements.list, issue);
   }
 
   private hydrateVisibleIssueImages(): void {

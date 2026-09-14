@@ -10,7 +10,6 @@ import {
   renderComments,
   renderIssueCard,
   renderIssueDetailModal,
-  renderIssueImage,
   safeDomId
 } from "../components/issue-renderers";
 import type {
@@ -23,7 +22,7 @@ import type {
 } from "../models";
 import type { CitizenDashboardData, DataService } from "../services/data.service";
 import type { SessionService } from "../services/session.service";
-import { formString } from "../text";
+import { formString, normalizedSearch } from "../text";
 import * as feedback from "../components/feedback";
 import {
   renderSkeletons,
@@ -31,7 +30,12 @@ import {
   revealWithin,
   setButtonBusy
 } from "../components/motion";
-import { IssueImageHydrator, applyAttachmentsToIssue } from "../components/issue-images";
+import {
+  IssueImageHydrator,
+  applyAttachmentsToIssue,
+  findIssueById,
+  refreshIssueCardImage as refreshCardImage
+} from "../components/issue-images";
 import { mountMapsIn, setMapPin, type MapPickDetail } from "../components/map";
 import { reverseGeocode } from "../services/geocoding.service";
 
@@ -88,12 +92,6 @@ const STATUS_RADIO_MAP: Record<string, string> = {
 
 function emptyFilters(): Filters {
   return { search: "", status: "", priority: "", department: "", category: "", sort: "newest" };
-}
-
-function normalizedSearchText(value: string | null | undefined): string {
-  return String(value ?? "")
-    .trim()
-    .toLocaleLowerCase();
 }
 
 export class MyIssuesPage {
@@ -175,23 +173,12 @@ export class MyIssuesPage {
   }
 
   private findIssue(issueId: number): Issue | null {
-    return (
-      this.dashboard?.issues.find((issue) => Number(issue.issueId) === Number(issueId)) ?? null
-    );
+    return findIssueById(this.dashboard?.issues, issueId);
   }
 
   /** Replaces one card's media element in place rather than re-rendering. */
   private refreshIssueCardImage(issue: Issue | null): void {
-    if (!issue) {
-      return;
-    }
-    const card = this.elements.gallery.querySelector(
-      `[data-issue-id="${safeDomId(issue.issueId)}"]`
-    );
-    const media = card?.querySelector(".issue-card-media");
-    if (media) {
-      media.outerHTML = renderIssueImage(issue);
-    }
+    refreshCardImage(this.elements.gallery, issue);
   }
 
   private hydrateVisibleIssueImages(): void {
@@ -361,10 +348,10 @@ export class MyIssuesPage {
 
   private getVisibleIssues(): Issue[] {
     const filters = this.filters;
-    const search = normalizedSearchText(filters.search);
+    const search = normalizedSearch(filters.search);
 
     const issues = this.loaded.issues.filter((issue) => {
-      const searchableText = normalizedSearchText(
+      const searchableText = normalizedSearch(
         [
           issue.title,
           issue.description,
