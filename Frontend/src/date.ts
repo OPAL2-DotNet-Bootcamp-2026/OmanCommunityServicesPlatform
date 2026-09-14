@@ -40,9 +40,3 @@ export function parseApiDate(value: string | number | Date | null | undefined): 
 
   return new Date(text);
 }
-
-/** Milliseconds since the epoch, or 0 when the value cannot be parsed. */
-export function apiDateTime(value: string | null | undefined): number {
-  const time = parseApiDate(value).getTime();
-  return Number.isNaN(time) ? 0 : time;
-}

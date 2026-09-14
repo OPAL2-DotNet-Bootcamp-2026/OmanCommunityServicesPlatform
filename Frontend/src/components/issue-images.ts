@@ -10,6 +10,7 @@
  * Both pages had their own copy of this on main; it is one module here.
  */
 import type { Attachment, Issue } from "../models";
+import { renderIssueImage, safeDomId } from "./issue-renderers";
 
 const MAX_CONCURRENT_IMAGE_LOADS = 3;
 /** Start fetching a little before the card is actually on screen. */
@@ -19,7 +20,7 @@ const OBSERVER_ROOT_MARGIN = "240px 0px";
  * One semaphore shared by the observer path and the fallback path, so a long
  * dashboard cannot open dozens of connections at once.
  */
-export class ImageLoadQueue {
+class ImageLoadQueue {
   private active = 0;
   private readonly waiters: (() => void)[] = [];
 
@@ -70,6 +71,30 @@ export function applyAttachmentsToIssue(
   issue.attachments = attachments;
   issue.ui = ui;
   return issue;
+}
+
+/**
+ * Locates an issue in a loaded list. Numbers on both sides because an id can
+ * arrive as a string from a dataset attribute and as a number from the API.
+ */
+export function findIssueById(issues: Issue[] | undefined, issueId: number): Issue | null {
+  return issues?.find((issue) => Number(issue.issueId) === Number(issueId)) ?? null;
+}
+
+/**
+ * Swaps a card's image in place after its attachments arrive, leaving the rest
+ * of the card alone. The container differs per page - the citizen gallery or
+ * the staff list - so it is passed in.
+ */
+export function refreshIssueCardImage(container: ParentNode, issue: Issue | null): void {
+  if (!issue) {
+    return;
+  }
+  const card = container.querySelector(`[data-issue-id="${safeDomId(issue.issueId)}"]`);
+  const media = card?.querySelector(".issue-card-media");
+  if (media) {
+    media.outerHTML = renderIssueImage(issue);
+  }
 }
 
 export interface HydrationOptions {

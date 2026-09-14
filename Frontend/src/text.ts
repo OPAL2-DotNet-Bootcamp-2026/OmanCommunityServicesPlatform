@@ -27,3 +27,13 @@ export function formString(data: FormData, key: string, fallback = ""): string {
   const value = data.get(key);
   return typeof value === "string" ? value : fallback;
 }
+
+/**
+ * The form both sides of a search comparison are put into. Both list pages had
+ * their own copy under different names, and the citizen one reached for
+ * String() - the exact coercion asText exists to avoid, which would have made
+ * an unexpected object match nothing under the name "[object Object]".
+ */
+export function normalizedSearch(value: unknown): string {
+  return asText(value).trim().toLocaleLowerCase();
+}
