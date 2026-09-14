@@ -131,14 +131,14 @@ a:hover {
   inset-block-start: 0;
   z-index: 1030;
   min-height: 72px;
-  background: rgba(255,255,255,0.98);
+  background: rgba(255,255,255,0.72);
   font-family: var(--ocsp-font);
   font-size: 15px;
   line-height: 1.55;
   border-bottom: 1px solid rgba(203,209,214,0.82);
   box-shadow: 0 2px 10px rgba(11,12,12,0.04);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
 }
 @supports not ((-webkit-backdrop-filter:blur(12px)) or (backdrop-filter:blur(12px))) {
   .site-nav {
@@ -5743,3 +5743,61 @@ body.ocsp-session-ready [data-nav-roles] {
 /* No fallback for JavaScript being off: every page here already renders its
    content from the API, and each carries a <noscript> saying so. A rule keyed
    on a class nothing sets would only look like a safety net. */
+
+/* ==========================================================================
+   Fluid-interface pass
+
+   Applying emilkowalski/apple-design. Most of that skill is about
+   gesture-driven motion - drag, flick, velocity handoff - which this app
+   does not have. What follows is the part that does apply: symmetric
+   enter/exit paths, translucency that survives an accessibility
+   preference, and a scroll edge that fades instead of being cut off.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Translucency is a preference, not a given
+
+   The navigation bar and the dialog scrims are translucent so the page
+   reads as a layer underneath rather than a strip taken out of it. Two
+   system preferences turn that off, and neither was handled:
+
+   - reduced transparency: make the surface solid, drop the blur. Frosted
+     glass over moving content is the exact effect the setting exists to
+     remove.
+   - more contrast: solid, with a defined border, so the boundary does not
+     depend on a shadow.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-nav {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  body.ocsp-portal>.modal-backdrop.show,
+  body.ocsp-portal>.offcanvas-backdrop.show,
+  body.ocsp-portal .ocsp-target-backdrop {
+    background: rgba(15,23,42,0.82);
+    backdrop-filter: none;
+  }
+
+  body.ocsp-portal .issue-card-media::before {
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .site-nav {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-bottom-color: var(--ocsp-ink);
+  }
+
+  body.ocsp-portal .ocsp-card,
+  body.ocsp-portal .issue-card,
+  body.ocsp-portal .comment-card {
+    border-color: #64748b;
+  }
+}
