@@ -396,9 +396,22 @@ export class SessionService {
       return null;
     }
 
-    // A flash written before this field existed has no age to check, so it is
+    // A flash carrying an email is not an announcement, it is a handoff:
+    // registration puts the new account's address here for the sign-in form to
+    // fill in. Losing that is worse than delivering it late, so it never
+    // expires - a slow first load of login.html would otherwise drop both the
+    // confirmation and the prefilled address.
+    if (flash.email) {
+      return flash;
+    }
+
+    // A flash written before createdAt existed has no age to check, so it is
     // treated as stale rather than shown late.
     const age = Date.now() - Number(flash.createdAt ?? 0);
-    return age >= 0 && age <= FLASH_MAX_AGE_MS ? flash : null;
+
+    // A negative age means the clock moved backwards between writing and
+    // reading - an NTP correction, or the user changing it. Deliver it: showing
+    // a message slightly late beats swallowing it over a clock adjustment.
+    return age <= FLASH_MAX_AGE_MS ? flash : null;
   }
 }
