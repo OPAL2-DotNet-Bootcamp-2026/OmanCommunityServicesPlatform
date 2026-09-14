@@ -5505,10 +5505,13 @@ body.ocsp-portal .issue-filter-drawer:is(.show,:target) .offcanvas-body {
   outline-offset: 2px;
 }
 
-@media (hover:hover) {
-  :where(.site-page) :is(.ocsp-button,.btn):not(:disabled):active {
-    transform: translateY(0) scale(0.98);
-  }
+/* Press feedback is not a hover affordance: a touch user needs it more than
+   a mouse user, so this is deliberately not gated behind (hover: hover).
+   The 90ms lands the pressed state near-instantly; releasing eases back over
+   the element's normal 180ms. */
+:where(.site-page) :is(.ocsp-button,.btn):not(:disabled):active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 90ms;
 }
 
 @media (max-width:767.98px) {
