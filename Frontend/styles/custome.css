@@ -5688,3 +5688,31 @@ body.ocsp-portal .issue-map,
 .rating-panel .ocsp-button--submit i {
   font-size: 0.8rem;
 }
+
+/* ============================================================
+   Auth-dependent chrome
+
+   Elements that depend on who is signed in are laid out by the
+   browser before site-session gets to decide about them, so a
+   signed-in visitor saw "Sign In" flash and vanish.
+
+   They start invisible and are revealed once the session has
+   been resolved. visibility, not display, so the space is
+   reserved and nothing shifts when they appear.
+   ============================================================ */
+
+[data-nav-auth],
+[data-role-visible],
+[data-nav-roles] {
+  visibility: hidden;
+}
+
+body.ocsp-session-ready [data-nav-auth],
+body.ocsp-session-ready [data-role-visible],
+body.ocsp-session-ready [data-nav-roles] {
+  visibility: visible;
+}
+
+/* No fallback for JavaScript being off: every page here already renders its
+   content from the API, and each carries a <noscript> saying so. A rule keyed
+   on a class nothing sets would only look like a safety net. */

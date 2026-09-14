@@ -146,6 +146,11 @@ export class SiteSession {
       });
 
     this.updateRoleVisibility(user);
+
+    // Reveals the auth-dependent chrome now that it has been set correctly.
+    // Until this class lands the stylesheet keeps it invisible, which is what
+    // stops a signed-in visitor seeing "Sign In" flash past.
+    document.body.classList.add("ocsp-session-ready");
   };
 
   private bindLogout(): void {
