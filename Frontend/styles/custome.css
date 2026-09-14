@@ -1612,15 +1612,6 @@ body.ocsp-portal .description-block p {
 body.ocsp-portal .location-value {
   background-color: var(--surface-muted);
 }
-body.ocsp-portal .map-preview::before,body.ocsp-portal .map-preview::after {
-  background-color: rgba(255,255,255,0.95);
-}
-body.ocsp-portal .map-preview--park {
-  background-color: #e9f4e7;
-}
-body.ocsp-portal .map-preview--city {
-  background-color: #eef1f5;
-}
 body.ocsp-portal .attachment-thumb {
   display: flex;
   flex-direction: column;
@@ -1631,7 +1622,7 @@ body.ocsp-portal .attachment-thumb {
   font-size: 0.68rem;
   font-weight: 700;
 }
-body.ocsp-portal .attachment-thumb--document,body.ocsp-portal .attachment-thumb--add {
+body.ocsp-portal .attachment-thumb--document {
   background-color: #f1f2f3;
 }
 body.ocsp-portal .status-change-banner {
@@ -1748,9 +1739,6 @@ body.ocsp-portal .comment-avatar {
   font-size: 0.63rem;
   font-weight: 700;
 }
-body.ocsp-portal .comment-avatar--admin {
-  background-color: var(--primary-color);
-}
 body.ocsp-portal .comment-copy {
   min-width: 0;
   flex: 1;
@@ -1803,16 +1791,6 @@ body.ocsp-portal .comment-composer .form-control {
 body.ocsp-portal .comment-composer .form-control:focus {
   border-color: var(--primary-color);
   box-shadow: none;
-}
-body.ocsp-portal .comment-composer .btn {
-  display: inline-grid;
-  flex: 0 0 44px;
-  place-items: center;
-  padding: 0;
-  background-color: #ffffff;
-}
-body.ocsp-portal .comment-composer .btn:hover {
-  background-color: var(--surface-muted);
 }
 body.ocsp-portal .rating-panel {
   background-color: #f8f6f1;
@@ -2121,36 +2099,16 @@ body.ocsp-portal .issue-form__cancel:hover,body.ocsp-portal .issue-form__cancel:
   border-color: #9db4dc!important;
   box-shadow: 0 0 0 4px rgba(37,99,235,0.09);
 }
-body.ocsp-portal .issue-detail-modal .feedback-submit-button {
-  display: inline-flex;
-  min-height: 42px;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  color: #ffffff!important;
-  background: linear-gradient(135deg,var(--royal-blue),var(--bright-blue))!important;
-  border: 0!important;
-  border-radius: 10px!important;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  box-shadow: 0 7px 18px rgba(37,99,235,0.18);
-}
-body.ocsp-portal .issue-detail-modal .feedback-submit-button:hover,body.ocsp-portal .issue-detail-modal .feedback-submit-button:focus-visible {
-  color: #ffffff!important;
-  background: linear-gradient(135deg,#172f72,#1f55d6)!important;
-  transform: translateY(-1px);
-  box-shadow: 0 9px 22px rgba(37,99,235,0.24);
-}
 @media (hover:none) {
-  body.ocsp-portal .issue-summary-filter-label:hover,body.ocsp-portal .issue-detail-modal .feedback-submit-button:hover {
+  body.ocsp-portal .issue-summary-filter-label:hover {
     transform: none;
   }
 }
 @media (prefers-reduced-motion:reduce) {
-  body.ocsp-portal .issue-summary-filter-label,body.ocsp-portal .issue-form__cancel,body.ocsp-portal .issue-detail-modal .feedback-submit-button {
+  body.ocsp-portal .issue-summary-filter-label,body.ocsp-portal .issue-form__cancel {
     transition-duration: 0.01ms!important;
   }
-  body.ocsp-portal .issue-summary-filter-label:hover,body.ocsp-portal .issue-detail-modal .feedback-submit-button:hover {
+  body.ocsp-portal .issue-summary-filter-label:hover {
     transform: none!important;
   }
 }
@@ -2533,52 +2491,6 @@ body.ocsp-portal .location-value {
 body.ocsp-portal .location-value i {
   color: var(--bright-blue);
 }
-body.ocsp-portal .map-preview {
-  position: relative;
-  min-height: 145px;
-  overflow: hidden;
-  background: linear-gradient(31deg,transparent 0 28%,rgba(37,99,235,0.10) 29% 31%,transparent 32% 100%),repeating-linear-gradient(0deg,transparent 0 30px,rgba(30,58,138,0.035) 31px 32px),repeating-linear-gradient(90deg,transparent 0 42px,rgba(45,190,140,0.038) 43px 44px),linear-gradient(145deg,#EEF7F3,#F4F8FC);
-  border: 1px solid #DDE7E3;
-  border-radius: 13px;
-}
-body.ocsp-portal .map-preview::before,body.ocsp-portal .map-preview::after {
-  content: "";
-  position: absolute;
-  background: rgba(255,255,255,.94);
-  border-radius: 999px;
-}
-body.ocsp-portal .map-preview::before {
-  width: 120%;
-  height: 8px;
-  left: -10%;
-  top: 55%;
-  transform: rotate(-8deg);
-}
-body.ocsp-portal .map-preview::after {
-  width: 90%;
-  height: 5px;
-  left: 8%;
-  top: 31%;
-  transform: rotate(14deg);
-}
-body.ocsp-portal .map-area-name {
-  position: absolute;
-  z-index: 2;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-  color: var(--royal-blue);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-body.ocsp-portal .map-pin {
-  position: absolute;
-  z-index: 3;
-  left: 70%;
-  top: 35%;
-  color: #D94B72;
-  font-size: 1.28rem;
-}
 body.ocsp-portal .attachment-grid {
   display: grid;
   grid-template-columns: repeat(3,minmax(0,1fr));
@@ -2613,7 +2525,7 @@ body.ocsp-portal .attachment-thumb--fixed {
   color: #ffffff;
   background: linear-gradient(145deg,#1E3A8A,#2563EB 58%,#2DBE8C);
 }
-body.ocsp-portal .attachment-thumb--document,body.ocsp-portal .attachment-thumb--add {
+body.ocsp-portal .attachment-thumb--document {
   color: var(--royal-blue);
   background: linear-gradient(145deg,#F7FAFD,#EEF4FF);
   border-style: dashed;
@@ -2669,9 +2581,6 @@ body.ocsp-portal .comment-avatar {
   background: linear-gradient(145deg,var(--royal-blue),var(--bright-blue));
   box-shadow: 0 6px 13px rgba(37,99,235,.15);
 }
-body.ocsp-portal .comment-avatar--admin {
-  background: linear-gradient(145deg,var(--bright-blue),#1B76C8);
-}
 body.ocsp-portal .comment-header strong {
   color: #203957;
 }
@@ -2701,19 +2610,6 @@ body.ocsp-portal .comment-composer .form-control {
   border: 1px solid #DCE5EE;
   border-right: 0;
   border-radius: 11px 0 0 11px;
-}
-body.ocsp-portal .comment-composer .btn {
-  width: 46px;
-  flex-basis: 46px;
-  color: var(--royal-blue);
-  background: #ffffff;
-  border: 1px solid #DCE5EE;
-  border-left: 0;
-  border-radius: 0 11px 11px 0;
-}
-body.ocsp-portal .comment-composer .btn:hover {
-  color: #ffffff;
-  background: linear-gradient(135deg,var(--royal-blue),var(--bright-blue));
 }
 body.ocsp-portal .rating-panel {
   margin-top: 1.15rem;
@@ -3710,22 +3606,22 @@ body.ocsp-portal .issue-detail-modal .content-label,body.ocsp-portal .issue-card
   font-weight: 700!important;
   line-height: 1.2!important;
 }
-body.ocsp-portal .issue-card.issue-open,body.ocsp-portal .issue-card--open {
+body.ocsp-portal .issue-card--open {
   border-left-color: var(--status-open)!important;
 }
-body.ocsp-portal .issue-card.issue-inprogress,body.ocsp-portal .issue-card--progress {
+body.ocsp-portal .issue-card--progress {
   border-left-color: var(--status-inprogress)!important;
 }
-body.ocsp-portal .issue-card.issue-resolved,body.ocsp-portal .issue-card--resolved {
+body.ocsp-portal .issue-card--resolved {
   border-left-color: var(--status-resolved)!important;
 }
-body.ocsp-portal .issue-card.issue-open::before,body.ocsp-portal .issue-card--open::before {
+body.ocsp-portal .issue-card--open::before {
   background: var(--status-open)!important;
 }
-body.ocsp-portal .issue-card.issue-inprogress::before,body.ocsp-portal .issue-card--progress::before {
+body.ocsp-portal .issue-card--progress::before {
   background: var(--status-inprogress)!important;
 }
-body.ocsp-portal .issue-card.issue-resolved::before,body.ocsp-portal .issue-card--resolved::before {
+body.ocsp-portal .issue-card--resolved::before {
   background: var(--status-resolved)!important;
 }
 body.ocsp-portal .issue-stat--open::after,body.ocsp-portal .issue-stat--open .issue-stat__icon {
@@ -4294,12 +4190,6 @@ body.ocsp-portal .active-filters__label {
 }
 body.ocsp-portal .active-filter__dismiss {
   font-size: 0.75rem;
-}
-body.ocsp-portal .issue-map-preview {
-  height: 250px;
-}
-body.ocsp-portal .issue-map-preview__icon {
-  font-size: 2rem;
 }
 
 /* ==========================================================================
