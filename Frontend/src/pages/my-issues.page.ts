@@ -2,7 +2,7 @@
  * The citizen portal: issue list, filters, create-issue dialog, detail modal
  * with comments and ratings.
  */
-import { announceStatus, byId, errorMessage, optionalById, setAlert } from "../dom";
+import { announceStatus, byId, errorMessage, optionalById, setAlert, toTone } from "../dom";
 import {
   escapeHtml,
   getInitials,
@@ -22,6 +22,7 @@ import type {
   Rating
 } from "../models";
 import type { CitizenDashboardData, DataService } from "../services/data.service";
+import type { SessionService } from "../services/session.service";
 import { formString } from "../text";
 import * as feedback from "../components/feedback";
 import {
@@ -119,7 +120,10 @@ export class MyIssuesPage {
    */
   private lastGeocodedLocation = "";
 
-  constructor(private readonly data: DataService) {}
+  constructor(
+    private readonly data: DataService,
+    private readonly session: SessionService
+  ) {}
 
   private cacheElements(): MyIssuesElements {
     return {
@@ -1823,6 +1827,12 @@ export class MyIssuesPage {
       return;
     }
 
+    // This is where signing in lands a citizen, so it has to consume the flash
+    // that login sets. Leaving it unread does not discard it - it waits in
+    // storage for whichever page reads next, which is how "Signed in
+    // successfully" used to surface on a later visit to notifications.
+    const flash = this.session.consumeFlash();
+
     this.bindFilterEvents();
     this.bindDelegatedEvents();
     this.bindFormEvents();
@@ -1830,5 +1840,11 @@ export class MyIssuesPage {
     this.initializeCreateMap();
     this.openCreateModalFromHash();
     void this.loadDashboard();
+
+    if (flash?.message) {
+      // Toast only. A flash is a note about the previous page; repeating it in
+      // this page's own status region reads as a second, stuck message.
+      feedback.show(flash.message, { tone: toTone(flash.tone) });
+    }
   }
 }
