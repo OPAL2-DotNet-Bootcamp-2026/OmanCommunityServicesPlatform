@@ -1777,14 +1777,30 @@ body.ocsp-portal .role-badge--citizen {
 body.ocsp-portal .role-badge--admin {
   background-color: var(--primary-color);
 }
+/* The composer was originally written around a send button welded to the
+   input - a square button sharing its border, hence the flat right edge the
+   input used to have. Both composers render a detached circular
+   .ocsp-button--icon, so the input closes itself and the two sit side by side.
+   align-items: center rather than stretch, which would pull the circle out of
+   round.
+
+   One block. This selector used to be declared three times, several hundred
+   lines apart, and the later copies quietly won: editing the min-height in the
+   middle one did nothing. */
 body.ocsp-portal .comment-composer {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   flex: 0 0 auto;
+  gap: 0.5rem;
   margin-top: auto!important;
-  background-color: #ffffff;
+  padding-top: 0.65rem;
+  background: transparent;
 }
 body.ocsp-portal .comment-composer .form-control {
+  min-height: 40px;
+  background: #ffffff;
+  border: 1px solid #DCE5EE;
+  border-radius: 0.6rem;
   font-size: 0.75rem;
   box-shadow: none;
 }
@@ -2599,17 +2615,6 @@ body.ocsp-portal .role-badge--citizen {
 body.ocsp-portal .role-badge--admin {
   color: #ffffff;
   background: var(--bright-blue);
-}
-body.ocsp-portal .comment-composer {
-  padding-top: 0.65rem;
-  background: transparent;
-}
-body.ocsp-portal .comment-composer .form-control {
-  min-height: 42px;
-  background: #ffffff;
-  border: 1px solid #DCE5EE;
-  border-right: 0;
-  border-radius: 11px 0 0 11px;
 }
 body.ocsp-portal .rating-panel {
   margin-top: 1.15rem;
@@ -5577,22 +5582,6 @@ body.ocsp-portal .issue-map,
   font-size: 0.92rem;
 }
 
-/* The composer was written around a send button welded to the input:
-   a square button sharing its border, hence the input's flat right
-   edge and missing right border. The button is a detached circle
-   now, so the input closes itself and the two sit side by side.
-   align-items: stretch would also pull the circle back out of round. */
-body.ocsp-portal .comment-composer {
-  align-items: center;
-  gap: 0.5rem;
-}
-
-body.ocsp-portal .comment-composer .form-control {
-  min-height: 40px;
-  border: 1px solid #DCE5EE;
-  border-radius: 0.6rem;
-}
-
 /* The rating submit sits under a textarea, so it should read as the
    end of that form rather than as a page-level call to action. */
 .rating-panel .ocsp-button--submit {
@@ -5824,9 +5813,16 @@ body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).modal.fade.show .m
    not when they are back at the top of the page.
    ========================================================================== */
 
-.issues-fab {
+/* On :root, not on .issues-fab: the toast viewport has to offset itself by the
+   button's size, and a custom property declared on the button would not reach
+   it. Declared where both can read it, resizing the button moves the toasts
+   with it. */
+:root {
   --ocsp-fab-size: 56px;
   --ocsp-fab-inset: 1.25rem;
+}
+
+.issues-fab {
   position: fixed;
   z-index: 1065;
   inset-inline-end: max(var(--ocsp-fab-inset),env(safe-area-inset-right));
@@ -5869,7 +5865,9 @@ body.ocsp-portal:has(.issue-filter-drawer.show) .issues-fab {
 /* Toasts appear in the same corner. Lift the stack clear of the button rather
    than letting a toast bury the only way to create an issue. */
 body:has(.issues-fab) .ocsp-toast-viewport {
-  inset-block-end: calc(max(1.25rem,env(safe-area-inset-bottom)) + 56px + 0.75rem);
+  inset-block-end: calc(
+    max(var(--ocsp-fab-inset),env(safe-area-inset-bottom)) + var(--ocsp-fab-size) + 0.75rem
+  );
 }
 
 /* The rotation is a state, not a journey: it still reads as open/closed, it
