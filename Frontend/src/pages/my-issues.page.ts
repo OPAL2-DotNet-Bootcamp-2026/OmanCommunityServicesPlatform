@@ -1815,6 +1815,33 @@ export class MyIssuesPage {
     }
   };
 
+  /**
+   * The floating button turns its plus into a close mark while the dialog is
+   * open. That rotation is CSS, and it is invisible to anyone not looking at
+   * it, so the button's state and its name have to change too - otherwise a
+   * screen reader still offers "Create a new issue" for a control that now
+   * closes one.
+   */
+  private bindCreateFab(): void {
+    const fab = optionalById<HTMLElement>("createIssueFab");
+    const modal = optionalById<HTMLElement>("createIssueModal");
+    if (!fab || !modal) {
+      return;
+    }
+
+    const setOpen = (open: boolean): void => {
+      fab.setAttribute("aria-expanded", String(open));
+      fab.setAttribute("aria-label", open ? "Close the new issue form" : "Create a new issue");
+    };
+
+    modal.addEventListener("shown.bs.modal", () => {
+      setOpen(true);
+    });
+    modal.addEventListener("hidden.bs.modal", () => {
+      setOpen(false);
+    });
+  }
+
   start(): void {
     try {
       this.elements = this.cacheElements();
@@ -1836,6 +1863,7 @@ export class MyIssuesPage {
     this.bindFilterEvents();
     this.bindDelegatedEvents();
     this.bindFormEvents();
+    this.bindCreateFab();
     this.initializeLocationCapture();
     this.initializeCreateMap();
     this.openCreateModalFromHash();

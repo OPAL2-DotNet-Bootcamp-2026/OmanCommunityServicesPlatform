@@ -95,14 +95,6 @@
             Track your submitted civic issues, status changes, staff updates and service ratings.
           </p>
         </div>
-
-        <!-- The same dialog as the hero button. Reaching the list means
-             scrolling past that one, so the action is repeated where the
-             issues actually are. -->
-        <a class="btn-ocsp-primary issues-toolbar__create" aria-controls="createIssueModal" aria-haspopup="dialog"
-          href="#createIssueModal" data-bs-toggle="modal" data-bs-target="#createIssueModal">
-          <i class="bi bi-plus-lg" aria-hidden="true"></i>New issue
-        </a>
       </div>
 
       <!-- CSS-only status prefilter controls. The visible statistic tiles below are their labels. -->
@@ -210,6 +202,16 @@
       </noscript>
     </div>
   </main>
+
+  <!-- Stays put the whole way down the list, so creating an issue never means
+       scrolling back to the hero. Same dialog, same trigger attributes; the
+       plus rotates into a close mark while that dialog is open. Last in the
+       page's tab order, matching where it sits on screen. -->
+  <a class="btn-ocsp-primary issues-fab" id="createIssueFab" aria-controls="createIssueModal"
+    aria-haspopup="dialog" aria-expanded="false" aria-label="Create a new issue"
+    href="#createIssueModal" data-bs-toggle="modal" data-bs-target="#createIssueModal">
+    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+  </a>
 
   <div class="site-footer-scene">
     <section class="help-strip" aria-labelledby="citizen-help-title">
