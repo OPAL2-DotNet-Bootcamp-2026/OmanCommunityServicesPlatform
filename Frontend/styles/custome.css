@@ -5663,28 +5663,80 @@ body.ocsp-portal .issue-map,
 /* ============================================================
    Dialog action buttons
 
-   The comment send button and the rating submit were sized for
-   a full-width page control, which is far too heavy inside the
-   issue dialog's narrow column - the send button in particular
-   read as the loudest thing on screen.
+   .ocsp-button is a page-level control: 44px tall with generous
+   padding. Inside the issue dialog's narrow right-hand column
+   that reads as the loudest thing on screen, and it does not
+   match the create-issue dialog, whose actions are already 40px.
+
+   Everything here brings the dialog's controls onto that same
+   40px scale, so the two dialogs agree.
    ============================================================ */
 
+/* min-height has to be restated. The base .ocsp-button rule sets
+   it to 44px, which outranks height on its own - setting height
+   alone leaves a 34x44 ellipse where a circle was intended. */
 .issue-detail-modal .ocsp-button--icon,
 .comment-composer .ocsp-button--icon {
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  font-size: 0.85rem;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  font-size: 0.92rem;
+}
+
+/* The composer was written around a send button welded to the input:
+   a square button sharing its border, hence the input's flat right
+   edge and missing right border. The button is a detached circle
+   now, so the input closes itself and the two sit side by side.
+   align-items: stretch would also pull the circle back out of round. */
+body.ocsp-portal .comment-composer {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+body.ocsp-portal .comment-composer .form-control {
+  min-height: 40px;
+  border: 1px solid #DCE5EE;
+  border-radius: 0.6rem;
 }
 
 /* The rating submit sits under a textarea, so it should read as the
    end of that form rather than as a page-level call to action. */
 .rating-panel .ocsp-button--submit {
   align-self: flex-start;
-  padding: 0.4rem 0.9rem;
-  font-size: 0.85rem;
+  min-height: 40px;
+  padding: 0.52rem 0.9rem;
+  font-size: 0.78rem;
 }
 
 .rating-panel .ocsp-button--submit i {
   font-size: 0.8rem;
 }
+
+/* ============================================================
+   Auth-dependent chrome
+
+   Elements that depend on who is signed in are laid out by the
+   browser before site-session gets to decide about them, so a
+   signed-in visitor saw "Sign In" flash and vanish.
+
+   They start invisible and are revealed once the session has
+   been resolved. visibility, not display, so the space is
+   reserved and nothing shifts when they appear.
+   ============================================================ */
+
+[data-nav-auth],
+[data-role-visible],
+[data-nav-roles] {
+  visibility: hidden;
+}
+
+body.ocsp-session-ready [data-nav-auth],
+body.ocsp-session-ready [data-role-visible],
+body.ocsp-session-ready [data-nav-roles] {
+  visibility: visible;
+}
+
+/* No fallback for JavaScript being off: every page here already renders its
+   content from the API, and each carries a <noscript> saying so. A rule keyed
+   on a class nothing sets would only look like a safety net. */

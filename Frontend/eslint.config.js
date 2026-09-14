@@ -3,7 +3,9 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**"]
+    // .vite is the dev server's dependency pre-bundle cache - generated,
+    // gitignored, and not ours to lint.
+    ignores: ["dist/**", "node_modules/**", ".vite/**"]
   },
 
   js.configs.recommended,

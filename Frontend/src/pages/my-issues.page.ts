@@ -1296,6 +1296,47 @@ export class MyIssuesPage {
     this.elements.issueGovernorate.value = region ? region.governorate : "";
   };
 
+  /**
+   * Opens the create dialog properly when the page is reached via
+   * my-issues.html#createIssueModal - the link the home page uses.
+   *
+   * The stylesheet shows these dialogs on :target so they work without
+   * JavaScript, but a dialog opened that way has no Bootstrap Modal instance
+   * behind it. That left the deep-linked dialog unclosable, because
+   * data-bs-dismiss had nothing to dismiss, and blank where the map should be,
+   * because shown.bs.modal never fired to mount it.
+   *
+   * Re-opening it through Bootstrap and dropping the hash puts the dialog back
+   * on the single code path the in-page button already uses.
+   */
+  private openCreateModalFromHash(): void {
+    if (window.location.hash !== "#createIssueModal") {
+      return;
+    }
+
+    const modalElement = optionalById<HTMLElement>("createIssueModal");
+    if (!modalElement || !window.bootstrap?.Modal) {
+      // Without Bootstrap the :target rule is the only thing that can show it,
+      // so leave the hash alone rather than closing the dialog outright.
+      return;
+    }
+
+    // Clear the hash FIRST, or the :target rule keeps a second copy of the
+    // dialog on screen underneath Bootstrap's, and closing leaves that behind.
+    //
+    // It has to be an assignment to location.hash. history.replaceState
+    // rewrites the URL without re-evaluating :target, so the rule keeps
+    // matching and the dialog stays visible - verified, not assumed.
+    window.location.hash = "";
+
+    // That leaves a trailing "#". Tidying it with replaceState is safe now:
+    // the target is already cleared, and replaceState will not bring it back.
+    const { pathname, search } = window.location;
+    window.history.replaceState(null, "", `${pathname}${search}`);
+
+    window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+  }
+
   private closeCreateModal(): void {
     const modalElement = optionalById<HTMLElement>("createIssueModal");
     if (modalElement && window.bootstrap?.Modal) {
@@ -1787,6 +1828,7 @@ export class MyIssuesPage {
     this.bindFormEvents();
     this.initializeLocationCapture();
     this.initializeCreateMap();
+    this.openCreateModalFromHash();
     void this.loadDashboard();
   }
 }
