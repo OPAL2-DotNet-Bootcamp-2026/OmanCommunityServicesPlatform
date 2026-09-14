@@ -5852,3 +5852,58 @@ body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).modal.fade.show .m
     transition: opacity 200ms linear;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Scroll edges fade rather than stop
+
+   A comment thread that ends in a hard cut reads as the end of the
+   conversation. Fading the edge that still has content behind it says
+   "there is more" without adding a divider.
+
+   Scroll-driven animation does this with no JavaScript and no scroll
+   listener: the timeline is the element's own scroll position, so the
+   fade is a function of where the reader is rather than something a
+   handler has to keep in sync. The whole block sits behind @supports -
+   where it is unavailable the thread is exactly what it was.
+
+   It survives prefers-reduced-motion deliberately. Nothing here moves;
+   it is an opacity change that says where the content continues, and
+   reduced motion asks for stillness, not for less information.
+   -------------------------------------------------------------------------- */
+
+@property --ocsp-fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --ocsp-fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@supports (animation-timeline: scroll()) and (mask-image: linear-gradient(#000,#000)) {
+  body.ocsp-portal .comment-thread {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      #000 var(--ocsp-fade-top),
+      #000 calc(100% - var(--ocsp-fade-bottom)),
+      transparent 100%
+    );
+    animation: ocsp-scroll-edges linear both;
+    animation-timeline: scroll(self block);
+  }
+
+  /* The top edge fades in as soon as the thread has been scrolled at all;
+     the bottom edge holds until the last few pixels, so each one is
+     present exactly while there is something in that direction. A thread
+     short enough not to scroll has no timeline, so it gets neither. */
+  @keyframes ocsp-scroll-edges {
+    0% { --ocsp-fade-top: 0px; --ocsp-fade-bottom: 22px; }
+    6% { --ocsp-fade-top: 22px; }
+    94% { --ocsp-fade-bottom: 22px; }
+    100% { --ocsp-fade-top: 22px; --ocsp-fade-bottom: 0px; }
+  }
+}
