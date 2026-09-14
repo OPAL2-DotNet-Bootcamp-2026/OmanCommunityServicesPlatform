@@ -5733,6 +5733,22 @@ body.ocsp-portal .comment-composer .form-control {
 [data-nav-roles],
 [data-role-hidden] {
   visibility: hidden;
+  /* The safety net. Hiding until a class arrives means that if the class never
+     arrives - the module 404s after a bad deploy, a proxy blocks the CDN - the
+     page keeps its primary actions invisible forever and says nothing about
+     why. A zero-length animation on a two second delay reveals them anyway, so
+     the worst case is the flash this rule was written to prevent rather than a
+     home page with no "Sign In" and no "Create an Issue".
+
+     Elements the session decided to hide are unaffected: site-session sets the
+     hidden attribute on those, and display: none outranks any visibility. */
+  animation: ocsp-session-reveal 0s linear 2s forwards;
+}
+
+@keyframes ocsp-session-reveal {
+  to {
+    visibility: visible;
+  }
 }
 
 body.ocsp-session-ready [data-nav-auth],
