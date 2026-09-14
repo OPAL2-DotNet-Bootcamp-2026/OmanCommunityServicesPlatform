@@ -6,7 +6,11 @@ namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin,Staff")]
+    // Authenticated only. Roles are declared per action, because multiple
+    // [Authorize] attributes are ANDed rather than overridden - a class-level
+    // role list cannot be widened by one on a method, so putting
+    // "Admin,Staff" here made the Citizen route below unreachable.
+    [Authorize]
     public class StatusUpdateController : ControllerBase
     {
         private readonly StatusUpdateService _statusUpdateService;
@@ -18,6 +22,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // GET: api/StatusUpdate
         [HttpGet]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult GetAll()
         {
             var updates = _statusUpdateService.GetAll();
@@ -26,6 +31,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
         // GET: api/StatusUpdate/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin,Staff")]
         public IActionResult GetById(int id)
         {
             var update = _statusUpdateService.GetById(id);
