@@ -5376,7 +5376,7 @@ body.ocsp-portal #issuesAccordion>.ocsp-skeleton-list--issue {
     box-shadow: 0 0 0 7px rgba(39,123,188,0.16);
   }
 }
-body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal):is(.show,:target) .modal-content,
+body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal):target .modal-content,
 body.ocsp-portal--staff .reference-admin-modal:target .reference-admin__dialog {
   animation: ocsp-dialog-enter 280ms var(--ocsp-motion-ease-out);
 }
@@ -5799,5 +5799,56 @@ body.ocsp-session-ready [data-nav-roles] {
   body.ocsp-portal .issue-card,
   body.ocsp-portal .comment-card {
     border-color: #64748b;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Dialogs leave the way they arrived
+
+   Bootstrap slides .modal-dialog down from -50px, while ocsp-dialog-enter
+   floated .modal-content up from +14px - the dialog arrived from above
+   and its contents from below, at the same time. Closing then threw the
+   whole thing upward, out of a door it never came in through.
+
+   One transition on .modal-dialog now owns both directions: up from below
+   to open, back down to close, on mirrored curves. A transition also
+   interpolates from the element's current on-screen value, so a dialog
+   dismissed mid-open reverses from where it actually is instead of
+   snapping to the first frame of a keyframe.
+
+   :target keeps the old animation. That is the no-JavaScript fallback, it
+   has no close transition to be symmetric with, and its transform carries
+   !important.
+   -------------------------------------------------------------------------- */
+
+/* The mirror of --ocsp-motion-ease-out: the same curve read backwards, so
+   the outbound path retraces the return path. */
+:root {
+  --ocsp-motion-ease-in: cubic-bezier(0.64,0,0.78,0);
+}
+
+body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).modal.fade:not(:target) .modal-dialog {
+  transform: translate3d(0,16px,0) scale(0.985);
+  transition:
+    transform 260ms var(--ocsp-motion-ease-in),
+    opacity 260ms var(--ocsp-motion-ease-in);
+}
+
+body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).modal.fade.show .modal-dialog {
+  transition:
+    transform 280ms var(--ocsp-motion-ease-out),
+    opacity 280ms var(--ocsp-motion-ease-out);
+}
+
+/* The dialog still changes state under reduced motion, it just does not
+   travel to do it. */
+@media (prefers-reduced-motion: reduce) {
+  body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).modal.fade:not(:target) .modal-dialog {
+    transform: none;
+    transition: opacity 200ms linear;
+  }
+
+  body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).modal.fade.show .modal-dialog {
+    transition: opacity 200ms linear;
   }
 }
