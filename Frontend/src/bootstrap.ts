@@ -59,7 +59,7 @@ const routes: Record<string, () => Promise<Page>> = {
       import("./pages/my-issues.page"),
       import("./services/data.service")
     ]);
-    return new MyIssuesPage(new DataService(api, session));
+    return new MyIssuesPage(new DataService(api, session), session);
   },
 
   "notifications.html": async () => {

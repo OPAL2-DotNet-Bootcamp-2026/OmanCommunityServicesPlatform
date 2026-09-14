@@ -101,6 +101,14 @@ export class SiteSession {
       element.hidden = !user || !allowed.includes(user.role);
     });
 
+    // The inverse of data-role-visible, and not the same thing as listing the
+    // other roles: this keeps the element for a signed-out visitor. "Report an
+    // issue" is an invitation to anyone except the staff who resolve them.
+    document.querySelectorAll<HTMLElement>("[data-role-hidden]").forEach((element) => {
+      const denied = this.rolesFrom(element.dataset.roleHidden);
+      element.hidden = user ? denied.includes(user.role) : false;
+    });
+
     document.querySelectorAll<HTMLElement>("[data-nav-roles]").forEach((element) => {
       const allowed = this.rolesFrom(element.dataset.navRoles);
       element.hidden = !user || !allowed.includes(user.role);
