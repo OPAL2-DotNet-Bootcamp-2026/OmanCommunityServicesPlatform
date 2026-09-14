@@ -5727,13 +5727,15 @@ body.ocsp-portal .comment-composer .form-control {
 
 [data-nav-auth],
 [data-role-visible],
-[data-nav-roles] {
+[data-nav-roles],
+[data-role-hidden] {
   visibility: hidden;
 }
 
 body.ocsp-session-ready [data-nav-auth],
 body.ocsp-session-ready [data-role-visible],
-body.ocsp-session-ready [data-nav-roles] {
+body.ocsp-session-ready [data-nav-roles],
+body.ocsp-session-ready [data-role-hidden] {
   visibility: visible;
 }
 
