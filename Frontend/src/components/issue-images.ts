@@ -20,7 +20,7 @@ const OBSERVER_ROOT_MARGIN = "240px 0px";
  * One semaphore shared by the observer path and the fallback path, so a long
  * dashboard cannot open dozens of connections at once.
  */
-export class ImageLoadQueue {
+class ImageLoadQueue {
   private active = 0;
   private readonly waiters: (() => void)[] = [];
 

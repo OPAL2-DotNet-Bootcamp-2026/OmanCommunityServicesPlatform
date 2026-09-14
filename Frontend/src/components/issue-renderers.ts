@@ -48,7 +48,7 @@ export function escapeHtml(value: unknown): string {
 }
 
 /** Returns "" for anything that is not a relative path or an http(s) URL. */
-export function safeUrl(value: unknown): string {
+function safeUrl(value: unknown): string {
   const candidate = asText(value).trim();
   if (!candidate) {
     return "";
@@ -121,7 +121,7 @@ export function formatDate(
   }
 }
 
-export function formatDateTime(value: string | null | undefined): string {
+function formatDateTime(value: string | null | undefined): string {
   return formatDate(value, {
     day: "numeric",
     month: "short",
@@ -198,7 +198,7 @@ export function renderIssueCard(issue: Issue): string {
       </article>`;
 }
 
-export function renderAttachments(attachments: Attachment[]): string {
+function renderAttachments(attachments: Attachment[]): string {
   if (!Array.isArray(attachments) || !attachments.length) {
     return '<p class="text-muted small mb-0">No attachments were added to this issue.</p>';
   }
@@ -241,7 +241,7 @@ export function renderAttachments(attachments: Attachment[]): string {
  * A synthesised entry has no previousStatus at all, which covers issues created
  * before the backend started writing the row.
  */
-export function isSubmissionEntry(update: StatusUpdate): boolean {
+function isSubmissionEntry(update: StatusUpdate): boolean {
   return update.newStatus === "Open" && (!update.previousStatus || update.previousStatus === "Open");
 }
 
@@ -253,7 +253,7 @@ export function isSubmissionEntry(update: StatusUpdate): boolean {
  * would begin at the first status CHANGE. Every issue was Open at reportedDate
  * by definition, so the entry is synthesised when it is missing.
  */
-export function buildTimeline(issue: Issue): StatusUpdate[] {
+function buildTimeline(issue: Issue): StatusUpdate[] {
   const updates = Array.isArray(issue.statusUpdates) ? [...issue.statusUpdates] : [];
 
   const alreadyHasSubmission = updates.some(isSubmissionEntry);
@@ -276,7 +276,7 @@ export function buildTimeline(issue: Issue): StatusUpdate[] {
   );
 }
 
-export function renderTimeline(statusUpdates: StatusUpdate[], emptyMessage?: string): string {
+function renderTimeline(statusUpdates: StatusUpdate[], emptyMessage?: string): string {
   if (!Array.isArray(statusUpdates) || !statusUpdates.length) {
     return `<p class="text-muted small mb-0">${escapeHtml(emptyMessage || "No status updates are available.")}</p>`;
   }
@@ -426,7 +426,7 @@ export function renderAttachmentsBlock(
  * Collapsed behind a toggle so the dialog opens on the issue itself rather than
  * on a form.
  */
-export function renderImageUpdatePanel(issue: IssueDetail): {
+function renderImageUpdatePanel(issue: IssueDetail): {
   action: string;
   panel: string;
 } {

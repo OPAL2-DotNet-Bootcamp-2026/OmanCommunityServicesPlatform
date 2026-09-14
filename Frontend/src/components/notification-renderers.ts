@@ -39,7 +39,7 @@ function dateKey(date: Date): string {
   }
 }
 
-export function formatRelativeTime(value: string): string {
+function formatRelativeTime(value: string): string {
   const date = parseApiDate(value);
   if (Number.isNaN(date.getTime())) {
     return "Time unavailable";
@@ -97,7 +97,7 @@ function iconMeta(notification: Notification): IconMeta {
 }
 
 /** Staff and Admin land on the dashboard; everyone else on their own issues. */
-export function getNotificationHref(notification: Notification, role: SessionRole): string {
+function getNotificationHref(notification: Notification, role: SessionRole): string {
   const issueId = positiveInteger(notification?.issueId);
   if (!issueId) {
     return "";
