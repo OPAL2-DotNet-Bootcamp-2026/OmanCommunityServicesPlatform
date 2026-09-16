@@ -13,14 +13,16 @@ namespace OmanCommunityServicesPlatform.Services
         private RegionRepo regionRepo;
         private AuthService authService;
         private EmailService emailService;
+        private ILogger<UserService> logger;
 
-        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo, AuthService _authService, EmailService _emailService)
+        public UserService(UserRepo _repo, DepartmentRepo _departmentRepo, RegionRepo _regionRepo, AuthService _authService, EmailService _emailService, ILogger<UserService> _logger)
         {
             userRepo = _repo;
             departmentRepo = _departmentRepo;
             regionRepo = _regionRepo;
             authService = _authService;
             emailService = _emailService;
+            logger = _logger;
         }
 
         public async Task<UserSummaryDto?> RegisterUser(RegisterUserDto dto)
@@ -60,14 +62,16 @@ namespace OmanCommunityServicesPlatform.Services
         public async Task<LoginResponseDto?> LoginUser(LoginDto dto)
         {
             User user = userRepo.GetByEmail(dto.email);
-            
+
             if (user == null)
             {
+                logger.LogWarning("Login attempt for unknown email {Email}", dto.email);
                 return null;
             }
 
             if (!user.isActive)
             {
+                logger.LogWarning("Login attempt on deactivated account {UserId}", user.userId);
                 return null;
             }
 
@@ -75,8 +79,11 @@ namespace OmanCommunityServicesPlatform.Services
 
             if (!validPassword)
             {
+                logger.LogWarning("Login attempt with wrong password {UserId}", user.userId);
                 return null;
             }
+
+            logger.LogInformation("User {UserId} signed in with role {Role}", user.userId, user.role);
 
             string token = authService.GenerateToken(user);
 
