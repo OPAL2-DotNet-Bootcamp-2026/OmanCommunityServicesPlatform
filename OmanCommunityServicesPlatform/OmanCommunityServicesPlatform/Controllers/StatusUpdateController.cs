@@ -36,8 +36,14 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             var update = _statusUpdateService.GetById(id);
             if (update == null)
-                return NotFound(new { message = $"Status update with ID {id} not found." });
-
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Status update not found",
+                    detail: $"Status update with ID {id} was not found."
+                );
+            }
             return Ok(update);
         }
 
@@ -52,8 +58,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             if (User.IsInRole("Citizen"))
             {
-                var claim = User.FindFirst("userId");
-                if (claim == null || !int.TryParse(claim.Value, out int reporterId))
+                // Get the current citizen ID from the JWT token
+                if (!User.TryGetUserId(out int reporterId))
                 {
                     return Unauthorized();
                 }
@@ -64,7 +70,11 @@ namespace OmanCommunityServicesPlatform.Controllers
                 // theirs, so this cannot be used to probe for issue ids.
                 if (own == null)
                 {
-                    return NotFound(new { message = $"Issue with ID {issueId} was not found." });
+                    return Problem(
+                        statusCode: StatusCodes.Status404NotFound,
+                        title: "Issue not found",
+                        detail: $"Issue with ID {issueId} was not found."
+                    );
                 }
 
                 return Ok(own);
@@ -81,8 +91,14 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             bool deleted = _statusUpdateService.Delete(id);
             if (!deleted)
-                return NotFound(new { message = $"Status update with ID {id} not found." });
-
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Status update not found",
+                    detail: $"Status update with ID {id} was not found."
+                );
+            }
             return NoContent();
         }
     }
