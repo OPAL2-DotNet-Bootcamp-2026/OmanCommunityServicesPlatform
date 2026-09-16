@@ -41,7 +41,14 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             ResponseDepartmentDTO result = departmentService.Create(department);
             if (result == null)
-                return BadRequest("Department name already exists or Region does not exist");
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Unable to create department",
+                    detail: "Department name already exists or Region does not exist."
+                );
+            }
             return Ok(result);
         }
         [Authorize(Roles = "Admin")]
@@ -50,7 +57,14 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             ResponseDepartmentDTO result = departmentService.Update(id, department);
             if (result == null)
-                return BadRequest("Department not found, department name already exists, or Region does not exist");
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Unable to update department",
+                    detail: "Department not found, department name already exists, or Region does not exist."
+                );
+            }
             return Ok(result);
         }
         [Authorize(Roles = "Admin")]
