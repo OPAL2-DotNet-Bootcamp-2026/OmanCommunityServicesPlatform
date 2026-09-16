@@ -1,3 +1,4 @@
+using Serilog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,14 @@ namespace OmanCommunityServicesPlatform
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Replaces the default logging providers. Services keep injecting
+            // ILogger<T>; configuration lives in appsettings.json so levels can
+            // change on a deployed server without a rebuild.
+            builder.Host.UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext());
 
             // Add services to the container.
 
@@ -126,6 +135,12 @@ namespace OmanCommunityServicesPlatform
                 });
             });
 
+            // Reports whether this instance can actually serve traffic. A
+            // running process is not the same as a working one - the usual
+            // failure is a process that is up but cannot reach its database.
+            builder.Services.AddHealthChecks()
+                .AddDbContextCheck<OCSPContext>("database");
+
             // CORS Allow requests from different origin (different port => e.g Frontend)
             builder.Services.AddCors(options =>
             {
@@ -152,6 +167,20 @@ namespace OmanCommunityServicesPlatform
                 app.UseHttpsRedirection();
             }
 
+            // Returns the id the framework already logs as RequestId - same name, so
+            // a user quoting the header can be found by grepping for it. Not pushed
+            // into the log context: it is already there.
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers["X-Request-Id"] = context.TraceIdentifier;
+                await next();
+            });
+
+            // One line per request: method, path, status, elapsed ms. Must sit
+            // above the middleware it measures - below UseAuthentication it
+            // would not count authentication time.
+            app.UseSerilogRequestLogging();
+
             app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
@@ -160,6 +189,11 @@ namespace OmanCommunityServicesPlatform
             app.UseRateLimiter();
 
             app.MapControllers();
+
+            // Anonymous and deliberately terse: it answers Healthy or
+            // Unhealthy and nothing else. Anything a monitor can read, an
+            // attacker can read too.
+            app.MapHealthChecks("/health");
 
             app.Run();
         }

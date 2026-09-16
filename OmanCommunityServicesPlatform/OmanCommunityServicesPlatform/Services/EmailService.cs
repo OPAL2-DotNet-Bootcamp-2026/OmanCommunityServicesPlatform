@@ -14,6 +14,14 @@ namespace OmanCommunityServicesPlatform.Services
             logger = _logger;
         }
 
+        // Log files are kept for 14 days and get copied around. A masked
+        // address is enough to recognise a recipient without storing one.
+        private static string Mask(string email)
+        {
+            int at = email?.IndexOf('@') ?? -1;
+            return at <= 0 ? "***" : $"{email![0]}***{email[at..]}";
+        }
+
         public async Task SendEmailAsync(string toEmail, string subject, string body)
         {
             try
@@ -32,7 +40,7 @@ namespace OmanCommunityServicesPlatform.Services
                 // If configuration is missing completely, skip sending gracefully
                 if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(password))
                 {
-                    logger.LogWarning("SMTP settings are missing or incomplete in appsettings. Skipping email delivery to {ToEmail}.", toEmail);
+                    logger.LogWarning("SMTP settings are missing or incomplete, skipping email delivery");
                     return;
                 }
 
@@ -48,12 +56,12 @@ namespace OmanCommunityServicesPlatform.Services
                 };
 
                 await client.SendMailAsync(message);
-                logger.LogInformation("Email sent successfully to {ToEmail}.", toEmail);
+                logger.LogInformation("Email sent successfully to {ToEmail}", Mask(toEmail));
             }
             catch (Exception ex)
             {
                 // Log the exception but NEVER let an email failure break the API request
-                logger.LogError(ex, "Failed to send email notification to {ToEmail}.", toEmail);
+                logger.LogError(ex, "Failed to send email notification to {ToEmail}", Mask(toEmail));
             }
         }
     }
