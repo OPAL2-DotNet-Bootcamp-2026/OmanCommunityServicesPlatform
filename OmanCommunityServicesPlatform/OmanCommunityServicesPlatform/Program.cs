@@ -161,6 +161,20 @@ namespace OmanCommunityServicesPlatform
                 app.UseHttpsRedirection();
             }
 
+            // Returns the id the framework already logs as RequestId, so a user
+            // reporting a problem can quote it and we can find the exact
+            // request. Not pushed into the log context - it is already there.
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers["X-Correlation-Id"] = context.TraceIdentifier;
+                await next();
+            });
+
+            // One line per request: method, path, status, elapsed ms. Must sit
+            // above the middleware it measures - below UseAuthentication it
+            // would not count authentication time.
+            app.UseSerilogRequestLogging();
+
             app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
