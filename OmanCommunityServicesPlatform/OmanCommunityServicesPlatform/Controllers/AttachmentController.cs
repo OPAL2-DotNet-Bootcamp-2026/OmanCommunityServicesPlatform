@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Services;
-
+using OmanCommunityServicesPlatform;
 namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
@@ -23,9 +23,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         public IActionResult Create([FromBody] CreateAttachmentDto dto)
         {
             // Get the logged-in Citizen ID from the JWT token
-            var claim = User.FindFirst("userId");
-
-            if (claim == null || !int.TryParse(claim.Value, out int uploadedById))
+            if (!User.TryGetUserId(out int uploadedById))
             {
                 return Unauthorized();
             }
@@ -34,7 +32,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (created == null)
             {
-                return NotFound(new {message = $"Issue with ID {dto.issueId} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Issue not found",
+                    detail: $"Issue with ID {dto.issueId} was not found."
+                );
             }
             return Ok(created);
         }
@@ -48,7 +51,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (attachment == null)
             {
-                return NotFound(new { message = $"Attachment with ID {id} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Attachment not found",
+                    detail: $"Attachment with ID {id} was not found."
+                );
             }
 
             return Ok(attachment);
@@ -68,9 +76,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         public IActionResult Update(int id, [FromBody] UpdateAttachmentDto dto)
         {
             // Get the logged-in Citizen ID from the JWT token
-            var claim = User.FindFirst("userId");
-
-            if (claim == null || !int.TryParse(claim.Value, out int uploadedById))
+            if (!User.TryGetUserId(out int uploadedById))
             {
                 return Unauthorized();
             }
@@ -79,7 +85,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (updated == null)
             {
-                return NotFound(new{ message = $"Attachment with ID {id} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Attachment not found",
+                    detail: $"Attachment with ID {id} was not found."
+                );
             }
 
             return Ok(updated);
@@ -89,11 +100,16 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Citizen,Admin")]
         public IActionResult Delete(int id)
         {
-           // Get the logged-in user ID from the JWT token
-            var claim = User.FindFirst("userId");
+            // Get the logged-in user ID from the JWT token
+            if (!User.TryGetUserId(out int uploadedById))
+            {
+                return Unauthorized();
+            }
+
             // Get the logged-in user's role
             var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role);
-            if (claim == null || roleClaim == null || !int.TryParse(claim.Value, out int uploadedById))
+
+            if (roleClaim == null)
             {
                 return Unauthorized();
             }
@@ -104,7 +120,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!deleted)
             {
-                return NotFound(new {  message = $"Attachment with ID {id} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Attachment not found",
+                    detail: $"Attachment with ID {id} was not found."
+                );
             }
 
             return Ok(new { message = "Attachment deleted successfully." });
