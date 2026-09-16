@@ -18,7 +18,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             issueService = _issueService;
             statusUpdateService = _statusUpdateService;
         }
-
+     
         // POST issue/Create
         // Citizen reports a new issue
         [EnableRateLimiting("CreatePolicy")]
