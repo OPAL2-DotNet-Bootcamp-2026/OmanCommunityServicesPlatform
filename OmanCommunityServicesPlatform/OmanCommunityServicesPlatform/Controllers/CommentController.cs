@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
-
+using OmanCommunityServicesPlatform;
 namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
@@ -26,8 +26,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpPost("newComment")]
         public IActionResult Create([FromBody] CreateCommentDto dto)
         {
-            var claim = User.FindFirst("userId");
-            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            // Get the authenticated user ID from the JWT token
+            if (!User.TryGetUserId(out int userId))
             {
                 return Unauthorized();
             }
@@ -38,7 +38,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (created == null)
             {
-                return BadRequest(new { message = $"Issue with ID {dto.issueId} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Unable to create comment",
+                    detail: $"Issue with ID {dto.issueId} was not found."
+                );
             }
 
             return Ok(created);
@@ -62,8 +67,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpDelete("{commentId}")]
         public IActionResult Delete(int commentId)
         {
-            var claim = User.FindFirst("userId");
-            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            // Get the authenticated user ID from the JWT token
+            if (!User.TryGetUserId(out int userId))
             {
                 return Unauthorized();
             }
@@ -72,7 +77,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!deleted)
             {
-                return NotFound(new { message = $"Comment with ID {commentId} was not found or you do not have permission to delete it." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Comment not found",
+                    detail: $"Comment with ID {commentId} was not found or you do not have permission to delete it."
+                );
             }
 
             return Ok(new { message = "Comment deleted successfully." });
