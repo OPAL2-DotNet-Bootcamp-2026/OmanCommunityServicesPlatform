@@ -75,7 +75,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (updated == null)
             {
-                return NotFound(new { message = $"User with ID {id} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "User not found",
+                    detail: $"User with ID {id} was not found."
+                );
             }
 
             return Ok(updated);
