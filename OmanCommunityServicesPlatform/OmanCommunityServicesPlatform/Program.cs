@@ -16,6 +16,23 @@ namespace OmanCommunityServicesPlatform
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            // Register Problem Details so API errors use a standard format
+            builder.Services.AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = context =>
+                {
+                    // Add a trace ID to help match API errors with server logs
+                    context.ProblemDetails.Extensions["traceId"] =
+                        context.HttpContext.TraceIdentifier;
+
+                    // Add the endpoint where the error happened
+                    context.ProblemDetails.Instance =
+                        context.HttpContext.Request.Path;
+                };
+            });
+
+            // Register the global exception handler
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
             // Add services to the container.
 
@@ -138,6 +155,13 @@ namespace OmanCommunityServicesPlatform
             });
 
             var app = builder.Build();
+
+            // Handle unexpected exceptions globally
+            app.UseExceptionHandler();
+
+            // Convert empty error responses such as 401, 403 and 404
+            // into Problem Details responses
+            app.UseStatusCodePages();
 
             // Configure the HTTP request pipeline.
 
