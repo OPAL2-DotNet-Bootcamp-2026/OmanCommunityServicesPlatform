@@ -2,8 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
-using System.Security.Claims;
-
+using OmanCommunityServicesPlatform;
 namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
@@ -63,17 +62,10 @@ namespace OmanCommunityServicesPlatform.Controllers
             [FromRoute] int notificationId
         )
         {
-            // Get the authenticated User ID from the JWT token.
-            int? authenticatedUserId =
-                GetAuthenticatedUserId();
-
-            if (authenticatedUserId == null)
+            // Get the authenticated user ID from the JWT token
+            if (!User.TryGetUserId(out int authenticatedUserId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Unauthorized();
             }
 
             // Ask the Service to find the Notification.
@@ -85,10 +77,11 @@ namespace OmanCommunityServicesPlatform.Controllers
             // Return 404 when the Notification does not exist.
             if (notification == null)
             {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
+                return Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Notification not found",
+                 detail: "Notification was not found."
+                 );
             }
             // A User must not view another User's Notification.
             //
@@ -96,7 +89,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             bool isAdmin = User.IsInRole("Admin");
 
             if (
-                notification.userId != authenticatedUserId.Value &&
+                notification.userId != authenticatedUserId &&
                 !isAdmin
             )
             {
@@ -114,30 +107,25 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpGet("my")]
         public IActionResult GetMyNotifications()
         {
-            // Read the logged-in User's ID from JWT.
-            int? userId = GetAuthenticatedUserId();
-
-            if (userId == null)
+            /// Get the authenticated user ID from the JWT token
+            if (!User.TryGetUserId(out int userId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Unauthorized();
             }
             // The Service may return null when the User
             // does not exist.
             List<NotificationResponseDto>? notifications =
                 notificationService.GetNotificationsByUserId(
-                    userId.Value
+                    userId
                 );
 
             if (notifications == null)
             {
-                return NotFound(new
-                {
-                    message = "User was not found."
-                });
+                return Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: "User not found",
+                detail: "User was not found."
+                );
             }
 
             if (notifications.Count == 0)
@@ -286,18 +274,13 @@ namespace OmanCommunityServicesPlatform.Controllers
             [FromBody] UpdateNotificationReadStatusDTO dto
         )
         {
-            // Read the logged-in User ID from JWT.
-            int? userId = GetAuthenticatedUserId();
-
-            if (userId == null)
+            // Get the authenticated user ID from the JWT token
+            if (!User.TryGetUserId(out int userId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
-
+                return Unauthorized();
             }
+
+        
             // Find the Notification first so the Controller
             // can verify ownership.
             NotificationResponseDto? notification =
@@ -307,15 +290,16 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (notification == null)
             {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
+                return Problem(
+                statusCode: StatusCodes.Status404NotFound,
+                title: "User not found",
+                detail: "User was not found."
+               );
             }
 
             // A User can change only their own
             // Notification's read status.
-            if (notification.userId != userId.Value)
+            if (notification.userId != userId)
             {
                 return Forbid();
             }
