@@ -135,6 +135,12 @@ namespace OmanCommunityServicesPlatform
                 });
             });
 
+            // Reports whether this instance can actually serve traffic. A
+            // running process is not the same as a working one - the usual
+            // failure is a process that is up but cannot reach its database.
+            builder.Services.AddHealthChecks()
+                .AddDbContextCheck<OCSPContext>("database");
+
             // CORS Allow requests from different origin (different port => e.g Frontend)
             builder.Services.AddCors(options =>
             {
@@ -183,6 +189,11 @@ namespace OmanCommunityServicesPlatform
             app.UseRateLimiter();
 
             app.MapControllers();
+
+            // Anonymous and deliberately terse: it answers Healthy or
+            // Unhealthy and nothing else. Anything a monitor can read, an
+            // attacker can read too.
+            app.MapHealthChecks("/health");
 
             app.Run();
         }
