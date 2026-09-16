@@ -26,18 +26,22 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Citizen")]
         public async Task<IActionResult> CreateIssue([FromBody] CreateIssueDto dto)
         {
-            var claim = User.FindFirst("userId");
-
-            if (claim == null || !int.TryParse(claim.Value, out int reportedById))
+            // Get the current citizen ID from the JWT token
+            if (!User.TryGetUserId(out int reportedById))
             {
                 return Unauthorized();
             }
-            
+
             IssueResponseDto? created = await issueService.Create(dto, reportedById);
 
             if (created == null)
             {
-                return BadRequest(new { message = "The selected category or region does not exist." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Invalid issue",
+                    detail: "The selected category or region does not exist."
+                );
             }
             return Ok(created); //200, issue created
 
@@ -48,10 +52,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Citizen")]
         public IActionResult GetMyIssues()
         {
-            // Get the logged-in citizen ID from the token
-            var claim = User.FindFirst("userId");
-
-            if (claim == null || !int.TryParse(claim.Value, out int reportedById))
+            // Get the logged-in citizen ID from the JWT token
+            if (!User.TryGetUserId(out int reportedById))
             {
                 return Unauthorized();
             }
@@ -87,9 +89,8 @@ namespace OmanCommunityServicesPlatform.Controllers
             // only allow them to view their own issues.
             if (User.IsInRole("Citizen"))
             {
-                var claim = User.FindFirst("userId");
-
-                if (claim == null || !int.TryParse(claim.Value, out int reportedById))
+                // Get the current citizen ID from the JWT token
+                if (!User.TryGetUserId(out int reportedById))
                 {
                     return Unauthorized();
                 }
@@ -103,7 +104,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (issue == null)
             {
-                return NotFound(new { Message = $"Issue with ID {id} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Issue not found",
+                    detail: $"Issue with ID {id} was not found."
+                );
             }
             return Ok(issue);
         }
@@ -112,9 +118,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> ChangeIssueStatus([FromRoute] int id, [FromBody] CreateStatusUpdateDto dto)
         {
-            var claim = User.FindFirst("userId");
-
-            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            // Get the current staff/admin ID from the JWT token
+            if (!User.TryGetUserId(out int userId))
             {
                 return Unauthorized();
             }
@@ -123,7 +128,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (result == null)
             {
-                return NotFound(new { message = $"Issue with ID {id} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Issue not found",
+                    detail: $"Issue with ID {id} was not found."
+                );
             }
 
             return Ok(result);
