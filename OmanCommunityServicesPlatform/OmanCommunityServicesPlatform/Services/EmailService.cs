@@ -40,7 +40,7 @@ namespace OmanCommunityServicesPlatform.Services
                 // If configuration is missing completely, skip sending gracefully
                 if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(password))
                 {
-                    logger.LogWarning("SMTP settings are missing or incomplete. Skipping email delivery.");
+                    logger.LogWarning("SMTP settings are missing or incomplete, skipping email delivery");
                     return;
                 }
 
@@ -56,12 +56,12 @@ namespace OmanCommunityServicesPlatform.Services
                 };
 
                 await client.SendMailAsync(message);
-                logger.LogInformation("Email sent successfully to {ToEmail}.", Mask(toEmail));
+                logger.LogInformation("Email sent successfully to {ToEmail}", Mask(toEmail));
             }
             catch (Exception ex)
             {
                 // Log the exception but NEVER let an email failure break the API request
-                logger.LogError(ex, "Failed to send email notification to {ToEmail}.", Mask(toEmail));
+                logger.LogError(ex, "Failed to send email notification to {ToEmail}", Mask(toEmail));
             }
         }
     }

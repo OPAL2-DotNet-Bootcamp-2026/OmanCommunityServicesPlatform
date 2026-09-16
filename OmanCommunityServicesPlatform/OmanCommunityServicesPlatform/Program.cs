@@ -167,12 +167,12 @@ namespace OmanCommunityServicesPlatform
                 app.UseHttpsRedirection();
             }
 
-            // Returns the id the framework already logs as RequestId, so a user
-            // reporting a problem can quote it and we can find the exact
-            // request. Not pushed into the log context - it is already there.
+            // Returns the id the framework already logs as RequestId - same name, so
+            // a user quoting the header can be found by grepping for it. Not pushed
+            // into the log context: it is already there.
             app.Use(async (context, next) =>
             {
-                context.Response.Headers["X-Correlation-Id"] = context.TraceIdentifier;
+                context.Response.Headers["X-Request-Id"] = context.TraceIdentifier;
                 await next();
             });
 

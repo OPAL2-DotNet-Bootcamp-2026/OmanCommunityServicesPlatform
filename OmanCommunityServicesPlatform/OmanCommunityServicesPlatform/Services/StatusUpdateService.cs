@@ -54,7 +54,7 @@ namespace OmanCommunityServicesPlatform.Services
             // status, so this is the only record of who decided it.
             logger.LogInformation(
                 "Issue {IssueId} moved from {PreviousStatus} to {NewStatus} by user {UserId}",
-                issueId, previousStatus, dto.newStatus, updatedById);
+                issueId, previousStatus.ToString(), dto.newStatus.ToString(), updatedById);
 
             // 3. Send In-App Notification to the Citizen who reported the issue
             notificationService.CreateNotification(new CreateNotificationDTO

@@ -83,7 +83,7 @@ namespace OmanCommunityServicesPlatform.Services
                 return null;
             }
 
-            logger.LogInformation("User {UserId} signed in with role {Role}", user.userId, user.role);
+            logger.LogInformation("User {UserId} signed in with role {Role}", user.userId, user.role.ToString());
 
             string token = authService.GenerateToken(user);
 
