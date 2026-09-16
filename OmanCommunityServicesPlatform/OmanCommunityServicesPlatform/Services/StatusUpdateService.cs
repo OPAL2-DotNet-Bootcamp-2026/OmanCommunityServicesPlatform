@@ -13,14 +13,16 @@ namespace OmanCommunityServicesPlatform.Services
         private UserRepo userRepo;
         private EmailService emailService;
         private NotificationService notificationService;
+        private ILogger<StatusUpdateService> logger;
 
-        public StatusUpdateService(StatusUpdateRepo _statusUpdateRepo, IssueRepo _issueRepo, UserRepo _userRepo, EmailService _emailService, NotificationService _notificationService)
+        public StatusUpdateService(StatusUpdateRepo _statusUpdateRepo, IssueRepo _issueRepo, UserRepo _userRepo, EmailService _emailService, NotificationService _notificationService, ILogger<StatusUpdateService> _logger)
         {
             statusUpdateRepo = _statusUpdateRepo;
             issueRepo = _issueRepo;
             userRepo = _userRepo;
             emailService = _emailService;
             notificationService = _notificationService;
+            logger = _logger;
         }
 
         // Create Status Update
@@ -48,6 +50,12 @@ namespace OmanCommunityServicesPlatform.Services
             };
             statusUpdateRepo.Add(statusUpdate);
 
+            // Who moved which issue, and when. The citizen only sees the new
+            // status, so this is the only record of who decided it.
+            logger.LogInformation(
+                "Issue {IssueId} moved from {PreviousStatus} to {NewStatus} by user {UserId}",
+                issueId, previousStatus, dto.newStatus, updatedById);
+
             // 3. Send In-App Notification to the Citizen who reported the issue
             notificationService.CreateNotification(new CreateNotificationDTO
             {
@@ -73,7 +81,11 @@ namespace OmanCommunityServicesPlatform.Services
             }
             catch (Exception ex)
             {
-                // Log exception (e.g., logger.LogError) without breaking the response
+                // Swallowed on purpose - a failed email must not fail the status
+                // change. Logged so it is still visible afterwards.
+                logger.LogError(ex,
+                    "Status change email failed for issue {IssueId} to user {UserId}",
+                    issueId, issue.reportedById);
             }
 
             // 5. Return Response DTO
