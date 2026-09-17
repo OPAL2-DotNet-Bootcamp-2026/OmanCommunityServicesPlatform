@@ -150,11 +150,14 @@ namespace OmanCommunityServicesPlatform
                 .AddDbContextCheck<OCSPContext>("database");
 
             // CORS Allow requests from different origin (different port => e.g Frontend)
+            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                ?? Array.Empty<string>();
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.AllowAnyOrigin()
+                    policy.WithOrigins(allowedOrigins)
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
