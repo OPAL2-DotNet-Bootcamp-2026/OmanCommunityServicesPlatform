@@ -62,6 +62,14 @@ namespace OmanCommunityServicesPlatform
             var jwtKey = builder.Configuration["JwtSettings:SecretKey"];
             var jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
             var jwtAudience = builder.Configuration["JwtSettings:Audience"];
+
+            if (string.IsNullOrWhiteSpace(jwtKey))
+            {
+                throw new InvalidOperationException(
+                    "JwtSettings:SecretKey is missing or empty. Set it locally with: " +
+                    "dotnet user-secrets set \"JwtSettings:SecretKey\" \"<value>\" " +
+                    "or via the JwtSettings__SecretKey environment variable in production.");
+            }
             // Configure how incoming tokens are validated
             builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
