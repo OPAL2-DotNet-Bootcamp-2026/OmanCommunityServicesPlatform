@@ -101,7 +101,7 @@ namespace OmanCommunityServicesPlatform
             {
                 options.AddFixedWindowLimiter("CreatePolicy", limiterOptions =>
                 {
-                    limiterOptions.PermitLimit = 2; 
+                    limiterOptions.PermitLimit = 2;
                     limiterOptions.Window = TimeSpan.FromSeconds(30);
 
                     limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
@@ -175,6 +175,7 @@ namespace OmanCommunityServicesPlatform
 
             if (!app.Environment.IsDevelopment())
             {
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
