@@ -59,9 +59,29 @@ namespace OmanCommunityServicesPlatform
             // Register AuthService 
             builder.Services.AddScoped<AuthService>();
             // Read JWT settings from appsettings.json 
+            // Committed on purpose so the project runs with no setup. Mirrors the value
+            // in appsettings.json - change both together.
+            const string DevelopmentKey = "YourSuperSecretKeyThatIsAtLeast32CharactersLong!";
+
             var jwtKey = builder.Configuration["JwtSettings:SecretKey"];
             var jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
             var jwtAudience = builder.Configuration["JwtSettings:Audience"];
+
+            if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+            {
+                throw new InvalidOperationException(
+                    "JwtSettings:SecretKey is missing or shorter than 32 characters. " +
+                    "Set JwtSettings__SecretKey to a 32+ character random value.");
+            }
+
+            // The whole point of A05: a deployment must never run on the key that is
+            // published in this repository.
+            if (!builder.Environment.IsDevelopment() && jwtKey == DevelopmentKey)
+            {
+                throw new InvalidOperationException(
+                    "The development JWT key cannot be used outside Development. " +
+                    "Set JwtSettings__SecretKey to a real 32+ character random value.");
+            }
             // Configure how incoming tokens are validated
             builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -93,7 +113,7 @@ namespace OmanCommunityServicesPlatform
             {
                 options.AddFixedWindowLimiter("CreatePolicy", limiterOptions =>
                 {
-                    limiterOptions.PermitLimit = 2; 
+                    limiterOptions.PermitLimit = 2;
                     limiterOptions.Window = TimeSpan.FromSeconds(30);
 
                     limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
@@ -142,11 +162,23 @@ namespace OmanCommunityServicesPlatform
                 .AddDbContextCheck<OCSPContext>("database");
 
             // CORS Allow requests from different origin (different port => e.g Frontend)
+            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                ?? Array.Empty<string>();
+
+            // An empty allowlist is not an error to CORS, it just blocks everything,
+            // and the only symptom shows up in someone else's browser console.
+            if (allowedOrigins.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "AllowedOrigins is empty. Set at least one origin, e.g. http://localhost:4200, " +
+                    "in appsettings.json or via AllowedOrigins__0 in production.");
+            }
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.AllowAnyOrigin()
+                    policy.WithOrigins(allowedOrigins)
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
@@ -164,6 +196,7 @@ namespace OmanCommunityServicesPlatform
 
             if (!app.Environment.IsDevelopment())
             {
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
