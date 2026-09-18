@@ -59,16 +59,28 @@ namespace OmanCommunityServicesPlatform
             // Register AuthService 
             builder.Services.AddScoped<AuthService>();
             // Read JWT settings from appsettings.json 
+            // Committed on purpose so the project runs with no setup. Mirrors the value
+            // in appsettings.json - change both together.
+            const string DevelopmentKey = "YourSuperSecretKeyThatIsAtLeast32CharactersLong!";
+
             var jwtKey = builder.Configuration["JwtSettings:SecretKey"];
             var jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
             var jwtAudience = builder.Configuration["JwtSettings:Audience"];
 
-            if (string.IsNullOrWhiteSpace(jwtKey))
+            if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
             {
                 throw new InvalidOperationException(
-                    "JwtSettings:SecretKey is missing or empty. Set it locally with: " +
-                    "dotnet user-secrets set \"JwtSettings:SecretKey\" \"<value>\" " +
-                    "or via the JwtSettings__SecretKey environment variable in production.");
+                    "JwtSettings:SecretKey is missing or shorter than 32 characters. " +
+                    "Set JwtSettings__SecretKey to a 32+ character random value.");
+            }
+
+            // The whole point of A05: a deployment must never run on the key that is
+            // published in this repository.
+            if (!builder.Environment.IsDevelopment() && jwtKey == DevelopmentKey)
+            {
+                throw new InvalidOperationException(
+                    "The development JWT key cannot be used outside Development. " +
+                    "Set JwtSettings__SecretKey to a real 32+ character random value.");
             }
             // Configure how incoming tokens are validated
             builder.Services
