@@ -165,6 +165,15 @@ namespace OmanCommunityServicesPlatform
             var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
                 ?? Array.Empty<string>();
 
+            // An empty allowlist is not an error to CORS, it just blocks everything,
+            // and the only symptom shows up in someone else's browser console.
+            if (allowedOrigins.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "AllowedOrigins is empty. Set at least one origin, e.g. http://localhost:4200, " +
+                    "in appsettings.json or via AllowedOrigins__0 in production.");
+            }
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
