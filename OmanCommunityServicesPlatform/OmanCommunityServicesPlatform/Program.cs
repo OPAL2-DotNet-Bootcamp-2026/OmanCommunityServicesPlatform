@@ -8,6 +8,8 @@ using OmanCommunityServicesPlatform.Services;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace OmanCommunityServicesPlatform
 {
@@ -96,19 +98,129 @@ namespace OmanCommunityServicesPlatform
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
 
-            // Register Rate Limiter 
+            // Register Rate Limiter
             builder.Services.AddRateLimiter(options =>
             {
-                options.AddFixedWindowLimiter("CreatePolicy", limiterOptions =>
+                // --------------------------------------------------
+                // CREATE POLICY
+                // --------------------------------------------------
+                // Each authenticated user gets their own rate-limit bucket.
+                // If the user is not authenticated, fall back to IP address.
+                options.AddPolicy<string>("CreatePolicy", context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: ResolvePartitionKey(context),
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            // Allow 5 requests every 30 seconds per caller
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromSeconds(30),
+
+                            // Do not queue extra requests
+                            QueueProcessingOrder =
+                                QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0,
+
+                            // Automatically start a new window
+                            AutoReplenishment = true
+                        }));
+
+                // --------------------------------------------------
+                // LOGIN POLICY
+                // --------------------------------------------------
+                // Login users do not have a JWT yet,
+                // so the rate limit is based on IP address.
+                options.AddPolicy<string>("LoginPolicy", context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: $"ip:{GetClientIp(context)}",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            // Allow 5 login attempts every 5 minutes per IP
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromMinutes(5),
+
+                            QueueProcessingOrder =
+                                QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0,
+
+                            AutoReplenishment = true
+                        }));
+
+                // Default HTTP status when a request is rejected
+                options.RejectionStatusCode =
+                    StatusCodes.Status429TooManyRequests;
+
+                
+                // Return the same Problem Details format used
+                // by the rest of the API.
+                options.OnRejected = async (context, cancellationToken) =>
                 {
-                    limiterOptions.PermitLimit = 2; 
-                    limiterOptions.Window = TimeSpan.FromSeconds(30);
+                    context.HttpContext.Response.StatusCode =
+                        StatusCodes.Status429TooManyRequests;
 
-                    limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                    limiterOptions.QueueLimit = 0;
-                });
+                    int retryAfterSeconds;
 
-                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                    // Try to get the real retry time from the Rate Limiter
+                    if (context.Lease.TryGetMetadata(
+                        MetadataName.RetryAfter,
+                        out TimeSpan retryAfter))
+                    {
+                        retryAfterSeconds =
+                            Math.Max(
+                                1,
+                                (int)Math.Ceiling(retryAfter.TotalSeconds)
+                            );
+                    }
+                    else
+                    {
+                        // Fallback:
+                        // LoginPolicy = 5 minutes
+                        // CreatePolicy = 30 seconds
+                        retryAfterSeconds =
+                            context.HttpContext.Request.Path
+                                .StartsWithSegments("/user/login")
+                                ? 300
+                                : 30;
+                    }
+
+                    // Tell the client how long to wait
+                    context.HttpContext.Response.Headers["Retry-After"] =
+                        retryAfterSeconds.ToString(
+                            CultureInfo.InvariantCulture
+                        );
+
+                    // Log the rejected request on the server
+                    var logger =
+                        context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("RateLimiting");
+
+                    logger.LogWarning(
+                        "Rate limit exceeded on {Path} from {Partition}. TraceId: {TraceId}",
+                        context.HttpContext.Request.Path,
+                        ResolvePartitionKey(context.HttpContext),
+                        context.HttpContext.TraceIdentifier
+                    );
+
+                    // Use the same Problem Details service from Part A
+                    var problemDetailsService =
+                        context.HttpContext.RequestServices
+                            .GetRequiredService<IProblemDetailsService>();
+
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status429TooManyRequests,
+                        Title = "Too many requests",
+                        Detail =
+                            $"Rate limit exceeded. Try again in {retryAfterSeconds} seconds."
+                    };
+
+                    await problemDetailsService.TryWriteAsync(
+                        new ProblemDetailsContext
+                        {
+                            HttpContext = context.HttpContext,
+                            ProblemDetails = problemDetails
+                        });
+                };
             });
 
             // Swagger
@@ -179,13 +291,34 @@ namespace OmanCommunityServicesPlatform
             app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
+            app.UseRateLimiter();
             app.UseAuthorization();
 
-            app.UseRateLimiter();
+           
 
             app.MapControllers();
 
             app.Run();
+        }
+
+        // Get a separate rate-limit bucket for each user
+        private static string ResolvePartitionKey(HttpContext context)
+        {
+            if (context.User.Identity?.IsAuthenticated == true &&
+                context.User.TryGetUserId(out int userId))
+            {
+                return $"user:{userId}";
+            }
+
+            return $"ip:{GetClientIp(context)}";
+        }
+
+
+        // Get the caller IP address
+        private static string GetClientIp(HttpContext context)
+        {
+            return context.Connection.RemoteIpAddress?.ToString()
+                   ?? "unknown";
         }
     }
 }
