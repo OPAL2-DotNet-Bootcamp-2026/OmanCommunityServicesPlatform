@@ -276,9 +276,9 @@ function buildTimeline(issue: Issue): StatusUpdate[] {
   );
 }
 
-function renderTimeline(statusUpdates: StatusUpdate[], emptyMessage?: string): string {
+function renderTimeline(statusUpdates: StatusUpdate[], compact = false): string {
   if (!Array.isArray(statusUpdates) || !statusUpdates.length) {
-    return `<p class="text-muted small mb-0">${escapeHtml(emptyMessage || "No status updates are available.")}</p>`;
+    return '<p class="text-muted small mb-0">No status updates are available.</p>';
   }
 
   const items = statusUpdates
@@ -308,7 +308,7 @@ function renderTimeline(statusUpdates: StatusUpdate[], emptyMessage?: string): s
     .join("");
 
   return `
-      <ol class="activity-timeline">
+      <ol class="activity-timeline${compact ? " activity-timeline--compact" : ""}">
         ${items}
       </ol>`;
 }
@@ -478,14 +478,6 @@ export interface TimelineBlockOptions {
 }
 
 export function renderTimelineBlock(issue: Issue, options: TimelineBlockOptions = {}): string {
-  const entries = buildTimeline(issue);
-  const timeline = renderTimeline(entries, "No status updates are available.");
-  const body = options.compact
-    ? timeline.replace(
-        'class="activity-timeline"',
-        'class="activity-timeline activity-timeline--compact"'
-      )
-    : timeline;
   const note = options.note
     ? `<p class="text-muted small mt-2 mb-0">${escapeHtml(options.note)}</p>`
     : "";
@@ -493,7 +485,7 @@ export function renderTimelineBlock(issue: Issue, options: TimelineBlockOptions 
   return `
       <div class="mt-4">
         <span class="content-label">Activity Timeline</span>
-        ${body}
+        ${renderTimeline(buildTimeline(issue), options.compact)}
         ${note}
       </div>`;
 }
