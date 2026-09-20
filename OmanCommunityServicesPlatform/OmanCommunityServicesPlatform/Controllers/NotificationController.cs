@@ -342,10 +342,11 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (notification == null)
             {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Notification not found",
+                    detail: "Notification was not found."
+                );
             }
             // Prevent a User from marking another User's
             // Notification as read.
