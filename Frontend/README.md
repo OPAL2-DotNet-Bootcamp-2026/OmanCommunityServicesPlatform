@@ -68,7 +68,7 @@ Page protection is declared in markup, so the guard stays generic:
 ```
 
 `data-auth-page` is `public`, `guest` (signed-in users are bounced away) or
-`protected`. Role visibility within a page uses `data-role-visible`,
+`protected`. Role visibility within a page uses `data-role-hidden`,
 `data-nav-roles` and `data-nav-auth`.
 
 ## Moving to Angular
