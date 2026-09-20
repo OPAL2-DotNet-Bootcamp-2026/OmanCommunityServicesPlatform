@@ -130,11 +130,7 @@ namespace OmanCommunityServicesPlatform
             // Register Rate Limiter
             builder.Services.AddRateLimiter(options =>
             {
-                options.AddFixedWindowLimiter("CreatePolicy", limiterOptions =>
-                {
-                    limiterOptions.PermitLimit = 2;
-                    limiterOptions.Window = TimeSpan.FromSeconds(30);
-               
+              
                 // Each authenticated user gets their own rate-limit bucket.
                 // If the user is not authenticated, fall back to IP address.
                 options.AddPolicy<string>("CreatePolicy", context =>
@@ -193,7 +189,7 @@ namespace OmanCommunityServicesPlatform
                     }
                     else
                     {
-                        // Fallback:
+                       
                         // LoginPolicy = 5 minutes
                         // CreatePolicy = 30 seconds
                         retryAfterSeconds =
