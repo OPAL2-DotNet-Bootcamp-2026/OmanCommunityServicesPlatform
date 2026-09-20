@@ -34,11 +34,14 @@ namespace OmanCommunityServicesPlatform.Services
         // GET ALL RATINGS
         // --------------------------------------------------
 
-        // Returns all Rating entities from the database.
-        public List<ResponseRatingDto> GetAllRatings()
+        // Returns Ratings whose parent Issues are visible to the User.
+        public List<ResponseRatingDto> GetAllRatings(
+            int userId,
+            bool canReadAll
+        )
         {
-            // Get all Rating entities from RatingRepo.
-            List<Rating> ratings = ratingRepo.GetAll();
+            // Filter Rating entities in the database before loading them.
+            List<Rating> ratings = ratingRepo.GetAll(userId, canReadAll);
 
             // Convert every Rating entity into a RatingDto.
             return ratings
@@ -52,14 +55,24 @@ namespace OmanCommunityServicesPlatform.Services
         // --------------------------------------------------
 
         // Returns one rating using its ID.
-        // Returns null when the rating does not exist.
-        public ResponseRatingDto? GetRatingById(int ratingId)
+        // Returns null when the Rating is missing or inaccessible.
+        public ResponseRatingDto? GetRatingById(
+            int ratingId,
+            int userId,
+            bool canReadAll
+        )
         {
             // Ask RatingRepo to find the Rating.
             Rating? rating = ratingRepo.GetById(ratingId);
 
-            // The Rating does not exist.
-            if (rating == null)
+            // The Rating or its parent Issue does not exist.
+            if (rating == null || rating.Issue == null)
+            {
+                return null;
+            }
+
+            // Citizens can read Ratings only for Issues they reported.
+            if (!canReadAll && rating.Issue.reportedById != userId)
             {
                 return null;
             }
@@ -72,9 +85,27 @@ namespace OmanCommunityServicesPlatform.Services
         // GET RATINGS BY ISSUE
         // --------------------------------------------------
 
-        // Returns all ratings belonging to one issue.
-        public List<ResponseRatingDto> GetRatingsByIssueId(int issueId)
+        // Returns all Ratings belonging to one visible Issue.
+        // Returns null when the Issue is missing or inaccessible.
+        public List<ResponseRatingDto>? GetRatingsByIssueId(
+            int issueId,
+            int userId,
+            bool canReadAll
+        )
         {
+            Issue? issue = issueRepo.GetById(issueId);
+
+            if (issue == null)
+            {
+                return null;
+            }
+
+            // The reporter owns access to the Issue and its Ratings.
+            if (!canReadAll && issue.reportedById != userId)
+            {
+                return null;
+            }
+
             // Get Rating entities related to the selected Issue.
             List<Rating> ratings =
                 ratingRepo.GetByIssueId(issueId);
