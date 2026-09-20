@@ -5,7 +5,7 @@
  * is what makes the page feel instant.
  */
 import { ApiError } from "../core/api-client";
-import { announceStatus, byId, errorMessage, setAlert, toTone } from "../dom";
+import { announceStatus, byId, errorMessage, loadPageElements, toTone } from "../dom";
 import * as feedback from "../components/feedback";
 import { countTo, pulse, renderSkeletons, revealList } from "../components/motion";
 import {
@@ -145,11 +145,7 @@ export class NotificationsPage {
       }
     };
 
-    if (!Number.isInteger(notificationId) || notificationId < 1) {
-      followLink();
-      return;
-    }
-    if (trigger.dataset.read === "true") {
+    if (!Number.isInteger(notificationId) || notificationId < 1 || trigger.dataset.read === "true") {
       followLink();
       return;
     }
@@ -177,19 +173,14 @@ export class NotificationsPage {
         feedback.success("Notification marked as read.");
       }
     } catch (error) {
-      if (error instanceof ApiError && [401, 403].includes(error.status)) {
-        this.setPageStatus(
-          errorMessage(error, "Your session could not be verified."),
-          "danger"
-        );
-        return;
+      const authorizationError = error instanceof ApiError && [401, 403].includes(error.status);
+      if (authorizationError || !targetHref) {
+        const fallback = authorizationError
+          ? "Your session could not be verified."
+          : "The notification could not be marked as read.";
+        this.setPageStatus(errorMessage(error, fallback), "danger");
       }
-      if (!targetHref) {
-        this.setPageStatus(
-          errorMessage(error, "The notification could not be marked as read."),
-          "danger"
-        );
-      }
+      if (authorizationError) return;
     } finally {
       trigger.removeAttribute("aria-busy");
       this.pendingNotificationIds.delete(notificationId);
@@ -222,16 +213,11 @@ export class NotificationsPage {
   }
 
   start(): void {
-    try {
-      this.elements = this.cacheElements();
-    } catch (error) {
-      const status = document.getElementById("notificationPageStatus");
-      if (!status) {
-        throw error;
-      }
-      setAlert(status, errorMessage(error, "The notifications page failed to start."), "danger", "mb-4");
-      return;
-    }
+    const elements = loadPageElements(
+      () => this.cacheElements(), "notificationPageStatus", "The notifications page failed to start.", "mb-4"
+    );
+    if (!elements) return;
+    this.elements = elements;
 
     const flash = this.session.consumeFlash();
     this.bindEvents();
