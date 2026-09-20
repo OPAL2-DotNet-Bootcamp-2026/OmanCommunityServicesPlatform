@@ -1,3 +1,4 @@
+using Serilog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,14 @@ namespace OmanCommunityServicesPlatform
                     // Add a trace ID to help match API errors with server logs
                     context.ProblemDetails.Extensions["traceId"] =
                         context.HttpContext.TraceIdentifier;
+
+            // Replaces the default logging providers. Services keep injecting
+            // ILogger<T>; configuration lives in appsettings.json so levels can
+            // change on a deployed server without a rebuild.
+            builder.Host.UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext());
 
                     // Add the endpoint where the error happened
                     context.ProblemDetails.Instance =
@@ -69,9 +78,29 @@ namespace OmanCommunityServicesPlatform
             // Register AuthService 
             builder.Services.AddScoped<AuthService>();
             // Read JWT settings from appsettings.json 
+            // Committed on purpose so the project runs with no setup. Mirrors the value
+            // in appsettings.json - change both together.
+            const string DevelopmentKey = "YourSuperSecretKeyThatIsAtLeast32CharactersLong!";
+
             var jwtKey = builder.Configuration["JwtSettings:SecretKey"];
             var jwtIssuer = builder.Configuration["JwtSettings:Issuer"];
             var jwtAudience = builder.Configuration["JwtSettings:Audience"];
+
+            if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+            {
+                throw new InvalidOperationException(
+                    "JwtSettings:SecretKey is missing or shorter than 32 characters. " +
+                    "Set JwtSettings__SecretKey to a 32+ character random value.");
+            }
+
+            // The whole point of A05: a deployment must never run on the key that is
+            // published in this repository.
+            if (!builder.Environment.IsDevelopment() && jwtKey == DevelopmentKey)
+            {
+                throw new InvalidOperationException(
+                    "The development JWT key cannot be used outside Development. " +
+                    "Set JwtSettings__SecretKey to a real 32+ character random value.");
+            }
             // Configure how incoming tokens are validated
             builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -101,6 +130,10 @@ namespace OmanCommunityServicesPlatform
             // Register Rate Limiter
             builder.Services.AddRateLimiter(options =>
             {
+                options.AddFixedWindowLimiter("CreatePolicy", limiterOptions =>
+                {
+                    limiterOptions.PermitLimit = 2;
+                    limiterOptions.Window = TimeSpan.FromSeconds(30);
                
                 // Each authenticated user gets their own rate-limit bucket.
                 // If the user is not authenticated, fall back to IP address.
@@ -243,12 +276,42 @@ namespace OmanCommunityServicesPlatform
                 });
             });
 
+            // Reports whether this instance can actually serve traffic. A
+            // running process is not the same as a working one - the usual
+            // failure is a process that is up but cannot reach its database.
+            builder.Services.AddHealthChecks()
+                .AddDbContextCheck<OCSPContext>("database");
+
             // CORS Allow requests from different origin (different port => e.g Frontend)
+            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                ?? Array.Empty<string>();
+
+            // An empty allowlist is not an error to CORS, it just blocks everything,
+            // and the only symptom shows up in someone else's browser console.
+            if (allowedOrigins.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "AllowedOrigins is empty. Set at least one origin, e.g. http://localhost:4200, " +
+                    "in appsettings.json or via AllowedOrigins__0 in production.");
+            }
+
+            // Same reason the JWT key is rejected outside Development: shipping
+            // with the committed localhost default blocks the real frontend,
+            // and nothing in the logs says so.
+            if (!builder.Environment.IsDevelopment() &&
+                allowedOrigins.Any(o => o.Contains("localhost", StringComparison.OrdinalIgnoreCase)
+                                     || o.Contains("127.0.0.1")))
+            {
+                throw new InvalidOperationException(
+                    "AllowedOrigins still contains a localhost origin. " +
+                    "Set AllowedOrigins__0 to the deployed frontend's origin.");
+            }
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.AllowAnyOrigin()
+                    policy.WithOrigins(allowedOrigins)
                           .AllowAnyHeader()
                           .AllowAnyMethod();
                 });
@@ -273,8 +336,23 @@ namespace OmanCommunityServicesPlatform
 
             if (!app.Environment.IsDevelopment())
             {
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
+
+            // Returns the id the framework already logs as RequestId - same name, so
+            // a user quoting the header can be found by grepping for it. Not pushed
+            // into the log context: it is already there.
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers["X-Request-Id"] = context.TraceIdentifier;
+                await next();
+            });
+
+            // One line per request: method, path, status, elapsed ms. Must sit
+            // above the middleware it measures - below UseAuthentication it
+            // would not count authentication time.
+            app.UseSerilogRequestLogging();
 
             app.UseCors("AllowFrontend");
 
@@ -285,6 +363,11 @@ namespace OmanCommunityServicesPlatform
            
 
             app.MapControllers();
+
+            // Anonymous and deliberately terse: it answers Healthy or
+            // Unhealthy and nothing else. Anything a monitor can read, an
+            // attacker can read too.
+            app.MapHealthChecks("/health");
 
             app.Run();
         }

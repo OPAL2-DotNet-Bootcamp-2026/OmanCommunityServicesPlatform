@@ -15,16 +15,18 @@ namespace OmanCommunityServicesPlatform.Services
         private StatusUpdateRepo statusUpdateRepo;
         private EmailService emailService;
         private NotificationService notificationService;
+        private ILogger<IssueService> logger;
 
-        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, RegionRepo _regionRepo, UserRepo _userRepo, StatusUpdateRepo _statusUpdateRepo, EmailService _emailService, NotificationService _notificationService)
+        public IssueService(IssueRepo _issueRepo , CategoryRepo _categoryRepo, RegionRepo _regionRepo, UserRepo _userRepo, StatusUpdateRepo _statusUpdateRepo, EmailService _emailService, NotificationService _notificationService, ILogger<IssueService> _logger)
         {
             issueRepo = _issueRepo;
-            categoryRepo = _categoryRepo;    
+            categoryRepo = _categoryRepo;
             regionRepo = _regionRepo;
             userRepo = _userRepo;
             statusUpdateRepo = _statusUpdateRepo;
             emailService = _emailService;
             notificationService = _notificationService;
+            logger = _logger;
         }
 
         //create Issue 
@@ -33,10 +35,16 @@ namespace OmanCommunityServicesPlatform.Services
             // Validate user-chosen references before touching the entity
             Category? category = categoryRepo.GetCategoryById(dto.categoryId);
             if (category == null)
+            {
+                logger.LogWarning("Issue rejected: category {CategoryId} does not exist", dto.categoryId);
                 return null;
+            }
             Region? region = regionRepo.GetById(dto.regionId);
             if (region == null)
+            {
+                logger.LogWarning("Issue rejected: region {RegionId} does not exist", dto.regionId);
                 return null;
+            }
 
             Issue issue = new Issue();
             // User input
@@ -74,6 +82,12 @@ namespace OmanCommunityServicesPlatform.Services
                 updatedById = reportedById
             };
             statusUpdateRepo.Add(submission);
+
+            // The routing decision is the one people ask about later: "why did
+            // my report go to that department?"
+            logger.LogInformation(
+                "Issue {IssueId} created by user {UserId} in category {CategoryId}, routed to department {DepartmentId}",
+                issue.issueId, reportedById, issue.categoryId, issue.assignedDepartmentId);
 
             User? reporter = userRepo.GetById(reportedById);
 
