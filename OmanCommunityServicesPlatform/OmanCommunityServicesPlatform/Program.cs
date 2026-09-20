@@ -175,6 +175,17 @@ namespace OmanCommunityServicesPlatform
             }
 
             // Same reason the JWT key is rejected outside Development: shipping
+            // with the committed localhost default blocks the real frontend,
+            // and nothing in the logs says so.
+            if (!builder.Environment.IsDevelopment() &&
+                allowedOrigins.Any(o => o.Contains("localhost", StringComparison.OrdinalIgnoreCase)
+                                     || o.Contains("127.0.0.1")))
+            {
+                throw new InvalidOperationException(
+                    "AllowedOrigins still contains a localhost origin. " +
+                    "Set AllowedOrigins__0 to the deployed frontend's origin.");
+            }
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
