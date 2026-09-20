@@ -81,3 +81,39 @@ export function announceStatus(
 export function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
+
+/** Load required page elements, reporting startup errors through the page alert. */
+export function loadPageElements<T>(
+  load: () => T,
+  statusId: string,
+  fallback: string,
+  extraClass = "mb-3"
+): T | null {
+  try {
+    return load();
+  } catch (error) {
+    const status = document.getElementById(statusId);
+    if (!status) throw error;
+    setAlert(status, errorMessage(error, fallback), "danger", extraClass);
+    return null;
+  }
+}
+
+/** Delegate to the first matching action, preserving the caller's action order. */
+export function bindActions<T extends HTMLElement>(
+  host: EventTarget,
+  type: "click" | "submit",
+  actions: Record<string, (target: T, event: Event) => void | Promise<void>>
+): void {
+  host.addEventListener(type, (event) => {
+    if (!(event.target instanceof Element)) return;
+    for (const [action, handler] of Object.entries(actions)) {
+      const selector = `${type === "submit" ? "form" : ""}[data-action="${action}"]`;
+      const target = event.target.closest<T>(selector);
+      if (!target) continue;
+      if (type === "submit") event.preventDefault();
+      void handler(target, event);
+      return;
+    }
+  });
+}
