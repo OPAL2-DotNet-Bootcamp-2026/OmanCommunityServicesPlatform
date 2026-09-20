@@ -1,12 +1,6 @@
-/**
- * The HTTP layer. Every request in the app goes through here.
- *
- * Under Angular this becomes a thin HttpClient wrapper plus two
- * HttpInterceptors - one attaching the bearer token, one mapping errors to
- * ApiError. The public method shapes stay as they are.
- */
+/** Shared HTTP transport, authentication headers, and API error handling. */
 import type { AppConfig } from "./config";
-import { endpoints, type ApiEndpoints } from "./api-endpoints";
+import { endpoints } from "./api-endpoints";
 
 /** Thrown for any non-2xx response or transport failure. */
 export class ApiError extends Error {
@@ -24,7 +18,7 @@ export class ApiError extends Error {
   }
 }
 
-export interface RequestOptions {
+interface RequestOptions {
   method?: string;
   headers?: HeadersInit;
   body?: unknown;
@@ -116,7 +110,7 @@ function isRawRequestBody(body: unknown): body is BodyInit {
 }
 
 export class ApiClient {
-  public readonly endpoints: ApiEndpoints = endpoints;
+  public readonly endpoints = endpoints;
 
   /** Restored by the session service after every page navigation. */
   private accessToken = "";
@@ -131,10 +125,6 @@ export class ApiClient {
     this.setAccessToken("");
   }
 
-  getAccessToken(): string {
-    return this.accessToken;
-  }
-
   private buildApiUrl(path: string): string {
     const candidate = String(path ?? "").trim();
     if (/^https?:\/\//i.test(candidate)) {
@@ -146,10 +136,7 @@ export class ApiClient {
   /** Turns a relative attachment path from the API into an absolute URL. */
   resolveApiAssetUrl(path: string | null | undefined): string {
     const candidate = String(path ?? "").trim();
-    if (!candidate || /^(?:https?:)?\/\//i.test(candidate)) {
-      return candidate;
-    }
-    if (!this.config.apiBaseUrl) {
+    if (!candidate || /^(?:https?:)?\/\//i.test(candidate) || !this.config.apiBaseUrl) {
       return candidate;
     }
     try {
@@ -171,7 +158,7 @@ export class ApiClient {
     );
   }
 
-  async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  private async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
     if (!this.config.apiBaseUrl) {
       throw new ApiError(
         "The API address is not configured. Provide apiBaseUrl in OCSP_RUNTIME_CONFIG.",
@@ -198,10 +185,7 @@ export class ApiClient {
       headers.set("Authorization", `Bearer ${this.accessToken}`);
     }
 
-    let body: BodyInit | undefined;
-    if (hasBody) {
-      body = rawBody ? (options.body as BodyInit) : JSON.stringify(options.body);
-    }
+    const body = rawBody ? (options.body as BodyInit) : JSON.stringify(options.body);
 
     try {
       const response = await fetch(this.buildApiUrl(path), {
@@ -253,11 +237,7 @@ export class ApiClient {
     body?: unknown,
     options: RequestOptions = {}
   ): Promise<T> {
-    const requestOptions: RequestOptions = { ...options, method };
-    if (body !== undefined) {
-      requestOptions.body = body;
-    }
-    return this.request<T>(path, requestOptions);
+    return this.request<T>(path, { ...options, method, ...(body === undefined ? {} : { body }) });
   }
 
   get<T>(path: string, options?: RequestOptions): Promise<T> {
@@ -274,9 +254,5 @@ export class ApiClient {
 
   patch<T>(path: string, body?: unknown, options?: RequestOptions): Promise<T> {
     return this.withMethod<T>("PATCH", path, body, options);
-  }
-
-  delete<T>(path: string, options?: RequestOptions): Promise<T> {
-    return this.withMethod<T>("DELETE", path, undefined, options);
   }
 }
