@@ -12,7 +12,7 @@
  *    the two CSS :target dialogs (the filter drawer and admin setup).
  */
 import { config } from "../core/config";
-import { announceStatus, byId, errorMessage, optionalById, setAlert, toTone } from "../dom";
+import { announceStatus, bindActions, byId, errorMessage, loadPageElements, optionalById, toTone } from "../dom";
 import {
   escapeHtml,
   getStatusMeta,
@@ -25,21 +25,16 @@ import {
   renderStaffIssueDetailModal
 } from "../components/dashboard-renderers";
 import type {
-  Category,
-  CategoryRequest,
   Comment,
-  Department,
-  DepartmentRequest,
   Governorate,
   Issue,
   IssueStatus,
-  Region,
-  RegionRequest,
   StatusUpdate
 } from "../models";
 import type { DashboardService, StaffDashboardData } from "../services/dashboard.service";
 import type { SessionService } from "../services/session.service";
-import { formString, normalizedSearch } from "../text";
+import { formString } from "../text";
+import { filterIssues } from "../issue-filters";
 import { parseApiDate } from "../date";
 import * as feedback from "../components/feedback";
 import {
@@ -58,8 +53,17 @@ import {
 } from "../components/issue-images";
 import { mountMapsIn } from "../components/map";
 
-type FilterKey = "search" | "sort" | "status" | "priority" | "department" | "category";
+const FILTER_LABELS = {
+  search: "Search",
+  status: "Status",
+  priority: "Priority",
+  department: "Dept",
+  category: "Category",
+  sort: "Sort"
+};
+type FilterKey = keyof typeof FILTER_LABELS;
 type Filters = Record<FilterKey, string>;
+const FILTER_KEYS = Object.keys(FILTER_LABELS) as FilterKey[];
 
 interface ActiveFilter {
   key: FilterKey;
@@ -72,12 +76,7 @@ interface DashboardElements {
   detailHost: HTMLElement;
   resultSummary: HTMLElement | null;
   pageStatus: HTMLElement;
-  searchInput: HTMLInputElement;
-  sortFilter: HTMLSelectElement;
-  statusFilter: HTMLSelectElement;
-  priorityFilter: HTMLSelectElement;
-  departmentFilter: HTMLSelectElement;
-  categoryFilter: HTMLSelectElement;
+  filters: { search: HTMLInputElement } & Record<Exclude<FilterKey, "search">, HTMLSelectElement>;
   activeFiltersPanel: HTMLElement | null;
   activeFilterChips: HTMLElement;
   filterCount: HTMLElement | null;
@@ -145,12 +144,14 @@ export class DashboardPage {
       detailHost: byId<HTMLElement>("issueDetailModalHost"),
       resultSummary: optionalById<HTMLElement>("issuesResultSummary"),
       pageStatus: byId<HTMLElement>("dashboardPageStatus"),
-      searchInput: byId<HTMLInputElement>("searchInput"),
-      sortFilter: byId<HTMLSelectElement>("sortFilter"),
-      statusFilter: byId<HTMLSelectElement>("statusFilter"),
-      priorityFilter: byId<HTMLSelectElement>("priorityFilter"),
-      departmentFilter: byId<HTMLSelectElement>("deptFilter"),
-      categoryFilter: byId<HTMLSelectElement>("categoryFilter"),
+      filters: {
+        search: byId<HTMLInputElement>("searchInput"),
+        sort: byId<HTMLSelectElement>("sortFilter"),
+        status: byId<HTMLSelectElement>("statusFilter"),
+        priority: byId<HTMLSelectElement>("priorityFilter"),
+        department: byId<HTMLSelectElement>("deptFilter"),
+        category: byId<HTMLSelectElement>("categoryFilter")
+      },
       activeFiltersPanel: optionalById<HTMLElement>("activeFiltersPanel"),
       activeFilterChips: byId<HTMLElement>("activeFilterChips"),
       filterCount: optionalById<HTMLElement>("dashboardFilterCount"),
@@ -229,14 +230,12 @@ export class DashboardPage {
 
     [this.elements.regionForm, this.elements.departmentForm, this.elements.categoryForm].forEach(
       (form) => {
-        const fieldset = form.querySelector("fieldset");
-        const submitButton = form.querySelector<HTMLButtonElement>('[type="submit"]');
-        if (fieldset) {
-          fieldset.disabled = !isAdmin;
-        }
-        if (submitButton) {
-          submitButton.disabled = !isAdmin;
-        }
+        const controls = [
+          form.querySelector("fieldset"), form.querySelector<HTMLButtonElement>('[type="submit"]')
+        ];
+        controls.forEach((control) => {
+          if (control) control.disabled = !isAdmin;
+        });
       }
     );
 
@@ -319,17 +318,10 @@ export class DashboardPage {
       } else if (!openCount && !progressCount) {
         workload.textContent = "All issues are resolved.";
       } else {
-        const parts: string[] = [];
-        if (openCount) {
-          parts.push(
-            `${openCount} open issue${openCount === 1 ? "" : "s"} need${openCount === 1 ? "s" : ""} triage`
-          );
-        }
-        if (progressCount) {
-          parts.push(
-            `${progressCount} field task${progressCount === 1 ? " is" : "s are"} in progress`
-          );
-        }
+        const parts = [
+          openCount && `${openCount} open issue${openCount === 1 ? "" : "s"} need${openCount === 1 ? "s" : ""} triage`,
+          progressCount && `${progressCount} field task${progressCount === 1 ? " is" : "s are"} in progress`
+        ].filter(Boolean);
         workload.textContent = `${parts.join(" and ")}.`;
       }
     }
@@ -392,28 +384,28 @@ export class DashboardPage {
       .slice()
       .sort((left, right) => left.regionName.localeCompare(right.regionName));
 
-    this.replaceSelectOptions<Department>(
-      this.elements.departmentFilter,
+    this.replaceSelectOptions(
+      this.elements.filters.department,
       "All Departments",
       departments,
       (department) => department.departmentName,
       (department) => department.departmentName
     );
-    this.replaceSelectOptions<Category>(
-      this.elements.categoryFilter,
+    this.replaceSelectOptions(
+      this.elements.filters.category,
       "All Categories",
       categories,
       (category) => category.categoryName,
       (category) => category.categoryName
     );
-    this.replaceSelectOptions<Region>(
+    this.replaceSelectOptions(
       this.elements.adminRegionSelect,
       "Select a region",
       regions,
       (region) => region.regionId,
       (region) => `${region.regionName} — ${region.governorate}`
     );
-    this.replaceSelectOptions<Department>(
+    this.replaceSelectOptions(
       this.elements.adminDepartmentSelect,
       "Select a department",
       departments,
@@ -423,38 +415,7 @@ export class DashboardPage {
   }
 
   private getVisibleIssues(): Issue[] {
-    const filters = this.filters;
-    const search = normalizedSearch(filters.search);
-
-    const visible = this.loaded.issues.filter((issue) => {
-      const searchable = normalizedSearch(
-        [
-          issue.title,
-          issue.description,
-          issue.location,
-          issue.categoryName,
-          issue.assignedDepartmentName,
-          issue.regionName,
-          issue.issueId,
-          issue.reportedById
-        ].join(" ")
-      );
-
-      return (
-        (!search || searchable.includes(search)) &&
-        (!filters.status || issue.currentStatus === filters.status) &&
-        (!filters.priority || issue.priority === filters.priority) &&
-        (!filters.department || issue.assignedDepartmentName === filters.department) &&
-        (!filters.category || issue.categoryName === filters.category)
-      );
-    });
-
-    const direction = filters.sort === "oldest" ? 1 : -1;
-    return visible.sort((left, right) => {
-      const leftTime = new Date(left.reportedDate).getTime() || 0;
-      const rightTime = new Date(right.reportedDate).getTime() || 0;
-      return (leftTime - rightTime) * direction;
-    });
+    return filterIssues(this.loaded.issues, this.filters, true);
   }
 
   private renderIssues(): void {
@@ -503,31 +464,17 @@ export class DashboardPage {
 
   private activeFilterDefinitions(): ActiveFilter[] {
     const filters = this.filters;
-    const definitions: ActiveFilter[] = [];
-
-    if (filters.search.trim()) {
-      definitions.push({ key: "search", label: "Search", value: filters.search.trim() });
-    }
-    if (filters.status) {
-      definitions.push({
-        key: "status",
-        label: "Status",
-        value: getStatusMeta(filters.status).label
-      });
-    }
-    if (filters.priority) {
-      definitions.push({ key: "priority", label: "Priority", value: filters.priority });
-    }
-    if (filters.department) {
-      definitions.push({ key: "department", label: "Dept", value: filters.department });
-    }
-    if (filters.category) {
-      definitions.push({ key: "category", label: "Category", value: filters.category });
-    }
-    if (filters.sort !== "newest") {
-      definitions.push({ key: "sort", label: "Sort", value: "Oldest First" });
-    }
-    return definitions;
+    const values: Filters = {
+      ...filters,
+      search: filters.search.trim(),
+      status: filters.status ? getStatusMeta(filters.status).label : "",
+      sort: filters.sort === "newest" ? "" : "Oldest First"
+    };
+    return FILTER_KEYS.filter((key) => values[key]).map((key) => ({
+      key,
+      label: FILTER_LABELS[key],
+      value: values[key]
+    }));
   }
 
   private renderActiveFilters(): void {
@@ -561,14 +508,12 @@ export class DashboardPage {
 
   private syncFilterControls(): void {
     const filters = this.filters;
-    if (this.elements.searchInput.value !== filters.search) {
-      this.elements.searchInput.value = filters.search;
+    for (const key of FILTER_KEYS) {
+      const control = this.elements.filters[key];
+      if (control.value !== filters[key]) {
+        control.value = filters[key];
+      }
     }
-    this.elements.sortFilter.value = filters.sort;
-    this.elements.statusFilter.value = filters.status;
-    this.elements.priorityFilter.value = filters.priority;
-    this.elements.departmentFilter.value = filters.department;
-    this.elements.categoryFilter.value = filters.category;
 
     Object.entries(STATUS_RADIO_MAP).forEach(([id, status]) => {
       const radio = optionalById<HTMLInputElement>(id);
@@ -597,7 +542,7 @@ export class DashboardPage {
     this.filters = emptyFilters();
     this.renderFilteredContent();
     if (focusSearch) {
-      requestAnimationFrame(() => this.elements.searchInput.focus());
+      requestAnimationFrame(() => this.elements.filters.search.focus());
     }
   }
 
@@ -611,11 +556,11 @@ export class DashboardPage {
   }
 
   private applyDrawerFilters = (): void => {
-    this.filters.sort = this.elements.sortFilter.value;
-    this.filters.status = this.elements.statusFilter.value;
-    this.filters.priority = this.elements.priorityFilter.value;
-    this.filters.department = this.elements.departmentFilter.value;
-    this.filters.category = this.elements.categoryFilter.value;
+    for (const key of FILTER_KEYS) {
+      if (key !== "search") {
+        this.filters[key] = this.elements.filters[key].value;
+      }
+    }
     this.renderFilteredContent();
     window.location.hash = "dashboardFilterTrigger";
     optionalById<HTMLElement>("dashboardFilterTrigger")?.focus();
@@ -734,7 +679,7 @@ export class DashboardPage {
         updatedAt: raw?.updatedAt ?? new Date().toISOString()
       };
 
-      const issue = this.loaded.issues.find((item) => Number(item.issueId) === issueId);
+      const issue = this.findIssue(issueId);
       if (issue) {
         issue.currentStatus = update.newStatus;
       }
@@ -761,14 +706,7 @@ export class DashboardPage {
       this.setPageStatus("");
       feedback.success("The issue status was updated successfully.");
 
-      const newTrigger = this.elements.list.querySelector<HTMLElement>(
-        `[data-action="open-issue"][data-issue-id="${safeDomId(issueId)}"]`
-      );
-      if (newTrigger) {
-        newTrigger.focus();
-      } else {
-        this.elements.searchInput.focus();
-      }
+      (this.triggerForIssue(issueId) ?? this.elements.filters.search).focus();
     } catch (error) {
       const message = errorMessage(error, "The issue status could not be updated.");
       status.textContent = message;
@@ -838,51 +776,46 @@ export class DashboardPage {
     }
   }
 
-  /**
-   * Three forms share one submit handler, and each sends a different shape to a
-   * different method. A discriminated union on "kind" lets the compiler check
-   * that the payload matches the call, rather than widening the type until it
-   * compiles.
-   */
-  private adminRequest(
-    form: HTMLFormElement
-  ):
-    | { kind: "region"; label: string; payload: RegionRequest }
-    | { kind: "department"; label: string; payload: DepartmentRequest }
-    | { kind: "category"; label: string; payload: CategoryRequest } {
+  /** Keep each setup payload beside the lookup collection its result updates. */
+  private adminRequest(form: HTMLFormElement): { label: string; save: () => Promise<void> } {
     const data = new FormData(form);
+    const text = (key: string) => formString(data, key).trim();
 
     if (form === this.elements.regionForm) {
       return {
-        kind: "region",
         label: "Region",
-        payload: {
-          regionName: formString(data, "regionName").trim(),
-          governorate: formString(data, "governorate") as Governorate
+        save: async () => {
+          const created = await this.dashboardService.createRegion({
+            regionName: text("regionName"),
+            governorate: formString(data, "governorate") as Governorate
+          });
+          this.loaded.regions = [...this.loaded.regions, created];
         }
       };
     }
-
     if (form === this.elements.departmentForm) {
       return {
-        kind: "department",
         label: "Department",
-        payload: {
-          departmentName: formString(data, "departmentName").trim(),
-          contactEmail: formString(data, "contactEmail").trim(),
-          description: formString(data, "description").trim() || null,
-          regionId: data.get("regionId") ? Number(data.get("regionId")) : null
+        save: async () => {
+          const created = await this.dashboardService.createDepartment({
+            departmentName: text("departmentName"),
+            contactEmail: text("contactEmail"),
+            description: text("description") || null,
+            regionId: data.get("regionId") ? Number(data.get("regionId")) : null
+          });
+          this.loaded.departments = [...this.loaded.departments, created];
         }
       };
     }
-
     return {
-      kind: "category",
       label: "Category",
-      payload: {
-        categoryName: formString(data, "categoryName").trim(),
-        description: formString(data, "description").trim() || null,
-        departmentId: Number(data.get("departmentId"))
+      save: async () => {
+        const created = await this.dashboardService.createCategory({
+          categoryName: text("categoryName"),
+          description: text("description") || null,
+          departmentId: Number(data.get("departmentId"))
+        });
+        this.loaded.categories = [...this.loaded.categories, created];
       }
     };
   }
@@ -910,16 +843,7 @@ export class DashboardPage {
     try {
       // Creation has already succeeded by the time we update lookup state, so a
       // later refresh problem can never turn into a duplicate POST.
-      if (request.kind === "region") {
-        const created = await this.dashboardService.createRegion(request.payload);
-        this.loaded.regions = [...this.loaded.regions, created];
-      } else if (request.kind === "department") {
-        const created = await this.dashboardService.createDepartment(request.payload);
-        this.loaded.departments = [...this.loaded.departments, created];
-      } else {
-        const created = await this.dashboardService.createCategory(request.payload);
-        this.loaded.categories = [...this.loaded.categories, created];
-      }
+      await request.save();
 
       form.reset();
       this.renderLookupOptions();
@@ -937,23 +861,11 @@ export class DashboardPage {
     }
   }
 
-  /**
-   * HTMLElement[], not Element[] - Element has no focus(), and filtering on
-   * getClientRects drops anything hidden by CSS rather than by the attribute.
-   */
-  private focusableDialogElements(dialog: HTMLElement): HTMLElement[] {
-    return [...dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)].filter(
+  /** One trap serves all dialogs; CSS-hidden controls cannot receive focus. */
+  private trapDialogFocus(event: KeyboardEvent, dialog: HTMLElement): void {
+    const focusable = [...dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)].filter(
       (element) => !element.hidden && element.getClientRects().length > 0
     );
-  }
-
-  /** One trap serves the issue modal and both CSS :target dialogs. */
-  private trapDialogFocus(event: KeyboardEvent, dialog: HTMLElement | null): void {
-    if (!dialog) {
-      return;
-    }
-
-    const focusable = this.focusableDialogElements(dialog);
     if (!focusable.length) {
       event.preventDefault();
       dialog.focus();
@@ -965,53 +877,37 @@ export class DashboardPage {
     const active = document.activeElement as HTMLElement | null;
     const activeIsBoundary = active === dialog || !active || !focusable.includes(active);
 
-    if (event.shiftKey && (active === first || activeIsBoundary)) {
+    if (active === (event.shiftKey ? first : last) || activeIsBoundary) {
       event.preventDefault();
-      last?.focus();
-    } else if (!event.shiftKey && (active === last || activeIsBoundary)) {
-      event.preventDefault();
-      first?.focus();
+      (event.shiftKey ? last : first)?.focus();
     }
   }
 
   private currentCssDialog(): CssDialogContext | null {
     const targetId = window.location.hash.replace(/^#/, "");
 
-    if (targetId === "filterDrawer") {
-      const dialog = optionalById<HTMLElement>("filterDrawer");
-      return dialog
-        ? {
-            dialog,
-            focusTarget: dialog,
-            trigger: optionalById<HTMLElement>("dashboardFilterTrigger")
-          }
-        : null;
-    }
-
-    if (!ADMIN_DIALOG_TARGETS.includes(targetId)) {
+    const isFilter = targetId === "filterDrawer";
+    if (!isFilter && !ADMIN_DIALOG_TARGETS.includes(targetId)) {
       return null;
     }
 
-    const dialog = optionalById<HTMLElement>("adminManagement");
-    if (!dialog || dialog.hidden) {
+    const dialog = optionalById<HTMLElement>(isFilter ? "filterDrawer" : "adminManagement");
+    if (!dialog || (!isFilter && dialog.hidden)) {
       return null;
     }
-
     return {
       dialog,
       focusTarget: optionalById<HTMLElement>(targetId) ?? dialog,
-      trigger: optionalById<HTMLElement>("adminManagementTrigger")
+      trigger: optionalById<HTMLElement>(isFilter ? "dashboardFilterTrigger" : "adminManagementTrigger")
     };
   }
 
-  private focusCssDialog(context: CssDialogContext | null): void {
-    requestAnimationFrame(() => {
-      (context?.focusTarget ?? context?.dialog)?.focus();
-    });
+  private focusCssDialog(context: CssDialogContext): void {
+    requestAnimationFrame(() => context.focusTarget.focus());
   }
 
-  private closeCssDialog(context: CssDialogContext | null): void {
-    if (!context?.trigger) {
+  private closeCssDialog(context: CssDialogContext): void {
+    if (!context.trigger) {
       return;
     }
     const trigger = context.trigger;
@@ -1020,7 +916,7 @@ export class DashboardPage {
   }
 
   private bindFilterEvents(): void {
-    this.elements.searchInput.addEventListener("input", (event) => {
+    this.elements.filters.search.addEventListener("input", (event) => {
       window.clearTimeout(this.searchTimer);
       const value = (event.target as HTMLInputElement).value;
       this.searchTimer = window.setTimeout(() => {
@@ -1051,63 +947,28 @@ export class DashboardPage {
   }
 
   private bindDelegatedEvents(): void {
-    this.elements.list.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-
-      const openTrigger = event.target.closest<HTMLElement>('[data-action="open-issue"]');
-      if (openTrigger) {
+    bindActions(this.elements.list, "click", {
+      "open-issue": (trigger, event) => {
         event.preventDefault();
-        void this.showIssueDetails(Number(openTrigger.dataset.issueId), openTrigger);
-        return;
-      }
-      if (event.target.closest('[data-action="clear-filters"]')) {
-        this.clearFilters(true);
-        return;
-      }
-      if (event.target.closest('[data-action="retry-dashboard"]')) {
-        void this.loadDashboard();
+        return this.showIssueDetails(Number(trigger.dataset.issueId), trigger);
+      },
+      "clear-filters": () => this.clearFilters(true),
+      "retry-dashboard": () => this.loadDashboard()
+    });
+    bindActions(this.elements.activeFilterChips, "click", {
+      "remove-filter": (trigger) => {
+        if (trigger.dataset.filter) this.removeFilter(trigger.dataset.filter);
       }
     });
-
-    this.elements.activeFilterChips.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-      const trigger = event.target.closest<HTMLElement>('[data-action="remove-filter"]');
-      if (trigger?.dataset.filter) {
-        this.removeFilter(trigger.dataset.filter);
-      }
-    });
-
-    this.elements.detailHost.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-      if (event.target.closest('[data-action="close-issue"]')) {
+    bindActions(this.elements.detailHost, "click", {
+      "close-issue": (_trigger, event) => {
         event.preventDefault();
         this.closeIssueDetails(true);
       }
     });
-
-    this.elements.detailHost.addEventListener("submit", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-      const statusForm = event.target.closest<HTMLFormElement>('form[data-action="change-status"]');
-      if (statusForm) {
-        event.preventDefault();
-        void this.changeStatus(statusForm);
-        return;
-      }
-      const commentForm = event.target.closest<HTMLFormElement>(
-        'form[data-action="add-staff-comment"]'
-      );
-      if (commentForm) {
-        event.preventDefault();
-        void this.addStaffComment(commentForm);
-      }
+    bindActions<HTMLFormElement>(this.elements.detailHost, "submit", {
+      "change-status": (form) => this.changeStatus(form),
+      "add-staff-comment": (form) => this.addStaffComment(form)
     });
 
     document.addEventListener("keydown", (event) => {
@@ -1115,25 +976,20 @@ export class DashboardPage {
         ? optionalById<HTMLElement>(`issueModal-${safeDomId(this.openIssueId)}`)
         : null;
 
-      if (issueDialog) {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          this.closeIssueDetails(true);
-        } else if (event.key === "Tab") {
-          this.trapDialogFocus(event, issueDialog);
-        }
-        return;
-      }
-
-      const dialogContext = this.currentCssDialog();
-      if (!dialogContext) {
+      const dialogContext = issueDialog ? null : this.currentCssDialog();
+      const dialog = issueDialog ?? dialogContext?.dialog;
+      if (!dialog) {
         return;
       }
       if (event.key === "Escape") {
         event.preventDefault();
-        this.closeCssDialog(dialogContext);
+        if (issueDialog) {
+          this.closeIssueDetails(true);
+        } else if (dialogContext) {
+          this.closeCssDialog(dialogContext);
+        }
       } else if (event.key === "Tab") {
-        this.trapDialogFocus(event, dialogContext.dialog);
+        this.trapDialogFocus(event, dialog);
       }
     });
 
@@ -1163,12 +1019,8 @@ export class DashboardPage {
       if (closedIssueFromHistory) {
         return;
       }
-      const restoredTriggers: Record<string, string> = {
-        "#adminManagementTrigger": "adminManagementTrigger",
-        "#dashboardFilterTrigger": "dashboardFilterTrigger"
-      };
-      const restoredId = restoredTriggers[window.location.hash];
-      if (restoredId) {
+      const restoredId = window.location.hash.slice(1);
+      if (["adminManagementTrigger", "dashboardFilterTrigger"].includes(restoredId)) {
         const trigger = optionalById<HTMLElement>(restoredId);
         if (trigger) {
           requestAnimationFrame(() => trigger.focus());
@@ -1231,7 +1083,7 @@ export class DashboardPage {
       return;
     }
 
-    if (!this.loaded.issues.some((issue) => Number(issue.issueId) === issueId)) {
+    if (!this.findIssue(issueId)) {
       this.setPageStatus("The linked issue could not be found.", "warning");
       this.replaceHistoryWithoutIssueId("issuesAccordion");
       return;
@@ -1256,7 +1108,7 @@ export class DashboardPage {
     const exists =
       Number.isInteger(issueId) &&
       issueId > 0 &&
-      this.loaded.issues.some((issue) => Number(issue.issueId) === issueId);
+      this.findIssue(issueId);
 
     if (!exists) {
       this.setPageStatus("The linked issue could not be found.", "warning");
@@ -1303,16 +1155,11 @@ export class DashboardPage {
   };
 
   start(): void {
-    try {
-      this.elements = this.cacheElements();
-    } catch (error) {
-      const status = document.getElementById("dashboardPageStatus");
-      if (!status) {
-        throw error;
-      }
-      setAlert(status, errorMessage(error, "The dashboard could not start."), "danger", "mb-4");
-      return;
-    }
+    const elements = loadPageElements(
+      () => this.cacheElements(), "dashboardPageStatus", "The dashboard could not start.", "mb-4"
+    );
+    if (!elements) return;
+    this.elements = elements;
 
     this.bindFilterEvents();
     this.bindDelegatedEvents();
