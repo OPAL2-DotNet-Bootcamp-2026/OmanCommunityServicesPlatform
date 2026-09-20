@@ -9,8 +9,8 @@ namespace OmanCommunityServicesPlatform.Controllers
 {
     [ApiController]
     [Route("rating")]
-    // All endpoints require authentication by default.
-    // Public endpoints are marked with [AllowAnonymous].
+    // All endpoints require authentication.
+    // Ratings inherit the visibility of their parent Issue.
     [Authorize]
     public class RatingController : ControllerBase
     {
@@ -28,14 +28,32 @@ namespace OmanCommunityServicesPlatform.Controllers
         // GET: /rating/GetAllRatings
         // --------------------------------------------------
 
-        // Anyone can view all Ratings without logging in.
-        [AllowAnonymous]
+        // Citizens can view Ratings for their own Issues.
+        // Staff and Admin users can view all Ratings.
         [HttpGet("GetAll")]
         public IActionResult GetAllRatings()
         {
-            // Ask the Service to return all Ratings.
+            // Read the authenticated User ID from the JWT token.
+            int? userId = GetAuthenticatedUserId();
+
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+
+            bool canReadAll =
+                User.IsInRole("Admin") || User.IsInRole("Staff");
+
+            // Ask the Service to return Ratings visible to this User.
             List<ResponseRatingDto> ratings =
-                ratingService.GetAllRatings();
+                ratingService.GetAllRatings(
+                    userId.Value,
+                    canReadAll
+                );
 
             // Karim's controller pattern returns NoContent
             // when the list contains no records.
@@ -53,19 +71,36 @@ namespace OmanCommunityServicesPlatform.Controllers
         // GET: /rating/GetRatingById/5
         // --------------------------------------------------
 
-        // Anyone can view one Rating without logging in.
-        [AllowAnonymous]
+        // The Rating must belong to an Issue visible to the User.
         [HttpGet("GetById/{ratingId}")]
         public IActionResult GetRatingById(
             [FromRoute] int ratingId
         )
         {
-            // Ask the Service to find one Rating.
-            ResponseRatingDto? rating =
-                ratingService.GetRatingById(ratingId);
+            // Read the authenticated User ID from the JWT token.
+            int? userId = GetAuthenticatedUserId();
 
-            // Service returns null when the Rating
-            // does not exist.
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+
+            bool canReadAll =
+                User.IsInRole("Admin") || User.IsInRole("Staff");
+
+            // Ask the Service to find a Rating visible to this User.
+            ResponseRatingDto? rating =
+                ratingService.GetRatingById(
+                    ratingId,
+                    userId.Value,
+                    canReadAll
+                );
+
+            // Use the same response for a missing or inaccessible Rating.
             if (rating == null)
             {
                 return NotFound(new
@@ -81,17 +116,44 @@ namespace OmanCommunityServicesPlatform.Controllers
         // GET: /rating/GetRatingsByIssueId/10
         // --------------------------------------------------
 
-        // Anyone can view Ratings for an Issue.
-        [AllowAnonymous]
+        // The selected Issue must be visible to the User.
         [HttpGet("GetByIssueId/{issueId}")]
         public IActionResult GetRatingsByIssueId(
             [FromRoute] int issueId
         )
         {
+            // Read the authenticated User ID from the JWT token.
+            int? userId = GetAuthenticatedUserId();
+
+            if (userId == null)
+            {
+                return Unauthorized(new
+                {
+                    message =
+                        "The authenticated User ID was not found."
+                });
+            }
+
+            bool canReadAll =
+                User.IsInRole("Admin") || User.IsInRole("Staff");
+
             // Ask the Service to return all Ratings
             // belonging to the selected Issue.
-            List<ResponseRatingDto> ratings =
-                ratingService.GetRatingsByIssueId(issueId);
+            List<ResponseRatingDto>? ratings =
+                ratingService.GetRatingsByIssueId(
+                    issueId,
+                    userId.Value,
+                    canReadAll
+                );
+
+            // Use the same response for a missing or inaccessible Issue.
+            if (ratings == null)
+            {
+                return NotFound(new
+                {
+                    message = "Issue was not found."
+                });
+            }
 
             // No Ratings were found for the Issue.
             if (ratings.Count == 0)
