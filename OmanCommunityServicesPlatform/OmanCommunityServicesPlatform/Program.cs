@@ -101,9 +101,7 @@ namespace OmanCommunityServicesPlatform
             // Register Rate Limiter
             builder.Services.AddRateLimiter(options =>
             {
-                // --------------------------------------------------
-                // CREATE POLICY
-                // --------------------------------------------------
+               
                 // Each authenticated user gets their own rate-limit bucket.
                 // If the user is not authenticated, fall back to IP address.
                 options.AddPolicy<string>("CreatePolicy", context =>
@@ -111,22 +109,15 @@ namespace OmanCommunityServicesPlatform
                         partitionKey: ResolvePartitionKey(context),
                         factory: _ => new FixedWindowRateLimiterOptions
                         {
-                            // Allow 5 requests every 30 seconds per caller
                             PermitLimit = 5,
                             Window = TimeSpan.FromSeconds(30),
 
                             // Do not queue extra requests
-                            QueueProcessingOrder =
-                                QueueProcessingOrder.OldestFirst,
-                            QueueLimit = 0,
-
-                            // Automatically start a new window
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst, QueueLimit = 0,
                             AutoReplenishment = true
                         }));
 
-                // --------------------------------------------------
-                // LOGIN POLICY
-                // --------------------------------------------------
+            
                 // Login users do not have a JWT yet,
                 // so the rate limit is based on IP address.
                 options.AddPolicy<string>("LoginPolicy", context =>
@@ -165,10 +156,7 @@ namespace OmanCommunityServicesPlatform
                         out TimeSpan retryAfter))
                     {
                         retryAfterSeconds =
-                            Math.Max(
-                                1,
-                                (int)Math.Ceiling(retryAfter.TotalSeconds)
-                            );
+                            Math.Max(1,(int)Math.Ceiling(retryAfter.TotalSeconds));
                     }
                     else
                     {

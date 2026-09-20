@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
 using OmanCommunityServicesPlatform;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -38,6 +39,7 @@ namespace OmanCommunityServicesPlatform.Controllers
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting("LoginPolicy")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
