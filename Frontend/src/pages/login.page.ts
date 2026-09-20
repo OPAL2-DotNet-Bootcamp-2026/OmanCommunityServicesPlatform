@@ -1,23 +1,17 @@
-/**
- * Sign-in form. On success it honours a validated returnTo parameter, falling
- * back to the home page for the user's role.
- */
-import { announceStatus, byId, errorMessage, setAlert } from "../dom";
-import { setButtonBusy } from "../components/motion";
+/** Sign-in with a validated return target and role-based fallback. */
+import { announceStatus, byId, loadPageElements } from "../dom";
+import { createFormBinding, type FormElements } from "../components/form";
 import type { AuthService } from "../services/auth.service";
 import type { SessionService } from "../services/session.service";
 
-interface LoginElements {
-  form: HTMLFormElement;
+interface LoginElements extends FormElements {
   email: HTMLInputElement;
   password: HTMLInputElement;
-  submit: HTMLButtonElement;
-  status: HTMLElement;
 }
 
 export class LoginPage {
   private elements!: LoginElements;
-  private submitting = false;
+  private readonly bindForm = createFormBinding();
 
   constructor(
     private readonly auth: AuthService,
@@ -34,73 +28,40 @@ export class LoginPage {
     };
   }
 
-  private setSubmitting(isSubmitting: boolean): void {
-    this.submitting = isSubmitting;
-    this.elements.form.setAttribute("aria-busy", String(isSubmitting));
-    // Snapshots and restores the button's own markup, so the label survives.
-    setButtonBusy(this.elements.submit, isSubmitting, "Signing in...");
-  }
-
-  private submitLogin = async (event: SubmitEvent): Promise<void> => {
-    event.preventDefault();
-    if (this.submitting || !this.elements.form.reportValidity()) {
-      return;
-    }
-
-    setAlert(this.elements.status, "");
-    this.setSubmitting(true);
-
-    try {
-      const activeSession = await this.auth.login({
-        email: this.elements.email.value.trim(),
-        password: this.elements.password.value
-      });
-
-      // Read on the next page, so the landing screen can confirm the sign-in.
+  private submitLogin(): Promise<void> {
+    return this.auth.login({
+      email: this.elements.email.value.trim(),
+      password: this.elements.password.value
+    }).then((activeSession) => {
       this.session.setFlash({ message: "Signed in successfully.", tone: "success" });
-
       const requestedTarget = new URLSearchParams(window.location.search).get("returnTo");
       const returnTo = this.session.safeReturnTo(requestedTarget, activeSession.user.role);
       window.location.replace(returnTo || this.session.roleHome(activeSession.user.role));
-    } catch (error) {
-      announceStatus(
-        this.elements.status,
-        errorMessage(error, "Sign in could not be completed."),
-        "danger"
-      );
-      this.elements.password.value = "";
-      this.elements.password.focus();
-      this.elements.status.focus();
-    } finally {
-      this.setSubmitting(false);
-    }
-  };
+    });
+  }
 
   start(): void {
-    try {
-      this.elements = this.cacheElements();
-    } catch (error) {
-      // The status element is the only thing we can report through, and it may
-      // be the thing that is missing - so re-throw if we cannot find it.
-      const status = document.getElementById("loginStatus");
-      if (!status) {
-        throw error;
-      }
-      setAlert(status, errorMessage(error, "The sign-in page failed to start."), "danger");
-      return;
-    }
+    const elements = loadPageElements(
+      () => this.cacheElements(), "loginStatus", "The sign-in page failed to start."
+    );
+    if (!elements) return;
+    this.elements = elements;
 
-    // A flash set by registration carries the new account's email across.
+    // Registration carries the new account's email across to this form.
     const flash = this.session.consumeFlash();
     if (flash) {
       announceStatus(this.elements.status, flash.message, flash.tone);
-      if (flash.email) {
-        this.elements.email.value = flash.email;
-      }
+      if (flash.email) this.elements.email.value = flash.email;
     }
 
-    this.elements.form.addEventListener("submit", (event) => {
-      void this.submitLogin(event);
+    this.bindForm(this.elements, {
+      loadingLabel: "Signing in...",
+      failureMessage: "Sign in could not be completed.",
+      submit: () => this.submitLogin(),
+      onError: () => {
+        this.elements.password.value = "";
+        this.elements.password.focus();
+      }
     });
   }
 }
