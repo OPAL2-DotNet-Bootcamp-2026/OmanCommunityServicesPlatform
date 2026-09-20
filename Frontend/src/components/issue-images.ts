@@ -158,17 +158,9 @@ export class IssueImageHydrator {
       return;
     }
 
-    // Without IntersectionObserver, a small worker pool keeps requests bounded
-    // rather than firing one per card.
+    // The same queue bounds requests when viewport observation is unavailable.
     if (typeof IntersectionObserver !== "function") {
-      const issueIds = pending.map((card) => Number(card.dataset.issueId));
-      let cursor = 0;
-      const worker = async (): Promise<void> => {
-        while (cursor < issueIds.length) {
-          await this.hydrate(issueIds[cursor++]);
-        }
-      };
-      Array.from({ length: Math.min(3, issueIds.length) }, () => void worker());
+      pending.forEach((card) => void this.hydrate(Number(card.dataset.issueId)));
       return;
     }
 
