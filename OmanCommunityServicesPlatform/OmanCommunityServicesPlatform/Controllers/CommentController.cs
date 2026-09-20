@@ -48,7 +48,20 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpGet("issue/{issueId}")]
         public IActionResult GetByIssueId(int issueId)
         {
-            List<CommentResponseDto> comments = commentService.GetByIssueId(issueId);
+            var claim = User.FindFirst("userId");
+            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            bool isStaff = User.IsInRole("Staff") || User.IsInRole("Admin");
+
+            List<CommentResponseDto>? comments = commentService.GetByIssueId(issueId, userId, isStaff);
+
+            if (comments == null)
+            {
+                return NotFound(new { message = "Issue was not found." });
+            }
 
             if (comments.Count == 0)
             {
