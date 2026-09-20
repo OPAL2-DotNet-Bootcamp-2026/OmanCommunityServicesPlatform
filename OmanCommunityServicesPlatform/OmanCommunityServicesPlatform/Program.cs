@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
-
+using Microsoft.AspNetCore.HttpOverrides;
 namespace OmanCommunityServicesPlatform
 {
     public class Program
@@ -19,6 +19,13 @@ namespace OmanCommunityServicesPlatform
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            // Replaces the default logging providers. Services keep injecting
+            // ILogger<T>; configuration lives in appsettings.json so levels can
+            // change on a deployed server without a rebuild.
+            builder.Host.UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext());
             // Register Problem Details so API errors use a standard format
             builder.Services.AddProblemDetails(options =>
             {
@@ -28,13 +35,7 @@ namespace OmanCommunityServicesPlatform
                     context.ProblemDetails.Extensions["traceId"] =
                         context.HttpContext.TraceIdentifier;
 
-            // Replaces the default logging providers. Services keep injecting
-            // ILogger<T>; configuration lives in appsettings.json so levels can
-            // change on a deployed server without a rebuild.
-            builder.Host.UseSerilog((context, services, configuration) => configuration
-                .ReadFrom.Configuration(context.Configuration)
-                .ReadFrom.Services(services)
-                .Enrich.FromLogContext());
+            
 
                     // Add the endpoint where the error happened
                     context.ProblemDetails.Instance =
@@ -119,7 +120,13 @@ namespace OmanCommunityServicesPlatform
                 };
             });
             builder.Services.AddAuthorization();
-
+            // Use the real client IP when the application is behind a proxy
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto;
+            });
             // Register Controllers
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -225,6 +232,7 @@ namespace OmanCommunityServicesPlatform
 
                     var problemDetails = new ProblemDetails
                     {
+                        Type = "https://tools.ietf.org/html/rfc9110#section-15.5.29",
                         Status = StatusCodes.Status429TooManyRequests,
                         Title = "Too many requests",
                         Detail =
@@ -314,7 +322,8 @@ namespace OmanCommunityServicesPlatform
             });
 
             var app = builder.Build();
-
+            // Read the real client IP and scheme when behind a proxy
+            app.UseForwardedHeaders();
             // Handle unexpected exceptions globally
             app.UseExceptionHandler();
 
@@ -349,7 +358,6 @@ namespace OmanCommunityServicesPlatform
             // above the middleware it measures - below UseAuthentication it
             // would not count authentication time.
             app.UseSerilogRequestLogging();
-
             app.UseCors("AllowFrontend");
 
             app.UseAuthentication();

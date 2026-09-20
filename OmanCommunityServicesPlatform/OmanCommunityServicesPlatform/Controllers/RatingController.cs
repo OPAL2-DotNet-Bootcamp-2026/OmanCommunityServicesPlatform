@@ -228,8 +228,6 @@ namespace OmanCommunityServicesPlatform.Controllers
                 message = "Rating deleted successfully."
             });
         }
-
-       
     }
 }
     
