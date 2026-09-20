@@ -5,7 +5,7 @@
  * the primary resource and everything around it may fail independently.
  */
 import type { ApiClient } from "../core/api-client";
-import { asArray, rejectedSections, settledValue } from "../core/settled";
+import { asArray, rejectedSections, requiredValue, settledArray } from "../core/settled";
 import type {
   Attachment,
   Category,
@@ -100,19 +100,16 @@ export class DashboardService {
       this.api.get<StatusUpdate[]>(this.api.endpoints.allStatusUpdates)
     ]);
 
-    const issuesResult = results[0];
-    if (issuesResult.status === "rejected") {
-      throw issuesResult.reason;
-    }
+    const issues = asArray<Issue>(requiredValue(results[0]));
 
     return {
       currentUser: { ...currentUser },
-      issues: asArray<Issue>(issuesResult.value).map((issue) => this.normalizeIssue(issue)),
-      categories: asArray<Category>(settledValue(results[1], [])),
-      regions: asArray<Region>(settledValue(results[2], [])),
-      departments: asArray<Department>(settledValue(results[3], [])),
-      notifications: asArray<Notification>(settledValue(results[4], [])),
-      statusUpdates: asArray<StatusUpdate>(settledValue(results[5], [])),
+      issues: issues.map((issue) => this.normalizeIssue(issue)),
+      categories: settledArray(results[1]),
+      regions: settledArray(results[2]),
+      departments: settledArray(results[3]),
+      notifications: settledArray(results[4]),
+      statusUpdates: settledArray(results[5]),
       warnings: rejectedSections(results.slice(1), [
         "categories",
         "regions",
@@ -146,15 +143,10 @@ export class DashboardService {
       this.api.get<Rating[]>(this.api.endpoints.ratingsByIssue(issueId))
     ]);
 
-    const issueResult = results[0];
-    if (issueResult.status === "rejected") {
-      throw issueResult.reason;
-    }
-
-    const issue = this.normalizeIssue(issueResult.value);
+    const issue = this.normalizeIssue(requiredValue(results[0]));
 
     // Newest first, so the reporter's most recent feedback wins.
-    const ratings = asArray<Rating>(settledValue(results[4], []))
+    const ratings = settledArray(results[4])
       .slice()
       .sort((left, right) => byDateAscending(right.ratedAt, left.ratedAt));
     const reporterRating =
@@ -162,9 +154,9 @@ export class DashboardService {
 
     return {
       ...issue,
-      comments: asArray<Comment>(settledValue(results[1], [])),
-      attachments: asArray<Attachment>(settledValue(results[2], [])),
-      statusUpdates: asArray<StatusUpdate>(settledValue(results[3], [])).sort((left, right) =>
+      comments: settledArray(results[1]),
+      attachments: settledArray(results[2]),
+      statusUpdates: settledArray(results[3]).sort((left, right) =>
         byDateAscending(left.updatedAt, right.updatedAt)
       ),
       ratings,
