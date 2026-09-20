@@ -56,8 +56,19 @@ namespace OmanCommunityServicesPlatform.Services
             };
         }
 
-        public List<CommentResponseDto> GetByIssueId(int issueId)
+        public List<CommentResponseDto>? GetByIssueId(int issueId, int userId, bool isStaff)
         {
+            Issue? issue = issueRepo.GetById(issueId);
+            if (issue == null)
+            {
+                return null;
+            }
+
+            if (!isStaff && issue.reportedById != userId)
+            {
+                return null;
+            }
+
             List<Comment> comments = commentRepo.GetByIssueId(issueId);
             return comments.Select(MapToDto).ToList();
         }
