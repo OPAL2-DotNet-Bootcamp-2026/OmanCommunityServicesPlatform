@@ -6,7 +6,7 @@
  * independently. Failed section names come back in warnings[].
  */
 import { ApiError, type ApiClient } from "../core/api-client";
-import { asArray, rejectedSections, settledValue } from "../core/settled";
+import { asArray, rejectedSections, requiredValue, settledArray } from "../core/settled";
 import { parseApiDate } from "../date";
 import type {
   Attachment,
@@ -37,52 +37,30 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/**
- * Flags issues that have moved recently, so their card can show a ribbon.
- *
- * Status history is staff-only, but a citizen already receives a StatusChange
- * notification linked to the issue. Reading the notifications the page has
- * already fetched gives the same signal with no extra request and no backend
- * change.
- *
- * An issue is "fresh" while its newest status-change notification is UNREAD.
- *
- * This originally also kept the ribbon for anything that happened today, read
- * or not. That made it impossible to dismiss: opening the issue marked the
- * notification read, and the ribbon came straight back on the next render
- * because the update was still from today. Reading it is the signal that
- * matters; the date is not.
- */
+/** An issue stays fresh while its newest valid status-change notification is unread. */
 function decorateIssuesWithFreshUpdates(issues: Issue[], notifications: Notification[]): Issue[] {
   const latestByIssue = new Map<number, { notification: Notification; createdTime: number }>();
 
-  notifications.forEach((notification) => {
+  for (const notification of notifications) {
     if (String(notification?.type ?? "").toLowerCase() !== "statuschange") {
-      return;
+      continue;
     }
 
     const issueId = Number(notification.issueId);
     const createdTime = parseApiDate(notification.createdAt).getTime();
     if (!Number.isInteger(issueId) || issueId < 1 || !Number.isFinite(createdTime)) {
-      return;
+      continue;
     }
 
     const current = latestByIssue.get(issueId);
     if (!current || createdTime > current.createdTime) {
       latestByIssue.set(issueId, { notification, createdTime });
     }
-  });
+  }
 
   return issues.map((issue) => {
-    const latest = latestByIssue.get(Number(issue.issueId));
-    if (!latest) {
-      return issue;
-    }
-
-    if (latest.notification.isRead) {
-      return issue;
-    }
-    const notification = latest.notification;
+    const notification = latestByIssue.get(Number(issue.issueId))?.notification;
+    if (!notification || notification.isRead) return issue;
 
     return {
       ...issue,
@@ -102,10 +80,6 @@ export class DataService {
     private readonly api: ApiClient,
     private readonly session: SessionService
   ) {}
-
-  private currentUser(): SessionUser | null {
-    return this.session.getUser();
-  }
 
   private normalizeAttachment(attachment: Attachment): Attachment {
     return { ...attachment, fileUrl: this.api.resolveApiAssetUrl(attachment.fileUrl) };
@@ -152,13 +126,6 @@ export class DataService {
     return true;
   }
 
-  async updateNotificationReadStatus(notificationId: number, isRead: boolean): Promise<boolean> {
-    await this.api.patch(this.api.endpoints.updateNotificationReadStatus(notificationId), {
-      isRead: Boolean(isRead)
-    });
-    return true;
-  }
-
   async getDashboardData(): Promise<CitizenDashboardData> {
     // All four start together rather than awaiting the issues first. Issues
     // stay essential - a failure there fails the page - while the lookups and
@@ -170,18 +137,14 @@ export class DataService {
       this.api.get<Notification[]>(this.api.endpoints.myNotifications)
     ]);
 
-    const issuesResult = results[0];
-    if (issuesResult.status === "rejected") {
-      throw issuesResult.reason;
-    }
+    const issues = asArray<Issue>(requiredValue(results[0]));
 
-    const issues = asArray<Issue>(issuesResult.value);
-    const categories = asArray<Category>(settledValue(results[1], []));
-    const regions = asArray<Region>(settledValue(results[2], []));
-    const notifications = asArray<Notification>(settledValue(results[3], []));
+    const categories = settledArray(results[1]);
+    const regions = settledArray(results[2]);
+    const notifications = settledArray(results[3]);
 
     return {
-      currentUser: this.currentUser(),
+      currentUser: this.session.getUser(),
       notifications,
       categories,
       regions,
@@ -213,20 +176,15 @@ export class DataService {
       this.api.get<Comment[]>(this.api.endpoints.commentsByIssue(issueId)),
       this.getIssueAttachments(issueId),
       this.api.get<Rating[]>(this.api.endpoints.ratingsByIssue(issueId)),
-      // The reporter may now read their own history. The API strips the staff
-      // internal notes and the officer id before it leaves the server, so what
-      // arrives here is already what a citizen is allowed to see.
+      // The API removes staff-only notes and officer IDs from citizen history.
       this.api.get<StatusUpdate[]>(this.api.endpoints.statusUpdatesByIssue(issueId))
     ]);
 
-    const ratings = asArray<Rating>(settledValue(results[2], []));
-    const userId = Number(this.currentUser()?.userId);
+    const ratings = settledArray(results[2]);
+    const userId = Number(this.session.getUser()?.userId);
     const ownRating = ratings.find((rating) => Number(rating.userId) === userId) ?? null;
 
-    // A 403 on the history is a permission answer, not an outage: an API that
-    // predates citizen-visible history simply refuses it. Warning about that
-    // tells the reader something is broken when nothing is. Anything else -
-    // a timeout, a 500 - is a real failure and still warns.
+    // Older APIs refuse citizen history with 403; only warn for actual outages.
     const historyResult = results[3];
     const historyForbidden =
       historyResult.status === "rejected" &&
@@ -237,11 +195,10 @@ export class DataService {
 
     return {
       ...this.normalizeIssue(issue, [], []),
-      comments: asArray<Comment>(settledValue(results[0], [])),
-      attachments: asArray<Attachment>(settledValue(results[1], [])),
-      statusUpdates: asArray<StatusUpdate>(settledValue(results[3], [])).sort(
-        (left, right) =>
-          new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime()
+      comments: settledArray(results[0]),
+      attachments: settledArray(results[1]),
+      statusUpdates: settledArray(results[3]).sort(
+        (left, right) => new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime()
       ),
       rating: ownRating,
       warnings: rejectedSections(optionalSections, [
@@ -253,14 +210,7 @@ export class DataService {
     };
   }
 
-  /**
-   * Creates the issue and returns it in the same shape as a list entry.
-   *
-   * This used to read the issue back, because IssueService.Create set
-   * assignedDepartmentName from a navigation property it never loaded, so the
-   * create response did not match the list response. The backend sets it from
-   * the category's department now, so the extra request is gone.
-   */
+  /** Creates an issue in the same normalized shape as a list entry. */
   async createIssue(
     payload: CreateIssueRequest,
     categories: Category[] = [],
