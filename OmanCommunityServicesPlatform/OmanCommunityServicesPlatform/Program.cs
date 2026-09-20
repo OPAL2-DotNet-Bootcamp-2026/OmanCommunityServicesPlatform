@@ -174,6 +174,7 @@ namespace OmanCommunityServicesPlatform
                     "in appsettings.json or via AllowedOrigins__0 in production.");
             }
 
+            // Same reason the JWT key is rejected outside Development: shipping
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
