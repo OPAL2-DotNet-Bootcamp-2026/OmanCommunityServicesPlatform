@@ -100,7 +100,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (updated == null)
             {
-                return NotFound(new{ message = $"Attachment with ID {id} was not found." });
+                return NotFound(new { message = "Attachment was not found." });
             }
 
             return Ok(updated);
@@ -125,7 +125,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!deleted)
             {
-                return NotFound(new {  message = $"Attachment with ID {id} was not found." });
+                return NotFound(new { message = "Attachment was not found." });
             }
 
             return Ok(new { message = "Attachment deleted successfully." });
