@@ -34,7 +34,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (created == null)
             {
-                return NotFound(new {message = $"Issue with ID {dto.issueId} was not found." });
+                return NotFound(new { message = "Issue was not found." });
             }
             return Ok(created);
         }
@@ -44,11 +44,19 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Citizen,Staff,Admin")]
         public IActionResult GetById(int id)
         {
-            AttachmentResponseDto? attachment = attachmentService.GetById(id);
+            var claim = User.FindFirst("userId");
+            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            bool isStaff = User.IsInRole("Staff") || User.IsInRole("Admin");
+
+            AttachmentResponseDto? attachment = attachmentService.GetById(id, userId, isStaff);
 
             if (attachment == null)
             {
-                return NotFound(new { message = $"Attachment with ID {id} was not found." });
+                return NotFound(new { message = "Attachment was not found." });
             }
 
             return Ok(attachment);
@@ -58,7 +66,20 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Citizen,Staff,Admin")]
         public IActionResult GetByIssueId(int issueId)
         {
-            List<AttachmentResponseDto> attachments = attachmentService.GetByIssueId(issueId);
+            var claim = User.FindFirst("userId");
+            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            bool isStaff = User.IsInRole("Staff") || User.IsInRole("Admin");
+
+            List<AttachmentResponseDto>? attachments = attachmentService.GetByIssueId(issueId, userId, isStaff);
+
+            if (attachments == null)
+            {
+                return NotFound(new { message = "Issue was not found." });
+            }
 
             return Ok(attachments);
         }
@@ -79,7 +100,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (updated == null)
             {
-                return NotFound(new{ message = $"Attachment with ID {id} was not found." });
+                return NotFound(new { message = "Attachment was not found." });
             }
 
             return Ok(updated);
@@ -104,7 +125,7 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!deleted)
             {
-                return NotFound(new {  message = $"Attachment with ID {id} was not found." });
+                return NotFound(new { message = "Attachment was not found." });
             }
 
             return Ok(new { message = "Attachment deleted successfully." });

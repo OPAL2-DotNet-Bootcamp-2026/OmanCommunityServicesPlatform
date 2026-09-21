@@ -76,31 +76,22 @@ namespace OmanCommunityServicesPlatform.Controllers
                 });
             }
 
-            // Ask the Service to find the Notification.
+            // The Service checks ownership; Admins may view any notification.
+            bool isAdmin = User.IsInRole("Admin");
             NotificationResponseDto? notification =
                 notificationService.GetNotificationById(
-                    notificationId
+                    notificationId,
+                    authenticatedUserId.Value,
+                    isAdmin
                 );
 
-            // Return 404 when the Notification does not exist.
+            // Use the same 404 for missing and inaccessible notifications.
             if (notification == null)
             {
                 return NotFound(new
                 {
                     message = "Notification was not found."
                 });
-            }
-            // A User must not view another User's Notification.
-            //
-            // Admins may view any Notification.
-            bool isAdmin = User.IsInRole("Admin");
-
-            if (
-                notification.userId != authenticatedUserId.Value &&
-                !isAdmin
-            )
-            {
-                return Forbid();
             }
 
             return Ok(notification);
@@ -298,42 +289,20 @@ namespace OmanCommunityServicesPlatform.Controllers
                 });
 
             }
-            // Find the Notification first so the Controller
-            // can verify ownership.
-            NotificationResponseDto? notification =
-                notificationService.GetNotificationById(
-                    notificationId
-                );
-
-            if (notification == null)
-            {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
-            }
-
-            // A User can change only their own
-            // Notification's read status.
-            if (notification.userId != userId.Value)
-            {
-                return Forbid();
-            }
             // Update isRead using the value from the DTO.
             bool updated =
                 notificationService
                     .UpdateNotificationReadStatus(
                         notificationId,
+                        userId.Value,
                         dto
                     );
 
             if (!updated)
             {
-                return BadRequest(new
+                return NotFound(new
                 {
-                    message =
-                        "The Notification read status " +
-                        "could not be updated."
+                    message = "Notification was not found."
                 });
             }
             return Ok(new
@@ -365,38 +334,18 @@ namespace OmanCommunityServicesPlatform.Controllers
                 });
             }
 
-            // Find the Notification before changing it.
-            NotificationResponseDto? notification =
-                notificationService.GetNotificationById(
-                    notificationId
-                );
-
-            if (notification == null)
-            {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
-            }
-            // Prevent a User from marking another User's
-            // Notification as read.
-            if (notification.userId != userId.Value)
-            {
-                return Forbid();
-            }
-
             // Ask the Service to mark the Notification as read.
             bool markedAsRead =
                 notificationService.MarkNotificationAsRead(
-                    notificationId
+                    notificationId,
+                    userId.Value
                 );
 
             if (!markedAsRead)
             {
-                return BadRequest(new
+                return NotFound(new
                 {
-                    message =
-                        "The Notification could not be marked as read."
+                    message = "Notification was not found."
                 });
             }
             return Ok(new
@@ -427,43 +376,22 @@ namespace OmanCommunityServicesPlatform.Controllers
                         "The authenticated User ID was not found."
                 });
             }
-            // Find the Notification first.
-            NotificationResponseDto? notification =
-                notificationService.GetNotificationById(
-                    notificationId
-                );
-
-            if (notification == null)
-            {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
-            }
-            // The owner or an Admin can delete
-            // the Notification.
+            // The Service allows the recipient or an Admin to delete it.
             bool isAdmin = User.IsInRole("Admin");
-
-            if (
-                notification.userId != userId.Value &&
-                !isAdmin
-            )
-            {
-                return Forbid();
-            }
 
             // Ask the Service to delete the Notification.
             bool deleted =
                 notificationService.DeleteNotification(
-                    notificationId
+                    notificationId,
+                    userId.Value,
+                    isAdmin
                 );
 
             if (!deleted)
             {
-                return BadRequest(new
+                return NotFound(new
                 {
-                    message =
-                        "The Notification could not be deleted."
+                    message = "Notification was not found."
                 });
             }
             return Ok(new

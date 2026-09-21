@@ -21,7 +21,7 @@ export class SiteSession {
 
   constructor(private readonly session: SessionService) {}
 
-  initials(name: string | null | undefined): string {
+  private initials(name: string | null | undefined): string {
     const parts = String(name || "User")
       .trim()
       .split(/\s+/)
@@ -33,10 +33,6 @@ export class SiteSession {
         .join("")
         .toUpperCase() || "U"
     );
-  }
-
-  private pageMode(): string {
-    return document.body.dataset.authPage ?? "public";
   }
 
   private rolesFrom(value: string | undefined): SessionRole[] {
@@ -63,7 +59,7 @@ export class SiteSession {
       return false;
     }
 
-    const mode = this.pageMode();
+    const mode = document.body.dataset.authPage ?? "public";
     const currentSession = this.session.getSession();
 
     // A signed-in user has no business on login or register.
@@ -96,14 +92,7 @@ export class SiteSession {
   }
 
   private updateRoleVisibility(user: SessionUser | null): void {
-    document.querySelectorAll<HTMLElement>("[data-role-visible]").forEach((element) => {
-      const allowed = this.rolesFrom(element.dataset.roleVisible);
-      element.hidden = !user || !allowed.includes(user.role);
-    });
-
-    // The inverse of data-role-visible, and not the same thing as listing the
-    // other roles: this keeps the element for a signed-out visitor. "Report an
-    // issue" is an invitation to anyone except the staff who resolve them.
+    // Keep invitations to report issues visible to guests and citizens.
     document.querySelectorAll<HTMLElement>("[data-role-hidden]").forEach((element) => {
       const denied = this.rolesFrom(element.dataset.roleHidden);
       element.hidden = user ? denied.includes(user.role) : false;
@@ -127,14 +116,8 @@ export class SiteSession {
     document.querySelectorAll<HTMLElement>("[data-session-name]").forEach((element) => {
       element.textContent = user ? user.name : "Sign in";
     });
-    document.querySelectorAll<HTMLElement>("[data-session-first-name]").forEach((element) => {
-      element.textContent = user ? (user.name.split(/\s+/)[0] ?? user.name) : "Guest";
-    });
     document.querySelectorAll<HTMLElement>("[data-session-avatar]").forEach((element) => {
       element.textContent = user ? this.initials(user.name) : "?";
-    });
-    document.querySelectorAll<HTMLElement>("[data-session-role]").forEach((element) => {
-      element.textContent = user ? user.role : "Guest";
     });
 
     document

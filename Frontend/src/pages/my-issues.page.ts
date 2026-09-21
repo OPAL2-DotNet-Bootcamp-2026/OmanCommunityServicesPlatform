@@ -2,7 +2,7 @@
  * The citizen portal: issue list, filters, create-issue dialog, detail modal
  * with comments and ratings.
  */
-import { announceStatus, byId, errorMessage, optionalById, setAlert, toTone } from "../dom";
+import { announceStatus, bindActions, byId, errorMessage, loadPageElements, optionalById, toTone } from "../dom";
 import {
   escapeHtml,
   getInitials,
@@ -14,7 +14,6 @@ import {
 } from "../components/issue-renderers";
 import type {
   Attachment,
-  Category,
   Comment,
   CreateIssueRequest,
   Issue,
@@ -22,7 +21,8 @@ import type {
 } from "../models";
 import type { CitizenDashboardData, DataService } from "../services/data.service";
 import type { SessionService } from "../services/session.service";
-import { formString, normalizedSearch } from "../text";
+import { formString } from "../text";
+import { filterIssues } from "../issue-filters";
 import * as feedback from "../components/feedback";
 import {
   renderSkeletons,
@@ -39,7 +39,8 @@ import {
 import { mountMapsIn, setMapPin, type MapPickDetail } from "../components/map";
 import { reverseGeocode } from "../services/geocoding.service";
 
-type FilterKey = "search" | "status" | "priority" | "department" | "category" | "sort";
+const SELECT_FILTERS = ["sort", "status", "priority", "department", "category"] as const;
+type FilterKey = "search" | (typeof SELECT_FILTERS)[number];
 type Filters = Record<FilterKey, string>;
 
 interface ActiveFilter {
@@ -106,11 +107,6 @@ export class MyIssuesPage {
   /** Guards against two retries, or a retry racing a deliberate update. */
   private activeAttachmentRetryIssueId: number | null = null;
   private readonly activeIssueImageUpdates = new Set<number>();
-  /**
-   * Bumped whenever an attachment is merged, so a background hydration that
-   * started earlier cannot overwrite a newer, deliberate change.
-   */
-  private readonly attachmentRevisions = new Map<number, number>();
   /**
    * The last address this page wrote into the location field. Used to tell a
    * value we filled in from one the citizen typed, so moving the pin never
@@ -203,14 +199,6 @@ export class MyIssuesPage {
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }
 
-  private firstName(name: string | null | undefined): string {
-    return (
-      String(name || "Citizen")
-        .trim()
-        .split(/\s+/)[0] || "Citizen"
-    );
-  }
-
   private renderAccountSummary(): void {
     const dashboard = this.loaded;
     const issues = dashboard.issues;
@@ -221,19 +209,23 @@ export class MyIssuesPage {
     const resolvedCount = issues.filter((issue) => issue.currentStatus === "Resolved").length;
     const activeCount = issues.length - resolvedCount;
 
-    const userName = optionalById<HTMLElement>("currentUserName");
-    const userAvatar = optionalById<HTMLElement>("currentUserAvatar");
-    const notificationCount = optionalById<HTMLElement>("notificationCount");
-    const heroTotal = optionalById<HTMLElement>("heroIssueTotal");
-    const heroSummary = optionalById<HTMLElement>("heroIssueSummary");
-    const heroResolved = optionalById<HTMLElement>("heroResolvedCount");
+    const summaries: Record<string, string> = {
+      currentUserName: String(user?.name || "Citizen").trim().split(/\s+/)[0] || "Citizen",
+      currentUserAvatar: getInitials(user?.name),
+      heroIssueTotal: `${issues.length} total issue${issues.length === 1 ? "" : "s"}`,
+      heroIssueSummary: issues.length === 0
+        ? "Your submitted reports will appear here."
+        : activeCount
+          ? `${activeCount} report${activeCount === 1 ? " is" : "s are"} awaiting or receiving municipal action.`
+          : "All of your reports have been resolved.",
+      heroResolvedCount: `${resolvedCount} resolved`
+    };
+    Object.entries(summaries).forEach(([id, text]) => {
+      const element = optionalById<HTMLElement>(id);
+      if (element) element.textContent = text;
+    });
 
-    if (userName) {
-      userName.textContent = this.firstName(user?.name);
-    }
-    if (userAvatar) {
-      userAvatar.textContent = getInitials(user?.name);
-    }
+    const notificationCount = optionalById<HTMLElement>("notificationCount");
     if (notificationCount) {
       notificationCount.textContent = String(unreadCount);
       notificationCount.hidden = unreadCount === 0;
@@ -241,20 +233,6 @@ export class MyIssuesPage {
         "aria-label",
         `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
       );
-    }
-    if (heroTotal) {
-      heroTotal.textContent = `${issues.length} total issue${issues.length === 1 ? "" : "s"}`;
-    }
-    if (heroSummary) {
-      heroSummary.textContent =
-        issues.length === 0
-          ? "Your submitted reports will appear here."
-          : activeCount
-            ? `${activeCount} report${activeCount === 1 ? " is" : "s are"} awaiting or receiving municipal action.`
-            : "All of your reports have been resolved.";
-    }
-    if (heroResolved) {
-      heroResolved.textContent = `${resolvedCount} resolved`;
     }
   }
 
@@ -277,69 +255,46 @@ export class MyIssuesPage {
     });
   }
 
-  private replaceSelectOptions<T>(
+  private replaceSelectOptions(
     select: HTMLSelectElement,
     placeholder: string,
-    items: T[],
-    getValue: (item: T) => string | number,
-    getLabel: (item: T) => string
+    options: [string | number, string][]
   ): void {
     const selectedValue = select.value;
-    const fragment = document.createDocumentFragment();
-    fragment.append(new Option(placeholder, ""));
-
-    items.forEach((item) => {
-      fragment.append(new Option(getLabel(item), String(getValue(item))));
-    });
-
-    select.replaceChildren(fragment);
+    select.replaceChildren(
+      new Option(placeholder, ""),
+      ...options.map(([value, label]) => new Option(label, String(value)))
+    );
     if ([...select.options].some((option) => option.value === selectedValue)) {
       select.value = selectedValue;
     }
   }
 
   private renderLookupOptions(): void {
-    const dashboard = this.loaded;
-    const categories = dashboard.categories;
-    const regions = dashboard.regions;
+    const { categories, regions, issues } = this.loaded;
 
     // Departments are not a lookup here - they are whatever the user's own
     // issues have been assigned to.
-    const departments = [
-      ...new Set(
-        dashboard.issues
-          .map((issue) => issue.assignedDepartmentName)
-          .filter((name): name is string => Boolean(name))
-      )
-    ].sort((left, right) => left.localeCompare(right));
+    const departments = [...new Set(issues
+      .map((issue) => issue.assignedDepartmentName)
+      .filter((name): name is string => Boolean(name))
+    )].sort((left, right) => left.localeCompare(right));
 
-    this.replaceSelectOptions<Category>(
-      this.elements.categoryFilter,
-      "All Categories",
-      categories,
-      (category) => category.categoryName,
-      (category) => category.categoryName
-    );
-    this.replaceSelectOptions<string>(
-      this.elements.departmentFilter,
-      "All Departments",
-      departments,
-      (department) => department,
-      (department) => department
-    );
-    this.replaceSelectOptions<Category>(
-      this.elements.issueCategory,
-      "Select a category",
-      categories,
-      (category) => category.categoryId,
-      (category) => category.categoryName
+    this.replaceSelectOptions(
+      this.elements.categoryFilter, "All Categories",
+      categories.map(({ categoryName }) => [categoryName, categoryName])
     );
     this.replaceSelectOptions(
-      this.elements.issueRegion,
-      "Select region",
-      regions,
-      (region) => region.regionId,
-      (region) => `${region.regionName} — ${region.governorate}`
+      this.elements.departmentFilter, "All Departments",
+      departments.map((department) => [department, department])
+    );
+    this.replaceSelectOptions(
+      this.elements.issueCategory, "Select a category",
+      categories.map(({ categoryId, categoryName }) => [categoryId, categoryName])
+    );
+    this.replaceSelectOptions(
+      this.elements.issueRegion, "Select region",
+      regions.map(({ regionId, regionName, governorate }) => [regionId, `${regionName} — ${governorate}`])
     );
 
     this.elements.issueCategory.disabled = categories.length === 0;
@@ -347,36 +302,7 @@ export class MyIssuesPage {
   }
 
   private getVisibleIssues(): Issue[] {
-    const filters = this.filters;
-    const search = normalizedSearch(filters.search);
-
-    const issues = this.loaded.issues.filter((issue) => {
-      const searchableText = normalizedSearch(
-        [
-          issue.title,
-          issue.description,
-          issue.location,
-          issue.categoryName,
-          issue.assignedDepartmentName,
-          issue.regionName
-        ].join(" ")
-      );
-
-      return (
-        (!search || searchableText.includes(search)) &&
-        (!filters.status || issue.currentStatus === filters.status) &&
-        (!filters.priority || issue.priority === filters.priority) &&
-        (!filters.department || issue.assignedDepartmentName === filters.department) &&
-        (!filters.category || issue.categoryName === filters.category)
-      );
-    });
-
-    const direction = filters.sort === "oldest" ? 1 : -1;
-    return issues.sort((left, right) => {
-      const leftTime = new Date(left.reportedDate).getTime() || 0;
-      const rightTime = new Date(right.reportedDate).getTime() || 0;
-      return (leftTime - rightTime) * direction;
-    });
+    return filterIssues(this.loaded.issues, this.filters);
   }
 
   private renderIssues(): void {
@@ -431,32 +357,15 @@ export class MyIssuesPage {
 
   private getActiveFilterDefinitions(): ActiveFilter[] {
     const filters = this.filters;
-    const definitions: ActiveFilter[] = [];
-
-    if (filters.search.trim()) {
-      definitions.push({ key: "search", label: "Search", value: filters.search.trim() });
-    }
-    if (filters.status) {
-      definitions.push({
-        key: "status",
-        label: "Status",
-        value: getStatusMeta(filters.status).label
-      });
-    }
-    if (filters.priority) {
-      definitions.push({ key: "priority", label: "Priority", value: filters.priority });
-    }
-    if (filters.department) {
-      definitions.push({ key: "department", label: "Dept", value: filters.department });
-    }
-    if (filters.category) {
-      definitions.push({ key: "category", label: "Category", value: filters.category });
-    }
-    if (filters.sort !== "newest") {
-      definitions.push({ key: "sort", label: "Sort", value: "Oldest First" });
-    }
-
-    return definitions;
+    const definitions: ActiveFilter[] = [
+      { key: "search", label: "Search", value: filters.search.trim() },
+      { key: "status", label: "Status", value: filters.status && getStatusMeta(filters.status).label },
+      { key: "priority", label: "Priority", value: filters.priority },
+      { key: "department", label: "Dept", value: filters.department },
+      { key: "category", label: "Category", value: filters.category },
+      { key: "sort", label: "Sort", value: filters.sort === "newest" ? "" : "Oldest First" }
+    ];
+    return definitions.filter(({ value }) => value);
   }
 
   private renderActiveFilters(): void {
@@ -493,11 +402,9 @@ export class MyIssuesPage {
     if (this.elements.searchInput.value !== filters.search) {
       this.elements.searchInput.value = filters.search;
     }
-    this.elements.sortFilter.value = filters.sort;
-    this.elements.statusFilter.value = filters.status;
-    this.elements.priorityFilter.value = filters.priority;
-    this.elements.departmentFilter.value = filters.department;
-    this.elements.categoryFilter.value = filters.category;
+    SELECT_FILTERS.forEach((key) => {
+      this.elements[`${key}Filter`].value = filters[key];
+    });
 
     Object.entries(STATUS_RADIO_MAP).forEach(([id, status]) => {
       const radio = optionalById<HTMLInputElement>(id);
@@ -580,44 +487,27 @@ export class MyIssuesPage {
    * write paths re-read before reporting failure. Without this, pressing Retry
    * after a timeout creates a duplicate attachment.
    */
-  private async attachImageToIssue(
+  private async saveImageAttachment(
     issueId: number,
     imageUrl: string,
-    reconcileFirst: boolean
+    options: { attachmentId: number } | { reconcileFirst?: boolean } = {}
   ): Promise<Attachment> {
-    if (reconcileFirst) {
+    const updating = "attachmentId" in options;
+    if (!updating && options.reconcileFirst) {
       const existing = await this.findExistingImageAttachment(issueId, imageUrl);
-      if (existing) {
-        return existing;
-      }
+      if (existing) return existing;
     }
 
+    const payload = { fileUrl: imageUrl, fileType: "Image" as const };
     try {
-      return await this.data.createAttachment({ issueId, fileUrl: imageUrl, fileType: "Image" });
+      return await (updating
+        ? this.data.updateAttachment(options.attachmentId, payload)
+        : this.data.createAttachment({ issueId, ...payload }));
     } catch (error) {
-      const existing = await this.findExistingImageAttachment(issueId, imageUrl);
-      if (existing) {
-        return existing;
-      }
-      throw error;
-    }
-  }
-
-  private async updateImageAttachment(
-    issueId: number,
-    attachmentId: number,
-    imageUrl: string
-  ): Promise<Attachment> {
-    try {
-      return await this.data.updateAttachment(attachmentId, {
-        fileUrl: imageUrl,
-        fileType: "Image"
-      });
-    } catch (error) {
+      const saved = await this.findExistingImageAttachment(issueId, imageUrl);
       // A timed-out PUT can still have committed. Confirm it is the SAME
       // attachment before calling it a success.
-      const saved = await this.findExistingImageAttachment(issueId, imageUrl);
-      if (saved && Number(saved.attachmentId) === Number(attachmentId)) {
+      if (saved && (!updating || Number(saved.attachmentId) === Number(options.attachmentId))) {
         return saved;
       }
       throw error;
@@ -633,9 +523,6 @@ export class MyIssuesPage {
     if (!issue) {
       return;
     }
-
-    // Marks this issue as newer than any hydration already in flight.
-    this.attachmentRevisions.set(issueId, (this.attachmentRevisions.get(issueId) ?? 0) + 1);
 
     const source = baseAttachments ?? issue.attachments;
     const attachments = source.filter(
@@ -833,7 +720,7 @@ export class MyIssuesPage {
     };
 
     try {
-      const attachment = await this.attachImageToIssue(pending.issueId, pending.imageUrl, true);
+      const attachment = await this.saveImageAttachment(pending.issueId, pending.imageUrl, { reconcileFirst: true });
       this.mergeAttachmentIntoIssue(pending.issueId, attachment);
       // Only clear if nothing replaced it while the request was in flight.
       if (this.pendingAttachments.get(issueId)?.imageUrl === pending.imageUrl) {
@@ -906,6 +793,14 @@ export class MyIssuesPage {
     }
   }
 
+  private findOwnedImage(attachments: Attachment[]): Attachment | undefined {
+    const userId = Number(this.loaded.currentUser?.userId);
+    return attachments.find((attachment) =>
+      String(attachment.fileType ?? "").toLowerCase() === "image" &&
+      Number(attachment.uploadedById) === userId
+    );
+  }
+
   private async showIssueDetails(issueId: number, trigger: HTMLElement | null): Promise<void> {
     this.setPageStatus("");
     this.openIssueTrigger = trigger ?? (document.activeElement as HTMLElement | null);
@@ -915,13 +810,7 @@ export class MyIssuesPage {
 
       // The image-update panel only makes sense when the attachments actually
       // loaded, and it prefills with the image THIS user uploaded.
-      const currentUserId = Number(this.loaded.currentUser?.userId);
-      const editableImage =
-        issue.attachments.find(
-          (attachment) =>
-            String(attachment.fileType ?? "").toLowerCase() === "image" &&
-            Number(attachment.uploadedById) === currentUserId
-        ) ?? null;
+      const editableImage = this.findOwnedImage(issue.attachments);
       issue.ui = {
         ...issue.ui,
         imageUpdateAvailable: !issue.warnings.includes("attachments"),
@@ -1086,7 +975,7 @@ export class MyIssuesPage {
       // Keep the returned database id so a second submission is a PUT rather
       // than a duplicate create.
       panel.dataset.ratingId = String(savedRating.ratingId || "");
-      const issue = this.loaded.issues.find((item) => Number(item.issueId) === issueId);
+      const issue = this.findIssue(issueId);
       if (issue) {
         issue.rating = savedRating;
       }
@@ -1139,8 +1028,7 @@ export class MyIssuesPage {
     }
   }
 
-  private closeIssueDialog(form: HTMLFormElement): void {
-    const modalElement = form.closest<HTMLElement>(".modal");
+  private closeModal(modalElement: HTMLElement | null): void {
     if (modalElement && window.bootstrap?.Modal) {
       window.bootstrap.Modal.getOrCreateInstance(modalElement).hide();
     }
@@ -1161,21 +1049,15 @@ export class MyIssuesPage {
 
     const imageUrl = input.value.trim();
 
-    if (!MyIssuesPage.canUpdate(localIssue)) {
-      const message = "Only Open or In Progress issues can update their image.";
-      this.setImageUpdateStatus(form, message, "warning");
-      feedback.warning(message, { announce: false });
-      return;
-    }
-
     // Never let an older queued upload race a newer URL for the same issue.
-    if (
-      this.activeAttachmentRetryIssueId === issueId ||
-      this.activeIssueImageUpdates.has(issueId)
-    ) {
-      const message = "Wait for the current image retry to finish, then update the image.";
-      this.setImageUpdateStatus(form, message, "warning");
-      feedback.warning(message, { announce: false });
+    const warning = !MyIssuesPage.canUpdate(localIssue)
+      ? "Only Open or In Progress issues can update their image."
+      : this.activeAttachmentRetryIssueId === issueId || this.activeIssueImageUpdates.has(issueId)
+        ? "Wait for the current image retry to finish, then update the image."
+        : "";
+    if (warning) {
+      this.setImageUpdateStatus(form, warning, "warning");
+      feedback.warning(warning, { announce: false });
       return;
     }
 
@@ -1219,7 +1101,7 @@ export class MyIssuesPage {
           `[data-action="open-issue"][data-issue-id="${safeDomId(issueId)}"]`
         );
         feedback.warning("This issue can no longer be updated because it is resolved.");
-        this.closeIssueDialog(form);
+        this.closeModal(form.closest<HTMLElement>(".modal"));
         return;
       }
 
@@ -1228,33 +1110,16 @@ export class MyIssuesPage {
       }
 
       const attachments = latest.attachments;
-      const currentUserId = Number(this.loaded.currentUser?.userId);
-      const exactImage =
-        attachments.find((a) => MyIssuesPage.isMatchingImage(a, imageUrl)) ?? null;
-      const ownedImage =
-        attachments.find(
-          (a) =>
-            String(a.fileType ?? "").toLowerCase() === "image" &&
-            Number(a.uploadedById) === currentUserId
-        ) ?? null;
-
-      let savedAttachment: Attachment;
-      let successMessage: string;
-
-      if (exactImage) {
-        savedAttachment = exactImage;
-        successMessage = "The image URL is already up to date.";
-      } else if (ownedImage) {
-        savedAttachment = await this.updateImageAttachment(
-          issueId,
-          ownedImage.attachmentId,
-          imageUrl
-        );
-        successMessage = "The issue image was updated successfully.";
-      } else {
-        savedAttachment = await this.attachImageToIssue(issueId, imageUrl, true);
-        successMessage = "The issue image was added successfully.";
-      }
+      const exactImage = attachments.find((image) => MyIssuesPage.isMatchingImage(image, imageUrl));
+      const ownedImage = this.findOwnedImage(attachments);
+      const savedAttachment = exactImage ?? await this.saveImageAttachment(issueId, imageUrl,
+        ownedImage ? { attachmentId: ownedImage.attachmentId } : { reconcileFirst: true }
+      );
+      const successMessage = exactImage
+        ? "The image URL is already up to date."
+        : ownedImage
+          ? "The issue image was updated successfully."
+          : "The issue image was added successfully.";
 
       this.mergeAttachmentIntoIssue(issueId, savedAttachment, attachments);
       // A deliberate update supersedes any older create-image retry.
@@ -1263,7 +1128,7 @@ export class MyIssuesPage {
       this.renderAttachmentRetries();
       this.setImageUpdateStatus(form, "");
       feedback.success(successMessage);
-      this.closeIssueDialog(form);
+      this.closeModal(form.closest<HTMLElement>(".modal"));
     } catch (error) {
       const message = errorMessage(error, "The issue image could not be updated.");
       this.setImageUpdateStatus(form, message, "danger");
@@ -1328,13 +1193,6 @@ export class MyIssuesPage {
     window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
   }
 
-  private closeCreateModal(): void {
-    const modalElement = optionalById<HTMLElement>("createIssueModal");
-    if (modalElement && window.bootstrap?.Modal) {
-      window.bootstrap.Modal.getOrCreateInstance(modalElement).hide();
-    }
-  }
-
   private async createIssue(form: HTMLFormElement): Promise<void> {
     const submitButton = form.querySelector<HTMLButtonElement>('[type="submit"]');
     if (!submitButton) {
@@ -1386,7 +1244,7 @@ export class MyIssuesPage {
       let attachmentFailed = false;
       if (imageUrl) {
         try {
-          createdAttachment = await this.attachImageToIssue(created.issueId, imageUrl, false);
+          createdAttachment = await this.saveImageAttachment(created.issueId, imageUrl);
         } catch {
           attachmentFailed = true;
         }
@@ -1398,33 +1256,27 @@ export class MyIssuesPage {
         (item) => Number(item.regionId) === payload.regionId
       );
 
-      this.loaded.issues = [
-        {
-          ...created,
-          categoryId: created.categoryId ?? payload.categoryId,
-          regionId: created.regionId ?? payload.regionId,
-          categoryName: created.categoryName || category?.categoryName || "",
-          regionName: created.regionName || region?.regionName || "",
-          governorate: created.governorate || region?.governorate || "",
-          // Always null from the create endpoint; the read-back usually fills
-          // it, and the category lookup covers the case where it does not.
-          assignedDepartmentName:
-            created.assignedDepartmentName ?? category?.departmentName ?? null,
-          attachments: createdAttachment ? [createdAttachment] : created.attachments,
-          ui: {
-            ...created.ui,
-            attachmentsLoaded: !attachmentFailed,
-            ...(createdAttachment
-              ? {
-                  imageUrl: createdAttachment.fileUrl,
-                  imageAlt: payload.title,
-                  previewLabel: "Issue photo"
-                }
-              : {})
-          }
-        },
-        ...this.loaded.issues
-      ];
+      const issue: Issue = {
+        ...created,
+        categoryId: created.categoryId ?? payload.categoryId,
+        regionId: created.regionId ?? payload.regionId,
+        categoryName: created.categoryName || category?.categoryName || "",
+        regionName: created.regionName || region?.regionName || "",
+        governorate: created.governorate || region?.governorate || "",
+        // Always null from the create endpoint; the read-back usually fills
+        // it, and the category lookup covers the case where it does not.
+        assignedDepartmentName: created.assignedDepartmentName ?? category?.departmentName ?? null,
+        ui: { ...created.ui, attachmentsLoaded: !attachmentFailed }
+      };
+      if (createdAttachment) {
+        issue.attachments = [createdAttachment];
+        Object.assign(issue.ui, {
+          imageUrl: createdAttachment.fileUrl,
+          imageAlt: payload.title,
+          previewLabel: "Issue photo"
+        });
+      }
+      this.loaded.issues = [issue, ...this.loaded.issues];
 
       form.reset();
       const priorityMedium = optionalById<HTMLInputElement>("priorityMedium");
@@ -1442,7 +1294,7 @@ export class MyIssuesPage {
       this.elements.issueImageUrl.removeAttribute("aria-invalid");
       this.renderDashboard();
       this.setCreateIssueStatus("");
-      this.closeCreateModal();
+      this.closeModal(optionalById<HTMLElement>("createIssueModal"));
 
       if (attachmentFailed) {
         this.showAttachmentRetry(created.issueId, imageUrl);
@@ -1576,16 +1428,8 @@ export class MyIssuesPage {
       }, 150);
     });
 
-    const selectFilters: [HTMLSelectElement, FilterKey][] = [
-      [this.elements.sortFilter, "sort"],
-      [this.elements.statusFilter, "status"],
-      [this.elements.priorityFilter, "priority"],
-      [this.elements.departmentFilter, "department"],
-      [this.elements.categoryFilter, "category"]
-    ];
-
-    selectFilters.forEach(([select, key]) => {
-      select.addEventListener("change", (event) => {
+    SELECT_FILTERS.forEach((key) => {
+      this.elements[`${key}Filter`].addEventListener("change", (event) => {
         this.filters[key] = (event.target as HTMLSelectElement).value;
         this.renderFilteredContent();
       });
@@ -1600,138 +1444,55 @@ export class MyIssuesPage {
       });
     });
 
-    optionalById<HTMLButtonElement>("resetFiltersButton")?.addEventListener(
-      "click",
-      this.clearFilters
-    );
-    optionalById<HTMLButtonElement>("clearAllFiltersButton")?.addEventListener(
-      "click",
-      this.clearFilters
-    );
+    ["resetFiltersButton", "clearAllFiltersButton"].forEach((id) => {
+      optionalById<HTMLButtonElement>(id)?.addEventListener("click", this.clearFilters);
+    });
   }
 
   private bindDelegatedEvents(): void {
-    this.elements.gallery.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-
-      if (event.target.closest('[data-action="retry-issues"]')) {
-        void this.loadDashboard();
-        return;
-      }
-
-      const openButton = event.target.closest<HTMLElement>('[data-action="open-issue"]');
-      if (openButton) {
-        void this.showIssueDetails(Number(openButton.dataset.issueId), openButton);
-        return;
-      }
-
-      if (event.target.closest('[data-action="clear-filters"]')) {
+    bindActions(this.elements.gallery, "click", {
+      "retry-issues": () => this.loadDashboard(),
+      "open-issue": (button) => this.showIssueDetails(Number(button.dataset.issueId), button),
+      "clear-filters": () => {
         this.clearFilters();
         requestAnimationFrame(() => this.elements.searchInput.focus());
       }
     });
-
-    this.elements.attachmentRetryStatus.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-      const retry = event.target.closest<HTMLElement>('[data-action="retry-image-attachment"]');
-      if (retry) {
-        void this.retryPendingAttachment(retry);
+    bindActions(this.elements.attachmentRetryStatus, "click", {
+      "retry-image-attachment": (button) => this.retryPendingAttachment(button)
+    });
+    bindActions(this.elements.activeFilterChips, "click", {
+      "remove-filter": (button) => {
+        if (button.dataset.filter) this.removeFilter(button.dataset.filter);
       }
     });
-
-    this.elements.activeFilterChips.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-      const button = event.target.closest<HTMLElement>('[data-action="remove-filter"]');
-      if (button?.dataset.filter) {
-        this.removeFilter(button.dataset.filter);
-      }
+    bindActions<HTMLFormElement>(this.elements.detailHost, "submit", {
+      "update-issue-image": (form) => this.updateIssueImage(form),
+      "add-comment": (form) => this.addComment(form)
     });
 
-    this.elements.detailHost.addEventListener("submit", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-      const imageForm = event.target.closest<HTMLFormElement>(
-        'form[data-action="update-issue-image"]'
-      );
-      if (imageForm) {
-        event.preventDefault();
-        void this.updateIssueImage(imageForm);
-        return;
-      }
-
-      const commentForm = event.target.closest<HTMLFormElement>('form[data-action="add-comment"]');
-      if (commentForm) {
-        event.preventDefault();
-        void this.addComment(commentForm);
-      }
-
-    });
-
-    // Clears the invalid marker as soon as the reader starts fixing the URL.
+    // Clear the invalid marker as soon as the reader starts fixing the URL.
     this.elements.detailHost.addEventListener("input", (event) => {
       const input = event.target;
-      if (!(input instanceof HTMLInputElement) || input.name !== "imageUrl") {
-        return;
-      }
+      if (!(input instanceof HTMLInputElement) || input.name !== "imageUrl") return;
       const form = input.closest<HTMLFormElement>('form[data-action="update-issue-image"]');
       input.removeAttribute("aria-invalid");
-      if (form) {
-        this.setImageUpdateStatus(form, "");
-      }
+      if (form) this.setImageUpdateStatus(form, "");
     });
 
-    this.elements.detailHost.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) {
-        return;
-      }
-      const updateToggle = event.target.closest<HTMLElement>(
-        '[data-action="toggle-issue-image-update"]'
-      );
-      if (updateToggle) {
-        this.setImageUpdatePanel(
-          updateToggle,
-          updateToggle.getAttribute("aria-expanded") !== "true"
-        );
-        return;
-      }
-
-      const updateCancel = event.target.closest<HTMLElement>(
-        '[data-action="cancel-issue-image-update"]'
-      );
-      if (updateCancel) {
-        const form = updateCancel.closest<HTMLFormElement>(
-          'form[data-action="update-issue-image"]'
-        );
-        const toggle = updateCancel
-          .closest<HTMLElement>(".modal")
+    bindActions<HTMLButtonElement>(this.elements.detailHost, "click", {
+      "toggle-issue-image-update": (toggle) => {
+        this.setImageUpdatePanel(toggle, toggle.getAttribute("aria-expanded") !== "true");
+      },
+      "cancel-issue-image-update": (button) => {
+        const form = button.closest<HTMLFormElement>('form[data-action="update-issue-image"]');
+        const toggle = button.closest(".modal")
           ?.querySelector<HTMLElement>('[data-action="toggle-issue-image-update"]');
-        if (form) {
-          this.setImageUpdateStatus(form, "");
-        }
-        if (toggle) {
-          this.setImageUpdatePanel(toggle, false);
-        }
-        return;
-      }
-
-      const ratingButton = event.target.closest<HTMLElement>('[data-action="select-rating"]');
-      if (ratingButton) {
-        this.selectRating(ratingButton);
-        return;
-      }
-      const submitButton = event.target.closest<HTMLButtonElement>(
-        '[data-action="submit-rating"]'
-      );
-      if (submitButton) {
-        void this.submitRating(submitButton);
-      }
+        if (form) this.setImageUpdateStatus(form, "");
+        if (toggle) this.setImageUpdatePanel(toggle, false);
+      },
+      "select-rating": (button) => this.selectRating(button),
+      "submit-rating": (button) => this.submitRating(button)
     });
   }
 
@@ -1762,7 +1523,7 @@ export class MyIssuesPage {
     const issueExists =
       Number.isInteger(issueId) &&
       issueId > 0 &&
-      this.loaded.issues.some((issue) => Number(issue.issueId) === issueId);
+      this.findIssue(issueId) !== null;
 
     if (!issueExists) {
       this.setPageStatus("The linked issue could not be found.", "warning");
@@ -1821,25 +1582,16 @@ export class MyIssuesPage {
       fab.setAttribute("aria-label", open ? "Close the new issue form" : "Create a new issue");
     };
 
-    modal.addEventListener("shown.bs.modal", () => {
-      setOpen(true);
-    });
-    modal.addEventListener("hidden.bs.modal", () => {
-      setOpen(false);
-    });
+    modal.addEventListener("shown.bs.modal", () => setOpen(true));
+    modal.addEventListener("hidden.bs.modal", () => setOpen(false));
   }
 
   start(): void {
-    try {
-      this.elements = this.cacheElements();
-    } catch (error) {
-      const status = document.getElementById("pageStatus");
-      if (!status) {
-        throw error;
-      }
-      setAlert(status, errorMessage(error, "The page failed to start."), "danger", "mb-4");
-      return;
-    }
+    const elements = loadPageElements(
+      () => this.cacheElements(), "pageStatus", "The page failed to start.", "mb-4"
+    );
+    if (!elements) return;
+    this.elements = elements;
 
     // This is where signing in lands a citizen, so it has to consume the flash
     // that login sets. Leaving it unread does not discard it - it waits in

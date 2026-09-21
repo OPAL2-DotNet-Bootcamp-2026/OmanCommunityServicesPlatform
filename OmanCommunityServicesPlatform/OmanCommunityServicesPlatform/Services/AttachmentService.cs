@@ -22,7 +22,14 @@ namespace OmanCommunityServicesPlatform.Services
             Issue? issue = issueRepo.GetById(dto.issueId);
 
             if (issue == null)
+            {
                 return null;
+            }
+
+            if (issue.reportedById != uploadedById)
+            {
+                return null;
+            }
 
             User? user = userRepo.GetById(uploadedById);
 
@@ -53,8 +60,19 @@ namespace OmanCommunityServicesPlatform.Services
             return response;
         }
         // Get attachments by issue ID
-        public List<AttachmentResponseDto> GetByIssueId(int issueId)
+        public List<AttachmentResponseDto>? GetByIssueId(int issueId, int userId, bool isStaff)
         {
+            Issue? issue = issueRepo.GetById(issueId);
+            if (issue == null)
+            {
+                return null;
+            }
+
+            if (!isStaff && issue.reportedById != userId)
+            {
+                return null;
+            }
+
             List<Attachment> attachments = attachmentRepo.GetByIssueId(issueId);
             List<AttachmentResponseDto> response = new List<AttachmentResponseDto>();
 
@@ -74,12 +92,25 @@ namespace OmanCommunityServicesPlatform.Services
             return response;
         }
         // Get attachment by ID
-        public AttachmentResponseDto? GetById(int id)
+        public AttachmentResponseDto? GetById(int id, int userId, bool isStaff)
         {
             Attachment? attachment = attachmentRepo.GetById(id);
 
             if (attachment == null)
+            {
                 return null;
+            }
+
+            Issue? issue = issueRepo.GetById(attachment.issueId);
+            if (issue == null)
+            {
+                return null;
+            }
+
+            if (!isStaff && issue.reportedById != userId)
+            {
+                return null;
+            }
 
             AttachmentResponseDto response = new AttachmentResponseDto();
 

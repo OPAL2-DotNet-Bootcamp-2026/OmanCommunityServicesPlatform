@@ -8,6 +8,7 @@
  */
 
 import { asText } from "../text";
+import { createElement } from "../elements";
 
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -53,17 +54,12 @@ export function prefersReducedMotion(): boolean {
   return reducedMotionQuery.matches;
 }
 
-function elementsWithin(root: ParentNode | HTMLElement | null, selector: string): HTMLElement[] {
-  if (!root || !selector) {
-    return [];
-  }
-
-  const elements: HTMLElement[] = [];
-  if (root instanceof HTMLElement && root.matches(selector)) {
-    elements.push(root);
-  }
-  elements.push(...root.querySelectorAll<HTMLElement>(selector));
-  return elements;
+function elementsWithin(root: ParentNode | null, selector: string): HTMLElement[] {
+  if (!root || !selector) return [];
+  return [
+    ...(root instanceof HTMLElement && root.matches(selector) ? [root] : []),
+    ...root.querySelectorAll<HTMLElement>(selector)
+  ];
 }
 
 /** Strips the animation state so the element is left exactly as authored. */
@@ -71,9 +67,9 @@ function finishReveal(element: HTMLElement): void {
   revealObserver?.unobserve(element);
   pendingRevealElements.delete(element);
   element.classList.remove("ocsp-motion-enter", "is-visible");
-  element.style.removeProperty("--ocsp-motion-delay");
-  element.style.removeProperty("--ocsp-motion-distance");
-  element.style.removeProperty("--ocsp-motion-duration");
+  for (const property of ["delay", "distance", "duration"]) {
+    element.style.removeProperty(`--ocsp-motion-${property}`);
+  }
   element.dataset.ocspMotionComplete = "true";
 }
 
@@ -109,24 +105,29 @@ function showReveal(element: HTMLElement): void {
   });
 }
 
-function getRevealObserver(): IntersectionObserver | null {
-  if (revealObserver || !("IntersectionObserver" in window)) {
-    return revealObserver;
-  }
-
-  revealObserver = new IntersectionObserver(
+function observeOnce(
+  onEnter: (element: HTMLElement) => void,
+  options: IntersectionObserverInit
+): IntersectionObserver | null {
+  if (!("IntersectionObserver" in window)) return null;
+  const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (!entry.isIntersecting) {
-          return;
+        if (entry.isIntersecting) {
+          observer.unobserve(entry.target);
+          onEnter(entry.target as HTMLElement);
         }
-        revealObserver?.unobserve(entry.target);
-        showReveal(entry.target as HTMLElement);
       });
     },
-    { rootMargin: "0px 0px -6% 0px", threshold: 0.08 }
+    options
   );
-  return revealObserver;
+  return observer;
+}
+
+function getRevealObserver(): IntersectionObserver | null {
+  return (revealObserver ??= observeOnce(showReveal, {
+    rootMargin: "0px 0px -6% 0px", threshold: 0.08
+  }));
 }
 
 /**
@@ -154,7 +155,7 @@ export interface RevealOptions {
  * the entrance for rows that were already on screen.
  */
 export function revealList(
-  container: ParentNode | HTMLElement | null,
+  container: ParentNode | null,
   selector: string,
   options: RevealOptions = {}
 ): HTMLElement[] {
@@ -203,7 +204,7 @@ export function revealList(
 }
 
 /** Reveals both the page furniture and the data-driven content under a root. */
-export function revealWithin(root: ParentNode | HTMLElement | null, options: RevealOptions = {}): void {
+export function revealWithin(root: ParentNode | null, options: RevealOptions = {}): void {
   revealList(root, STATIC_REVEAL_SELECTOR, {
     stagger: options.stagger !== false,
     interval: options.interval || 36,
@@ -347,34 +348,13 @@ function parseCounterText(element: HTMLElement): CounterText | null {
 }
 
 function getCounterObserver(): IntersectionObserver | null {
-  if (counterObserver || !("IntersectionObserver" in window)) {
-    return counterObserver;
-  }
-
-  counterObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) {
-          return;
-        }
-        counterObserver?.unobserve(entry.target);
-        const data = staticCounterData.get(entry.target as HTMLElement);
-        if (!data) {
-          return;
-        }
-        countTo(entry.target as HTMLElement, data.target, {
-          startValue: 0,
-          useGrouping: data.useGrouping,
-          format: (value) =>
-            `${data.prefix}${Math.round(value).toLocaleString("en-US", {
-              useGrouping: data.useGrouping
-            })}${data.suffix}`
-        });
-      });
+  return (counterObserver ??= observeOnce(
+    (element) => {
+      const data = staticCounterData.get(element);
+      if (data) countTo(element, data.target, { ...data, startValue: 0 });
     },
     { threshold: 0.45 }
-  );
-  return counterObserver;
+  ));
 }
 
 /**
@@ -409,14 +389,16 @@ function initializeStaticCounters(root: ParentNode): void {
     if (observer) {
       observer.observe(element);
     } else {
-      countTo(element, data.target, {
-        startValue: 0,
-        useGrouping: data.useGrouping,
-        prefix: data.prefix,
-        suffix: data.suffix
-      });
+      countTo(element, data.target, { ...data, startValue: 0 });
     }
   });
+}
+
+function replayAnimation(element: HTMLElement, className: string): void {
+  element.classList.remove(className);
+  void element.offsetWidth; // forces a reflow so the animation restarts
+  element.classList.add(className);
+  element.addEventListener("animationend", () => element.classList.remove(className), { once: true });
 }
 
 /** Replays a short pulse only when the value it represents actually changed. */
@@ -435,14 +417,7 @@ export function pulse(element: HTMLElement | null, value?: string | number): voi
     return;
   }
 
-  element.classList.remove("ocsp-notification-pulse");
-  void element.offsetWidth; // forces a reflow so the animation restarts
-  element.classList.add("ocsp-notification-pulse");
-  element.addEventListener(
-    "animationend",
-    () => element.classList.remove("ocsp-notification-pulse"),
-    { once: true }
-  );
+  replayAnimation(element, "ocsp-notification-pulse");
 }
 
 export function revealStatus(element: HTMLElement | null): void {
@@ -455,14 +430,7 @@ export function revealStatus(element: HTMLElement | null): void {
     return;
   }
 
-  element.classList.remove("ocsp-status-enter");
-  void element.offsetWidth;
-  element.classList.add("ocsp-status-enter");
-  element.addEventListener(
-    "animationend",
-    () => element.classList.remove("ocsp-status-enter"),
-    { once: true }
-  );
+  replayAnimation(element, "ocsp-status-enter");
 }
 
 /**
@@ -487,9 +455,7 @@ export function setButtonBusy(
       });
     }
 
-    const spinner = document.createElement("span");
-    spinner.className = "spinner-border spinner-border-sm";
-    spinner.setAttribute("aria-hidden", "true");
+    const spinner = createElement("span", "spinner-border spinner-border-sm", { "aria-hidden": "true" });
     const label = document.createElement("span");
     label.textContent = loadingLabel || "Working...";
 
@@ -515,9 +481,7 @@ export function setButtonBusy(
 }
 
 function skeletonBlock(className: string): HTMLElement {
-  const block = document.createElement("span");
-  block.className = `ocsp-skeleton__block ${className}`;
-  return block;
+  return createElement("span", `ocsp-skeleton__block ${className}`);
 }
 
 function removeSkeletonAnnouncement(container: HTMLElement): void {
@@ -554,10 +518,7 @@ export function renderSkeletons(
 
   // The live status sits OUTSIDE the busy region, because assistive technology
   // ignores updates inside aria-busy. It removes itself when busy clears.
-  const status = document.createElement("span");
-  status.className = "visually-hidden";
-  status.setAttribute("role", "status");
-  status.setAttribute("aria-live", "polite");
+  const status = createElement("span", "visually-hidden", { role: "status", "aria-live": "polite" });
   container.before(status);
 
   const observer = new MutationObserver(() => {
@@ -574,21 +535,19 @@ export function renderSkeletons(
     }
   });
 
-  const list = document.createElement("div");
-  list.className = `ocsp-skeleton-list ocsp-skeleton-list--${settings.variant}`;
-  list.setAttribute("aria-hidden", "true");
+  const list = createElement("div", `ocsp-skeleton-list ocsp-skeleton-list--${settings.variant}`, {
+    "aria-hidden": "true"
+  });
 
   for (let index = 0; index < settings.count; index += 1) {
-    const card = document.createElement("article");
-    card.className = `ocsp-skeleton-card ocsp-skeleton-card--${settings.variant}`;
+    const card = createElement("article", `ocsp-skeleton-card ocsp-skeleton-card--${settings.variant}`);
     card.append(
       skeletonBlock(
         settings.variant === "notification" ? "ocsp-skeleton__avatar" : "ocsp-skeleton__media"
       )
     );
 
-    const content = document.createElement("div");
-    content.className = "ocsp-skeleton__content";
+    const content = createElement("div", "ocsp-skeleton__content");
     content.append(
       skeletonBlock("ocsp-skeleton__eyebrow"),
       skeletonBlock("ocsp-skeleton__title"),
@@ -599,9 +558,7 @@ export function renderSkeletons(
     list.append(card);
   }
 
-  const fragment = document.createDocumentFragment();
-  fragment.append(list);
-  container.replaceChildren(fragment);
+  container.replaceChildren(list);
 }
 
 /**

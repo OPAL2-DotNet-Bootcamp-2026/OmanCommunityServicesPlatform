@@ -216,11 +216,6 @@ export interface Comment {
   highlighted?: boolean;
 }
 
-export interface CreateCommentRequest {
-  issueId: number;
-  content: string;
-}
-
 /* ---------- Attachment ---------- */
 
 export interface Attachment {
@@ -245,12 +240,6 @@ export interface Rating {
   score: number;
   feedback: string | null;
   ratedAt: string;
-}
-
-export interface CreateRatingRequest {
-  issueId: number;
-  score: number;
-  feedback: string | null;
 }
 
 /* ---------- Notification ---------- */

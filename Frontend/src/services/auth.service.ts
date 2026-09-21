@@ -53,8 +53,4 @@ export class AuthService {
       { auth: false, announceAuthorizationError: false }
     );
   }
-
-  logout(): void {
-    this.session.clear("logout");
-  }
 }

@@ -50,15 +50,17 @@ namespace OmanCommunityServicesPlatform.Services
         // GET NOTIFICATION BY ID
         // --------------------------------------------------
         public NotificationResponseDto? GetNotificationById(
-            int notificationId
+            int notificationId,
+            int userId,
+            bool isAdmin
         )
         {
             // Find the Notification entity.
             Notification? notification =
                 notificationRepo.GetById(notificationId);
 
-            // Notification was not found.
-            if (notification == null)
+            // Missing and inaccessible notifications have the same result.
+            if (notification == null || (!isAdmin && notification.userId != userId))
             {
                 return null;
             }
@@ -280,6 +282,7 @@ namespace OmanCommunityServicesPlatform.Services
         // NotificationRepo.Update()
         public bool UpdateNotificationReadStatus(
             int notificationId,
+            int userId,
             UpdateNotificationReadStatusDTO dto
         )
         {
@@ -287,8 +290,8 @@ namespace OmanCommunityServicesPlatform.Services
             Notification? notification =
                 notificationRepo.GetById(notificationId);
 
-            // Notification was not found.
-            if (notification == null)
+            // Only the recipient can change read status, including for Admin users.
+            if (notification == null || notification.userId != userId)
             {
                 return false;
             }
@@ -307,9 +310,19 @@ namespace OmanCommunityServicesPlatform.Services
         // MARK AS READ
         // --------------------------------------------------
         public bool MarkNotificationAsRead(
-            int notificationId
+            int notificationId,
+            int userId
         )
         {
+            // Check the recipient before the repository changes the read status.
+            Notification? notification =
+                notificationRepo.GetById(notificationId);
+
+            if (notification == null || notification.userId != userId)
+            {
+                return false;
+            }
+
             return notificationRepo.MarkAsRead(notificationId);
         }
         // --------------------------------------------------
@@ -317,7 +330,9 @@ namespace OmanCommunityServicesPlatform.Services
         // --------------------------------------------------
 
         public bool DeleteNotification(
-            int notificationId
+            int notificationId,
+            int userId,
+            bool isAdmin
         )
         {
             // Find the notification first.
@@ -325,8 +340,8 @@ namespace OmanCommunityServicesPlatform.Services
                 notificationRepo.GetById(notificationId);
 
 
-            // Return false when it does not exist.
-            if (notification == null)
+            // Only the recipient or an Admin can delete the notification.
+            if (notification == null || (!isAdmin && notification.userId != userId))
             {
                 return false;
             }

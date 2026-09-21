@@ -23,10 +23,13 @@ namespace OmanCommunityServicesPlatform.Repositories
             this.context = context;
         }
 
-        // Returns all ratings from the database.
-        public List<Rating> GetAll()
+        // Returns Ratings whose parent Issues are visible to the User.
+        public List<Rating> GetAll(
+            int userId,
+            bool canReadAll
+        )
         {
-            return context.Ratings
+            IQueryable<Rating> query = context.Ratings
 
             // Loads the Issue connected to every rating.
             // This allows us to access values such as:
@@ -36,11 +39,20 @@ namespace OmanCommunityServicesPlatform.Repositories
             // Loads the User who submitted every rating.
             // This allows us to access values such as:
             // rating.user.fullName
-            .Include(rating => rating.User)
+            .Include(rating => rating.User);
+
+            // Restrict Citizens to Issues they reported before querying.
+            if (!canReadAll)
+            {
+                query = query.Where(rating =>
+                    rating.Issue != null &&
+                    rating.Issue.reportedById == userId
+                );
+            }
 
             // Executes the database query
             // and converts the result into a List<Rating>.
-            .ToList();
+            return query.ToList();
 
 
         }

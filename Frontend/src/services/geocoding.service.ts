@@ -1,14 +1,6 @@
 /**
- * Turns coordinates into a written address, so dropping a pin fills the
- * location field instead of leaving the citizen to describe the spot twice.
- *
- * Uses Nominatim, OpenStreetMap's own geocoder - same data as the map tiles,
- * no API key, no billing account.
- *
- * Nominatim's usage policy caps this at one request per second and asks that
- * results be cached. Both are honoured below. The calls are user-initiated -
- * one per pin drop - so the real rate is far under the cap, but a citizen
- * clicking repeatedly around a map would otherwise sail past it.
+ * User-initiated reverse geocoding for map pins. Cache and space Nominatim
+ * requests by at least one second to respect its usage policy.
  */
 
 const NOMINATIM_REVERSE = "https://nominatim.openstreetmap.org/reverse";
@@ -62,9 +54,8 @@ function formatAddress(response: NominatimReverseResponse): string {
     .map((part) => (typeof part === "string" ? part.trim() : ""))
     .filter((part) => part.length > 0);
 
-  // Drop duplicates - "Muscat, Muscat" is common in Nominatim's Oman data.
-  const unique = [...new Set(parts)];
-  return unique.slice(0, 3).join(", ");
+  // Drop duplicates such as "Muscat, Muscat".
+  return [...new Set(parts)].slice(0, 3).join(", ");
 }
 
 /**
@@ -105,31 +96,19 @@ export async function reverseGeocode(
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
+  let result: string | null = null;
   try {
     const response = await fetch(url, {
       signal: controller.signal,
       headers: { Accept: "application/json" }
     });
-    if (!response.ok) {
-      cache.set(key, null);
-      return null;
-    }
-
-    const payload: unknown = await response.json();
-    if (!isRecord(payload)) {
-      cache.set(key, null);
-      return null;
-    }
-
-    const formatted = formatAddress(payload);
-    const result = formatted.length > 0 ? formatted : null;
-    cache.set(key, result);
-    return result;
+    const payload: unknown = response.ok ? await response.json() : null;
+    result = isRecord(payload) ? formatAddress(payload) || null : null;
   } catch {
-    // Offline, blocked, rate-limited or timed out - all the same to the caller.
-    cache.set(key, null);
-    return null;
+    // A failed lookup must not block reporting; the address remains editable.
   } finally {
     window.clearTimeout(timeoutId);
   }
+  cache.set(key, result);
+  return result;
 }

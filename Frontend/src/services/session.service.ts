@@ -1,10 +1,4 @@
-/**
- * Session state: the JWT, the signed-in user, role checks, and the redirect
- * rules that keep a role off a page it may not see.
- *
- * Under Angular the role checks become a CanActivate guard and the
- * authorization-error listener becomes an HttpInterceptor.
- */
+/** Session storage, role checks, and safe authentication redirects. */
 import type { ApiClient, AuthorizationErrorDetail } from "../core/api-client";
 import type { AppConfig } from "../core/config";
 import type { LoginResponse, SessionRole, User } from "../models";
@@ -21,7 +15,7 @@ export interface Session {
   startedAt: string;
 }
 
-export interface Flash {
+interface Flash {
   message: string;
   tone: string;
   email: string;
@@ -29,12 +23,7 @@ export interface Flash {
   createdAt: number;
 }
 
-/**
- * A flash describes the navigation that just happened - "you have signed in",
- * "that account cannot open this page". One still sitting in storage minutes
- * later has missed its moment, and announcing it then reads as a message about
- * whatever the reader is doing now. Long enough to survive a slow first load.
- */
+/** Navigation announcements expire; registration email handoffs do not. */
 const FLASH_MAX_AGE_MS = 15_000;
 
 /**
@@ -51,7 +40,6 @@ const ALLOWED_PAGE_ROLES: Record<string, SessionRole[]> = {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
-
 
 /** A directory URL such as "/" is served by index.html. */
 function currentPageName(): string {
@@ -94,7 +82,7 @@ export class SessionService {
       window.location.replace(this.loginUrl(this.currentReturnTo()));
     });
 
-    this.restore();
+    this.api.setAccessToken(this.getSession()?.token ?? "");
   }
 
   normalizeRole(value: unknown): SessionRole {
@@ -158,33 +146,28 @@ export class SessionService {
     return payload.exp * 1000 <= Date.now();
   }
 
+  private writeStorage(key: string, value: unknown): void {
+    const storage = this.getStorage();
+    if (!storage) return;
+    try {
+      if (value === null) storage.removeItem(key);
+      else storage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Storage may be blocked or full; keep using the in-memory state.
+    }
+  }
+
   private persist(session: Session): void {
     this.memorySession = session;
-    const storage = this.getStorage();
-    if (!storage) {
-      return;
-    }
-    try {
-      storage.setItem(this.storageKey, JSON.stringify(session));
-    } catch {
-      // The in-memory fallback keeps the current page working.
-    }
+    this.writeStorage(this.storageKey, session);
   }
 
   private removePersistedSession(): void {
     this.memorySession = null;
-    const storage = this.getStorage();
-    if (!storage) {
-      return;
-    }
-    try {
-      storage.removeItem(this.storageKey);
-    } catch {
-      // Clearing the in-memory token is sufficient for this page.
-    }
+    this.writeStorage(this.storageKey, null);
   }
 
-  private readPersistedSession(): Session | null {
+  getSession(): Session | null {
     const storage = this.getStorage();
     if (storage) {
       try {
@@ -236,19 +219,8 @@ export class SessionService {
     return session;
   }
 
-  getSession(): Session | null {
-    return this.readPersistedSession();
-  }
-
   getUser(): SessionUser | null {
     return this.getSession()?.user ?? null;
-  }
-
-  /** Re-arms the API client with the stored token after a page navigation. */
-  restore(): Session | null {
-    const session = this.getSession();
-    this.api.setAccessToken(session ? session.token : "");
-    return session;
   }
 
   clear(reason = "logout"): void {
@@ -257,27 +229,13 @@ export class SessionService {
     this.announce("ocsp:session-changed", { session: null, reason });
   }
 
-  /** Alias of clear(), kept because both names are called across the pages. */
-  clearSession(reason = "logout"): void {
-    this.clear(reason);
-  }
-
-  isAuthenticated(): boolean {
-    return Boolean(this.getSession());
-  }
-
-  hasRole(allowedRoles: SessionRole | SessionRole[]): boolean {
+  private hasRole(allowedRoles: SessionRole | SessionRole[]): boolean {
     const user = this.getUser();
     if (!user) {
       return false;
     }
     const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
-    return roles.map((role) => this.normalizeRole(role)).includes(user.role);
-  }
-
-  /** Alias of hasRole(). */
-  hasAnyRole(allowedRoles: SessionRole | SessionRole[]): boolean {
-    return this.hasRole(allowedRoles);
+    return roles.some((role) => this.normalizeRole(role) === user.role);
   }
 
   roleHome(role: SessionRole): string {
@@ -365,14 +323,7 @@ export class SessionService {
       : null;
 
     this.memoryFlash = flash;
-    const storage = this.getStorage();
-    if (storage && flash) {
-      try {
-        storage.setItem(this.flashStorageKey, JSON.stringify(flash));
-      } catch {
-        // In-memory is enough to survive navigation within this document.
-      }
-    }
+    if (flash) this.writeStorage(this.flashStorageKey, flash);
   }
 
   /** Reads and removes the pending flash message, unless it has gone stale. */
@@ -392,26 +343,11 @@ export class SessionService {
     const flash = this.memoryFlash;
     this.memoryFlash = null;
 
-    if (!flash) {
-      return null;
-    }
+    // Registration emails survive delayed navigation to prefill the login form.
+    if (!flash || flash.email) return flash;
 
-    // A flash carrying an email is not an announcement, it is a handoff:
-    // registration puts the new account's address here for the sign-in form to
-    // fill in. Losing that is worse than delivering it late, so it never
-    // expires - a slow first load of login.html would otherwise drop both the
-    // confirmation and the prefilled address.
-    if (flash.email) {
-      return flash;
-    }
-
-    // A flash written before createdAt existed has no age to check, so it is
-    // treated as stale rather than shown late.
+    // Missing timestamps are stale; negative ages from clock corrections are valid.
     const age = Date.now() - Number(flash.createdAt ?? 0);
-
-    // A negative age means the clock moved backwards between writing and
-    // reading - an NTP correction, or the user changing it. Deliver it: showing
-    // a message slightly late beats swallowing it over a clock adjustment.
     return age <= FLASH_MAX_AGE_MS ? flash : null;
   }
 }

@@ -1,14 +1,6 @@
-/**
- * Application configuration.
- *
- * Precedence for the API address: the build-time env var, then a
- * deployment-injected global, then the local https launch profile.
- *
- * Under Angular this file becomes environments/environment.ts plus an
- * APP_CONFIG InjectionToken; the shape does not change.
- */
+/** Build-time API URL overrides runtime config, then the local HTTP default. */
 
-export interface AppRoutes {
+interface AppRoutes {
   readonly anonymousHome: string;
   readonly login: string;
   readonly citizenHome: string;
@@ -27,32 +19,14 @@ export interface AppConfig {
 
 const runtime = window.OCSP_RUNTIME_CONFIG ?? {};
 
-/**
- * Port 5037, because launchSettings.json binds it under BOTH launch profiles:
- *
- *   http   ->  http://localhost:5037
- *   https  ->  https://localhost:7130;http://localhost:5037
- *
- * 7130 exists only under the https profile, so defaulting to it means the app
- * cannot reach the API whenever someone runs the http one - which surfaces as
- * "The server could not be reached", with nothing to say it was the port.
- * 5037 works either way, and needs no dev certificate.
- *
- * Override with VITE_API_BASE_URL in .env.local to point at a deployed API.
- */
+/** Port 5037 is available in both backend launch profiles without a certificate. */
 const DEFAULT_API_BASE_URL = "http://localhost:5037";
 
 const apiBaseUrl = String(
   import.meta.env.VITE_API_BASE_URL || runtime.apiBaseUrl || DEFAULT_API_BASE_URL
 ).replace(/\/+$/, "");
 
-/**
- * Pages live at different depths - index.html at the root, the rest under
- * pages/ - so a bare "login.html" resolves differently depending on where the
- * reader already is. Resolving against Vite's BASE_URL gives one absolute
- * answer from anywhere, and keeps working if the site is ever served from a
- * sub-path rather than the domain root.
- */
+/** Resolve pages consistently across nested pages and sub-path deployments. */
 const frontendBase = new URL(import.meta.env.BASE_URL, window.location.origin);
 const pageUrl = (path: string): string => new URL(path, frontendBase).href;
 

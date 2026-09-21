@@ -6,6 +6,7 @@
  * usually comes from an API error, and must never be able to inject markup.
  */
 import { prefersReducedMotion } from "./motion";
+import { createElement } from "../elements";
 
 export type ToastTone = "success" | "danger" | "warning" | "info";
 
@@ -66,9 +67,7 @@ function ensureToastViewport(): HTMLElement {
   if (toastViewport?.isConnected) {
     return toastViewport;
   }
-  const viewport = document.createElement("section");
-  viewport.className = "ocsp-toast-viewport";
-  viewport.setAttribute("aria-label", "Action messages");
+  const viewport = createElement("section", "ocsp-toast-viewport", { "aria-label": "Action messages" });
   document.body.append(viewport);
   toastViewport = viewport;
   return viewport;
@@ -92,7 +91,7 @@ function removeToast(id: number): void {
   }
 }
 
-export function dismiss(id: number, immediate = false): void {
+function dismiss(id: number): void {
   const record = toastRecords.get(id);
   if (!record) {
     return;
@@ -100,7 +99,7 @@ export function dismiss(id: number, immediate = false): void {
   if (record.timer) window.clearTimeout(record.timer);
   record.timer = null;
 
-  if (immediate || prefersReducedMotion()) {
+  if (prefersReducedMotion()) {
     removeToast(id);
     return;
   }
@@ -113,7 +112,7 @@ export function dismiss(id: number, immediate = false): void {
 }
 
 function scheduleToast(record: ToastRecord): void {
-  if (record.remaining <= 0 || record.timer || record.removeTimer) {
+  if (record.remaining <= 0 || record.timer || record.removeTimer || record.hovered || record.focused) {
     return;
   }
   record.startedAt = performance.now();
@@ -137,35 +136,25 @@ function buildToastNode(
   text: string,
   announce: boolean
 ): { node: HTMLElement; message: HTMLElement; closeButton: HTMLElement } {
-  const node = document.createElement("article");
-  node.className = `ocsp-toast ocsp-toast--${tone}`;
+  const node = createElement("article", `ocsp-toast ocsp-toast--${tone}`);
   if (announce) {
     // A failure interrupts; anything else waits for a pause in speech.
     node.setAttribute("role", tone === "danger" ? "alert" : "status");
   }
 
-  const icon = document.createElement("i");
-  icon.className = `bi ${definition.icon} ocsp-toast__icon`;
-  icon.setAttribute("aria-hidden", "true");
+  const icon = createElement("i", `bi ${definition.icon} ocsp-toast__icon`, { "aria-hidden": "true" });
 
-  const content = document.createElement("div");
-  content.className = "ocsp-toast__content";
-  const title = document.createElement("strong");
-  title.className = "ocsp-toast__title";
+  const content = createElement("div", "ocsp-toast__content");
+  const title = createElement("strong", "ocsp-toast__title");
   title.textContent = titleText;
-  const message = document.createElement("p");
-  message.className = "ocsp-toast__message";
+  const message = createElement("p", "ocsp-toast__message");
   message.textContent = text;
   content.append(title, message);
 
-  const closeButton = document.createElement("button");
-  closeButton.className = "ocsp-toast__close";
-  closeButton.type = "button";
-  closeButton.setAttribute("aria-label", "Dismiss message");
-  const closeIcon = document.createElement("i");
-  closeIcon.className = "bi bi-x-lg";
-  closeIcon.setAttribute("aria-hidden", "true");
-  closeButton.append(closeIcon);
+  const closeButton = createElement("button", "ocsp-toast__close", {
+    type: "button", "aria-label": "Dismiss message"
+  });
+  closeButton.append(createElement("i", "bi bi-x-lg", { "aria-hidden": "true" }));
 
   node.append(icon, content, closeButton);
   return { node, message, closeButton };
@@ -201,9 +190,7 @@ export function show(message: string, options: ToastOptions = {}): number | null
     // Re-insert so a refreshed message counts as the newest for eviction.
     toastRecords.delete(existing.id);
     toastRecords.set(existing.id, existing);
-    if (!existing.hovered && !existing.focused) {
-      scheduleToast(existing);
-    }
+    scheduleToast(existing);
     return existing.id;
   }
 
@@ -236,23 +223,18 @@ export function show(message: string, options: ToastOptions = {}): number | null
   toastRecords.set(id, record);
   toastKeyIndex.set(key, id);
 
+  const hold = (interaction: "hovered" | "focused", active: boolean): void => {
+    record[interaction] = active;
+    if (active) pauseToast(record);
+    else scheduleToast(record);
+  };
   built.closeButton.addEventListener("click", () => dismiss(id));
-  built.node.addEventListener("mouseenter", () => {
-    record.hovered = true;
-    pauseToast(record);
-  });
-  built.node.addEventListener("mouseleave", () => {
-    record.hovered = false;
-    if (!record.focused) scheduleToast(record);
-  });
-  built.node.addEventListener("focusin", () => {
-    record.focused = true;
-    pauseToast(record);
-  });
+  built.node.addEventListener("mouseenter", () => hold("hovered", true));
+  built.node.addEventListener("mouseleave", () => hold("hovered", false));
+  built.node.addEventListener("focusin", () => hold("focused", true));
   built.node.addEventListener("focusout", (event) => {
     if (!built.node.contains(event.relatedTarget as Node | null)) {
-      record.focused = false;
-      if (!record.hovered) scheduleToast(record);
+      hold("focused", false);
     }
   });
 
@@ -260,10 +242,6 @@ export function show(message: string, options: ToastOptions = {}): number | null
   requestAnimationFrame(() => built.node.classList.add("is-visible"));
   scheduleToast(record);
   return id;
-}
-
-export function clear(): void {
-  [...toastRecords.keys()].forEach((id) => removeToast(id));
 }
 
 const withTone =
@@ -274,4 +252,3 @@ const withTone =
 export const success = withTone("success");
 export const error = withTone("danger");
 export const warning = withTone("warning");
-export const info = withTone("info");

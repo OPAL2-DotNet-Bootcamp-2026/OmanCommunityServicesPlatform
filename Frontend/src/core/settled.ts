@@ -1,26 +1,22 @@
-/**
- * Helpers for the "one essential request, several optional ones" pattern that
- * both the citizen and staff dashboards use.
- *
- * The optional sections are fetched with Promise.allSettled so a comments or
- * lookup outage degrades one part of the page instead of replacing a perfectly
- * good issue list with an error. The names of the failed sections come back and
- * the page shows them as warnings.
- */
-
-/** The value of a fulfilled result, or the fallback if it rejected. */
-export function settledValue<T>(result: PromiseSettledResult<T>, fallback: T): T {
-  return result.status === "fulfilled" ? result.value : fallback;
+/** Results shared by pages with one required request and optional sections. */
+export function requiredValue<T>(result: PromiseSettledResult<T>): T {
+  if (result.status === "rejected") throw result.reason;
+  return result.value;
 }
 
-/** Names of the sections whose requests rejected, in the order given. */
+/** Optional arrays fall back to empty for rejected or malformed responses. */
+export function settledArray<T>(result: PromiseSettledResult<T[]>): T[] {
+  return asArray<T>(result.status === "fulfilled" ? result.value : []);
+}
+
+/** Names of rejected sections, in request order. */
 export function rejectedSections(
   results: PromiseSettledResult<unknown>[],
   labels: string[]
 ): string[] {
-  return results
-    .map((result, index) => (result.status === "rejected" ? (labels[index] ?? "") : ""))
-    .filter((label) => label.length > 0);
+  return results.flatMap((result, index) =>
+    result.status === "rejected" && labels[index] ? [labels[index]] : []
+  );
 }
 
 /** Defensive array coercion for payloads the API might return as null. */

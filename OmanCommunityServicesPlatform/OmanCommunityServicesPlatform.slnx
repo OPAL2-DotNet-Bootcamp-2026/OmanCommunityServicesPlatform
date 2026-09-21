@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="OmanCommunityServicesPlatform.Tests/OmanCommunityServicesPlatform.Tests.csproj" />
   <Project Path="OmanCommunityServicesPlatform/OmanCommunityServicesPlatform.csproj" />
 </Solution>
