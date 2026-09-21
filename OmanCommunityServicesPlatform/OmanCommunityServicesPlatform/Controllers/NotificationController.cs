@@ -69,11 +69,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (authenticatedUserId == null)
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
             }
 
             // The Service checks ownership; Admins may view any notification.
@@ -88,10 +87,10 @@ namespace OmanCommunityServicesPlatform.Controllers
             // Use the same 404 for missing and inaccessible notifications.
             if (notification == null)
             {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Notification not found",
+                    detail: "Notification was not found.");
             }
 
             return Ok(notification);
@@ -110,11 +109,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
             }
             // The Service may return null when the User
             // does not exist.
@@ -125,10 +123,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (notifications == null)
             {
-                return NotFound(new
-                {
-                    message = "User was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "User not found",
+                    detail: "User was not found.");
             }
 
             if (notifications.Count == 0)
@@ -152,11 +150,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
             }
             // Get only unread Notifications for this User.
             List<NotificationResponseDto>? notifications =
@@ -167,10 +164,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (notifications == null)
             {
-                return NotFound(new
-                {
-                    message = "User was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "User not found",
+                    detail: "User was not found.");
             }
 
             if (notifications.Count == 0)
@@ -204,13 +201,13 @@ namespace OmanCommunityServicesPlatform.Controllers
                 );
             if (createdNotification == null)
             {
-                return BadRequest(new
-                {
-                    message =
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Notification not created",
+                    detail:
                         "The Notification could not be created. " +
                         "The User or Issue may not exist, " +
-                        "or an identical Notification may already exist."
-                });
+                        "or an identical Notification may already exist.");
             }
             // Return 201 Created with the created Notification.
             return CreatedAtAction(
@@ -250,13 +247,13 @@ namespace OmanCommunityServicesPlatform.Controllers
             // 2. The update would create a duplicate.
             if (!updated)
             {
-                return BadRequest(new
-                {
-                    message =
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Notification not updated",
+                    detail:
                         "The Notification could not be updated. " +
                         "It may not exist, or another identical " +
-                        "Notification may already exist."
-                });
+                        "Notification may already exist.");
             }
 
             return Ok(new
@@ -282,11 +279,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
 
             }
             // Update isRead using the value from the DTO.
@@ -300,10 +296,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!updated)
             {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Notification not found",
+                    detail: "Notification was not found.");
             }
             return Ok(new
             {
@@ -327,11 +323,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
             }
 
             // Ask the Service to mark the Notification as read.
@@ -343,10 +338,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!markedAsRead)
             {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Notification not found",
+                    detail: "Notification was not found.");
             }
             return Ok(new
             {
@@ -370,11 +365,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (userId == null)
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
             }
             // The Service allows the recipient or an Admin to delete it.
             bool isAdmin = User.IsInRole("Admin");
@@ -389,10 +383,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!deleted)
             {
-                return NotFound(new
-                {
-                    message = "Notification was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Notification not found",
+                    detail: "Notification was not found.");
             }
             return Ok(new
             {

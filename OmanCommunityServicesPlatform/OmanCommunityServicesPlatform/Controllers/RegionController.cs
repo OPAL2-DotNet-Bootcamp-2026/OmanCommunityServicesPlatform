@@ -21,9 +21,16 @@ namespace OmanCommunityServicesPlatform.Controllers
             public IActionResult Add([FromBody] CreateRegionDto dto)
             {
                 RegionResponseDto? result = regionService.Create(dto);
-                if (result == null)
-                    return BadRequest("Region name already exists.");
-                return Ok(result);
+            if (result == null)
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Unable to create region",
+                    detail: "Region name already exists."
+                );
+            }
+            return Ok(result);
             }
 
             // Get All Regions
@@ -41,9 +48,16 @@ namespace OmanCommunityServicesPlatform.Controllers
             public IActionResult GetById(int id)
             {
                 RegionResponseDto? result = regionService.GetById(id);
-                if (result == null)
-                    return NotFound("Region not found");
-                return Ok(result);
+            if (result == null)
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Region not found",
+                    detail: $"Region with ID {id} was not found."
+                );
+            }
+            return Ok(result);
             }
 
             // Update Region
@@ -52,9 +66,16 @@ namespace OmanCommunityServicesPlatform.Controllers
             public IActionResult Update(int id, [FromBody] UpdateRegionDto dto)
             {
                 RegionResponseDto? result = regionService.Update(id, dto);
-                if (result == null)
-                    return BadRequest("Region not found or region name already exists");
-                return Ok(result);
+            if (result == null)
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Unable to update region",
+                    detail: "Region not found or region name already exists."
+                );
+            }
+            return Ok(result);
             }
 
             // Delete Region
@@ -63,9 +84,16 @@ namespace OmanCommunityServicesPlatform.Controllers
             public IActionResult Delete(int id)
             {
                 bool result = regionService.Delete(id);
-                if (!result)
-                    return NotFound("Region not found");
-                return Ok("Region deleted successfully");
+            if (!result)
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Region not found",
+                    detail: $"Region with ID {id} was not found."
+                );
+            }
+            return Ok("Region deleted successfully");
             }
         }
     

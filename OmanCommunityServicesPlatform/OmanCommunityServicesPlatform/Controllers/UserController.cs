@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
+using OmanCommunityServicesPlatform;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -25,13 +27,19 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (created == null)
             {
-                return BadRequest(new { message = "Email is already registered." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Registration failed",
+                    detail: "Email is already registered."
+                );
             }
 
             return Ok(created);
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting("LoginPolicy")]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
@@ -39,7 +47,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (result == null)
             {
-                return Unauthorized(new { message = "Invalid email or password." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication failed",
+                    detail: "Invalid email or password."
+                );
             }
 
             return Ok(result);
@@ -49,12 +62,11 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpPatch("{id}/update-profile")]
         public IActionResult UpdateProfile([FromRoute] int id, [FromBody] UpdateProfileDto dto)
         {
-            var claim = User.FindFirst("userId");
-            if (claim == null || !int.TryParse(claim.Value, out int requestingUserId))
+            // Get the current user ID from the JWT token
+            if (!User.TryGetUserId(out int requestingUserId))
             {
                 return Unauthorized();
             }
-
             // A user can only update their own profile
             if (id != requestingUserId)
             {
@@ -65,7 +77,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (updated == null)
             {
-                return NotFound(new { message = $"User with ID {id} was not found." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "User not found",
+                    detail: $"User with ID {id} was not found."
+                );
             }
 
             return Ok(updated);
@@ -80,7 +97,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (changed == null)
             {
-                return NotFound(new { message = $"User with ID {dto.userId} was not found." }); // User to change role in the DTO
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "User not found",
+                    detail: $"User with ID {dto.userId} was not found."
+                );
             }
 
             return Ok(changed);
@@ -95,7 +117,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (response == null)
             {
-                return BadRequest(new { message = "Unable to assign department. Check that the user exists, the department exists, and the user is Staff or Admin." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Unable to assign department",
+                    detail: "Check that the user exists, the department exists, and the user is Staff or Admin."
+                );
             }
 
             return Ok(response);
@@ -106,9 +133,8 @@ namespace OmanCommunityServicesPlatform.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Deactivate([FromRoute] int userId)
         {
-            // Extract the calling Admin's ID so the Service can prevent self-deactivation
-            var claim = User.FindFirst("userId");
-            if (claim == null || !int.TryParse(claim.Value, out int requestingAdminId))
+            // Get the current admin ID from the JWT token
+            if (!User.TryGetUserId(out int requestingAdminId))
             {
                 return Unauthorized();
             }
@@ -117,7 +143,12 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!deactivated)
             {
-                return BadRequest(new { message = $"Unable to deactivate user with ID {userId}." });
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Unable to deactivate user",
+                    detail: $"Unable to deactivate user with ID {userId}."
+                );
             }
 
             return Ok(new { message = $"User with ID {userId} has been deactivated." });

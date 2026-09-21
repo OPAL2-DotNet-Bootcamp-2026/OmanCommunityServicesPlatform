@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
-using System.Security.Claims;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -34,15 +33,12 @@ namespace OmanCommunityServicesPlatform.Controllers
         public IActionResult GetAllRatings()
         {
             // Read the authenticated User ID from the JWT token.
-            int? userId = GetAuthenticatedUserId();
-
-            if (userId == null)
+            if (!User.TryGetUserId(out int userId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
             }
 
             bool canReadAll =
@@ -51,7 +47,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             // Ask the Service to return Ratings visible to this User.
             List<ResponseRatingDto> ratings =
                 ratingService.GetAllRatings(
-                    userId.Value,
+                    userId,
                     canReadAll
                 );
 
@@ -78,15 +74,12 @@ namespace OmanCommunityServicesPlatform.Controllers
         )
         {
             // Read the authenticated User ID from the JWT token.
-            int? userId = GetAuthenticatedUserId();
-
-            if (userId == null)
+            if (!User.TryGetUserId(out int userId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
             }
 
             bool canReadAll =
@@ -96,17 +89,18 @@ namespace OmanCommunityServicesPlatform.Controllers
             ResponseRatingDto? rating =
                 ratingService.GetRatingById(
                     ratingId,
-                    userId.Value,
+                    userId,
                     canReadAll
                 );
 
             // Use the same response for a missing or inaccessible Rating.
             if (rating == null)
             {
-                return NotFound(new
-                {
-                    message = "Rating was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Rating not found",
+                    detail: "Rating was not found."
+                );
             }
             // Return HTTP 200 with the Rating.
             return Ok(rating);
@@ -123,15 +117,12 @@ namespace OmanCommunityServicesPlatform.Controllers
         )
         {
             // Read the authenticated User ID from the JWT token.
-            int? userId = GetAuthenticatedUserId();
-
-            if (userId == null)
+            if (!User.TryGetUserId(out int userId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Authentication required",
+                    detail: "The authenticated User ID was not found.");
             }
 
             bool canReadAll =
@@ -142,7 +133,7 @@ namespace OmanCommunityServicesPlatform.Controllers
             List<ResponseRatingDto>? ratings =
                 ratingService.GetRatingsByIssueId(
                     issueId,
-                    userId.Value,
+                    userId,
                     canReadAll
                 );
 
@@ -179,34 +170,27 @@ namespace OmanCommunityServicesPlatform.Controllers
         {
             // Read the authenticated User ID
             // from the JWT token.
-            int? userId = GetAuthenticatedUserId();
-
-            // The token is valid, but it does not contain
-            // a valid User ID claim.
-            if (userId == null)
+            if (!User.TryGetUserId(out int userId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Unauthorized();
             }
             // Ask the Service to create the Rating.
             ResponseRatingDto? createdRating =
                 ratingService.CreateRating(
                     dto,
-                    userId.Value
+                    userId
                 );
             if (createdRating == null)
             {
-                return BadRequest(new
-                {
-                    message =
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Rating creation failed",
+                    detail:
                         "The Rating could not be created. " +
                         "The Issue may not exist, " +
                         "may not be Resolved, " +
                         "or you may have already rated it."
-                });
+                );
             }
 
             // Karim's controller examples commonly return Ok()
@@ -230,33 +214,28 @@ namespace OmanCommunityServicesPlatform.Controllers
         )
         {
             // Read the logged-in User ID from JWT.
-            int? userId = GetAuthenticatedUserId();
-
-            if (userId == null)
+            if (!User.TryGetUserId(out int userId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Unauthorized();
             }
             // The Service checks:
             // 1. Whether the Rating exists.
             // 2. Whether it belongs to this User.
             bool updated = ratingService.UpdateRating(
                 ratingId,
-                userId.Value,
+                userId,
                 dto
             );
             if (!updated)
             {
-                return BadRequest(new
-                {
-                    message =
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Rating update failed",
+                    detail:
                         "The Rating could not be updated. " +
                         "It may not exist or it may belong " +
                         "to another User."
-                });
+                );
             }
             return Ok(new
             {
@@ -275,67 +254,32 @@ namespace OmanCommunityServicesPlatform.Controllers
         )
         {
             // Read the logged-in User ID from JWT.
-            int? userId = GetAuthenticatedUserId();
-
-            if (userId == null)
+            if (!User.TryGetUserId(out int userId))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "The authenticated User ID was not found."
-                });
+                return Unauthorized();
             }
             // The Service checks that the Rating exists
             // and belongs to this authenticated User.
             bool deleted = ratingService.DeleteRating(
                 ratingId,
-                userId.Value
+                userId
             );
 
             if (!deleted)
             {
-                return BadRequest(new
-                {
-                    message =
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Rating deletion failed",
+                    detail:
                         "The Rating could not be deleted. " +
                         "It may not exist or it may belong " +
                         "to another User."
-                });
+                );
             }
             return Ok(new
             {
                 message = "Rating deleted successfully."
             });
-        }
-
-        // --------------------------------------------------
-        // GET AUTHENTICATED USER ID
-        // --------------------------------------------------
-
-        /// Reads the "userId" claim from the JWT token.
-        //
-        // AuthService.GenerateToken() stores the ID using:
-        // new Claim("userId", ...)
-        private int? GetAuthenticatedUserId()
-        {
-            // JWT claim values are stored as strings.
-            string? userIdValue =
-                User.FindFirstValue("userId");
-
-            // Convert the claim value from string to int.
-            bool converted = int.TryParse(
-                userIdValue,
-                out int userId
-            );
-
-            // Return null when the claim is missing
-            // or does not contain a valid integer.
-            if (!converted)
-            {
-                return null;
-            }
-
-            return userId;
         }
     }
 }

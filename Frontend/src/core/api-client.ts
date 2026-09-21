@@ -78,7 +78,9 @@ function normalizeErrorMessage(payload: unknown, fallback: string): string {
     }
   }
 
-  return nonEmptyString(payload.title) ?? fallback;
+  // detail carries the specific reason ("Email is already registered"),
+  // title only the generic category ("Registration failed").
+  return nonEmptyString(payload.detail) ?? nonEmptyString(payload.title) ?? fallback;
 }
 
 /** 204 yields null; a non-JSON body is returned as raw text. */

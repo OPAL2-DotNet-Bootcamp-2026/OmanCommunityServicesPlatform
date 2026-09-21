@@ -34,7 +34,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (created == null)
             {
-                return NotFound(new { message = "Issue was not found." });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Issue not found",
+                    detail: "Issue was not found.");
             }
             return Ok(created);
         }
@@ -56,7 +59,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (attachment == null)
             {
-                return NotFound(new { message = "Attachment was not found." });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Attachment not found",
+                    detail: "Attachment was not found.");
             }
 
             return Ok(attachment);
@@ -78,7 +84,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (attachments == null)
             {
-                return NotFound(new { message = "Issue was not found." });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Issue not found",
+                    detail: "Issue was not found.");
             }
 
             return Ok(attachments);
@@ -100,7 +109,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (updated == null)
             {
-                return NotFound(new { message = "Attachment was not found." });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Attachment not found",
+                    detail: "Attachment was not found.");
             }
 
             return Ok(updated);
@@ -125,7 +137,10 @@ namespace OmanCommunityServicesPlatform.Controllers
 
             if (!deleted)
             {
-                return NotFound(new { message = "Attachment was not found." });
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Attachment not found",
+                    detail: "Attachment was not found.");
             }
 
             return Ok(new { message = "Attachment deleted successfully." });
