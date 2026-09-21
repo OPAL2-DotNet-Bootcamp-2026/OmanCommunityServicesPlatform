@@ -18,16 +18,6 @@ import {
   safeDomId
 } from "./issue-renderers";
 
-const STATUS_CARD_CLASS: Record<string, string> = {
-  open: "open",
-  progress: "inprogress",
-  resolved: "resolved"
-};
-
-function statusCardClass(statusKey: string): string {
-  return STATUS_CARD_CLASS[statusKey] ?? "open";
-}
-
 export function renderStaffIssueCard(issue: Issue): string {
   const status = getStatusMeta(issue.currentStatus);
   const priority = getPriorityMeta(issue.priority);
@@ -37,7 +27,7 @@ export function renderStaffIssueCard(issue: Issue): string {
   const region = issue.regionName || "Region unavailable";
 
   return `
-      <div class="accordion-item issue-card issue-${statusCardClass(status.key)} issue-filter-item issue-filter-item--${status.key}" data-issue-id="${issueDomId}">
+      <div class="accordion-item issue-card issue-card--${status.key} issue-filter-item issue-filter-item--${status.key}" data-issue-id="${issueDomId}">
         <div class="accordion-header">
           <a
             class="accordion-button collapsed"
