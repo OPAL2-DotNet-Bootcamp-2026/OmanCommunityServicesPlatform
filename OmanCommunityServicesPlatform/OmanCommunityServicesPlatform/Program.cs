@@ -9,7 +9,9 @@ using OmanCommunityServicesPlatform.Services;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
-
+using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using Microsoft.AspNetCore.HttpOverrides;
 namespace OmanCommunityServicesPlatform
 {
     public class Program
@@ -17,7 +19,6 @@ namespace OmanCommunityServicesPlatform
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
             // Replaces the default logging providers. Services keep injecting
             // ILogger<T>; configuration lives in appsettings.json so levels can
             // change on a deployed server without a rebuild.
@@ -25,6 +26,25 @@ namespace OmanCommunityServicesPlatform
                 .ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext());
+            // Register Problem Details so API errors use a standard format
+            builder.Services.AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = context =>
+                {
+                    // Add a trace ID to help match API errors with server logs
+                    context.ProblemDetails.Extensions["traceId"] =
+                        context.HttpContext.TraceIdentifier;
+
+            
+
+                    // Add the endpoint where the error happened
+                    context.ProblemDetails.Instance =
+                        context.HttpContext.Request.Path;
+                };
+            });
+
+            // Register the global exception handler
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
             // Add services to the container.
 
@@ -100,7 +120,13 @@ namespace OmanCommunityServicesPlatform
                 };
             });
             builder.Services.AddAuthorization();
-
+            // Use the real client IP when the application is behind a proxy
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto;
+            });
             // Register Controllers
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -108,19 +134,118 @@ namespace OmanCommunityServicesPlatform
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
 
-            // Register Rate Limiter 
+            // Register Rate Limiter
             builder.Services.AddRateLimiter(options =>
             {
-                options.AddFixedWindowLimiter("CreatePolicy", limiterOptions =>
+              
+                // Each authenticated user gets their own rate-limit bucket.
+                // If the user is not authenticated, fall back to IP address.
+                options.AddPolicy<string>("CreatePolicy", context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: ResolvePartitionKey(context),
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromSeconds(30),
+
+                            // Do not queue extra requests
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst, QueueLimit = 0,
+                            AutoReplenishment = true
+                        }));
+
+            
+                // Login users do not have a JWT yet,
+                // so the rate limit is based on IP address.
+                options.AddPolicy<string>("LoginPolicy", context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: $"ip:{GetClientIp(context)}",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            // Allow 5 login attempts every 5 minutes per IP
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromMinutes(5),
+
+                            QueueProcessingOrder =
+                                QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0,
+
+                            AutoReplenishment = true
+                        }));
+
+                // Default HTTP status when a request is rejected
+                options.RejectionStatusCode =
+                    StatusCodes.Status429TooManyRequests;
+
+                
+                // Return the same Problem Details format used
+                // by the rest of the API.
+                options.OnRejected = async (context, cancellationToken) =>
                 {
-                    limiterOptions.PermitLimit = 2;
-                    limiterOptions.Window = TimeSpan.FromSeconds(30);
+                    context.HttpContext.Response.StatusCode =
+                        StatusCodes.Status429TooManyRequests;
 
-                    limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                    limiterOptions.QueueLimit = 0;
-                });
+                    int retryAfterSeconds;
 
-                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                    // Try to get the real retry time from the Rate Limiter
+                    if (context.Lease.TryGetMetadata(
+                        MetadataName.RetryAfter,
+                        out TimeSpan retryAfter))
+                    {
+                        retryAfterSeconds =
+                            Math.Max(1,(int)Math.Ceiling(retryAfter.TotalSeconds));
+                    }
+                    else
+                    {
+                       
+                        // LoginPolicy = 5 minutes
+                        // CreatePolicy = 30 seconds
+                        retryAfterSeconds =
+                            context.HttpContext.Request.Path
+                                .StartsWithSegments("/user/login")
+                                ? 300
+                                : 30;
+                    }
+
+                    // Tell the client how long to wait
+                    context.HttpContext.Response.Headers["Retry-After"] =
+                        retryAfterSeconds.ToString(
+                            CultureInfo.InvariantCulture
+                        );
+
+                    // Log the rejected request on the server
+                    var logger =
+                        context.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("RateLimiting");
+
+                    logger.LogWarning(
+                        "Rate limit exceeded on {Path} from {Partition}. TraceId: {TraceId}",
+                        context.HttpContext.Request.Path,
+                        ResolvePartitionKey(context.HttpContext),
+                        context.HttpContext.TraceIdentifier
+                    );
+
+                    // Use the same Problem Details service from Part A
+                    var problemDetailsService =
+                        context.HttpContext.RequestServices
+                            .GetRequiredService<IProblemDetailsService>();
+
+                    var problemDetails = new ProblemDetails
+                    {
+                        Type = "https://tools.ietf.org/html/rfc9110#section-15.5.29",
+                        Status = StatusCodes.Status429TooManyRequests,
+                        Title = "Too many requests",
+                        Detail =
+                            $"Rate limit exceeded. Try again in {retryAfterSeconds} seconds."
+                    };
+
+                    await problemDetailsService.TryWriteAsync(
+                        new ProblemDetailsContext
+                        {
+                            HttpContext = context.HttpContext,
+                            ProblemDetails = problemDetails
+                        });
+                };
             });
 
             // Swagger
@@ -197,6 +322,14 @@ namespace OmanCommunityServicesPlatform
             });
 
             var app = builder.Build();
+            // Read the real client IP and scheme when behind a proxy
+            app.UseForwardedHeaders();
+            // Handle unexpected exceptions globally
+            app.UseExceptionHandler();
+
+            // Convert empty error responses such as 401, 403 and 404
+            // into Problem Details responses
+            app.UseStatusCodePages();
 
             // Configure the HTTP request pipeline.
 
@@ -225,13 +358,13 @@ namespace OmanCommunityServicesPlatform
             // above the middleware it measures - below UseAuthentication it
             // would not count authentication time.
             app.UseSerilogRequestLogging();
-
             app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
+            app.UseRateLimiter();
             app.UseAuthorization();
 
-            app.UseRateLimiter();
+           
 
             app.MapControllers();
 
@@ -241,6 +374,26 @@ namespace OmanCommunityServicesPlatform
             app.MapHealthChecks("/health");
 
             app.Run();
+        }
+
+        // Get a separate rate-limit bucket for each user
+        private static string ResolvePartitionKey(HttpContext context)
+        {
+            if (context.User.Identity?.IsAuthenticated == true &&
+                context.User.TryGetUserId(out int userId))
+            {
+                return $"user:{userId}";
+            }
+
+            return $"ip:{GetClientIp(context)}";
+        }
+
+
+        // Get the caller IP address
+        private static string GetClientIp(HttpContext context)
+        {
+            return context.Connection.RemoteIpAddress?.ToString()
+                   ?? "unknown";
         }
     }
 }

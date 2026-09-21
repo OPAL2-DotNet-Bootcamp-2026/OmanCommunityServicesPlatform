@@ -43,7 +43,14 @@ namespace OmanCommunityServicesPlatform.Controllers
             ResponseCategoryDTO result = categoryService.Create(category);
 
             if (result == null)
-                return BadRequest("Category name already exists.");
+            {
+                // Return a standard Problem Details response
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Unable to create category",
+                    detail: "Category name already exists."
+                );
+            }
 
             return Ok(result);
         }
