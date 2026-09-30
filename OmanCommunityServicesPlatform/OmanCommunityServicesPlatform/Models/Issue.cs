@@ -39,6 +39,9 @@ namespace OmanCommunityServicesPlatform.Models
         [Required]
         public DateTime reportedDate { get; set; } = DateTime.UtcNow; // Default Value
 
+        // True only once the citizen's urgent-handling payment is confirmed Paid.
+        public bool isUrgent { get; set; } = false;             // Default Value
+
         ///////////////////////////////////////////////////////////////////////////
 
         // foreign key — every issue is reported by a user

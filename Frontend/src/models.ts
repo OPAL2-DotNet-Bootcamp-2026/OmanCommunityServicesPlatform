@@ -15,6 +15,7 @@ import type {
   IssuePriority,
   IssueStatus,
   NotificationType,
+  PaymentStatus,
   UserRole
 } from "./enums";
 
@@ -128,6 +129,8 @@ export interface Issue {
   currentStatus: IssueStatus;
   reportedDate: string;
   reportedById: number;
+  /** True only once an urgent-handling payment is confirmed Paid. */
+  isUrgent: boolean;
   categoryName: string;
   regionName: string;
   assignedDepartmentName: string | null;
@@ -264,4 +267,24 @@ export interface StatusUpdate {
   newStatus: IssueStatus;
   notes: string | null;
   updatedAt: string;
+}
+
+/* ---------- Payment ---------- */
+
+/** CreateCheckoutDto — POST /payment/checkout */
+export interface CheckoutRequest {
+  issueId: number;
+}
+
+/** CheckoutResponseDto — send the browser to payUrl (Thawani's hosted page). */
+export interface CheckoutResponse {
+  paymentId: number;
+  payUrl: string;
+}
+
+/** PaymentStatusDto — GET /payment/{paymentId} */
+export interface PaymentStatusResponse {
+  paymentId: number;
+  status: PaymentStatus;
+  isUrgent: boolean;
 }

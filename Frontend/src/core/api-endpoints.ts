@@ -25,5 +25,7 @@ export const endpoints = Object.freeze({
   updateRating: (ratingId: number) => `/rating/Update/${ratingId}`,
   myNotifications: "/notification/my",
   unreadNotifications: "/notification/my/unread",
-  markNotificationRead: (notificationId: number) => `/notification/${notificationId}/read`
+  markNotificationRead: (notificationId: number) => `/notification/${notificationId}/read`,
+  checkout: "/payment/checkout",
+  paymentById: (paymentId: number) => `/payment/${paymentId}`
 });
