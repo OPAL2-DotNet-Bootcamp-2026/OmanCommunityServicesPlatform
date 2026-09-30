@@ -59,6 +59,7 @@ namespace OmanCommunityServicesPlatform.DTOs
         public IssueStatus currentStatus { get; set; }
         public DateTime reportedDate { get; set; }
         public int reportedById { get; set; }
+        public bool isUrgent { get; set; }
 
 
         // Return meaningful names instead of foreign key numbers

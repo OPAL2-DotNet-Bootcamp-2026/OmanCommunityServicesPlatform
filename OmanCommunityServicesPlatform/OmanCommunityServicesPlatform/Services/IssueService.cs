@@ -126,6 +126,7 @@ namespace OmanCommunityServicesPlatform.Services
             // null here and the create response did not match the list
             // response. CategoryRepo.GetCategoryById includes the department.
             response.assignedDepartmentName = category.department?.departmentName;
+            response.isUrgent = issue.isUrgent;
 
             return response;
         }
@@ -153,6 +154,7 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.categoryName = issue.category?.categoryName;
                 dto.regionName = issue.region?.regionName;
                 dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+                dto.isUrgent = issue.isUrgent;
                 response.Add(dto);
             }
 
@@ -181,6 +183,7 @@ namespace OmanCommunityServicesPlatform.Services
             response.categoryName = issue.category?.categoryName;
             response.regionName = issue.region?.regionName;
             response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+            response.isUrgent = issue.isUrgent;
             return response;
         }
         // Citizen gets only an issue that belongs to them
@@ -210,6 +213,7 @@ namespace OmanCommunityServicesPlatform.Services
             response.categoryName = issue.category?.categoryName;
             response.regionName = issue.region?.regionName;
             response.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+            response.isUrgent = issue.isUrgent;
 
             return response;
         }
@@ -276,6 +280,7 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.categoryName = issue.category?.categoryName;
                 dto.regionName = issue.region?.regionName;
                 dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+                dto.isUrgent = issue.isUrgent;
 
                 response.Add(dto);
             }
@@ -305,6 +310,7 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.categoryName = issue.category?.categoryName;
                 dto.regionName = issue.region?.regionName;
                 dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+                dto.isUrgent = issue.isUrgent;
 
                 response.Add(dto);
             }
@@ -337,6 +343,7 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.categoryName = issue.category?.categoryName;
                 dto.regionName = issue.region?.regionName;
                 dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+                dto.isUrgent = issue.isUrgent;
 
                 response.Add(dto);
             }
@@ -369,6 +376,7 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.categoryName = issue.category?.categoryName;
                 dto.regionName = issue.region?.regionName;
                 dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+                dto.isUrgent = issue.isUrgent;
 
                 response.Add(dto);
             }
@@ -401,6 +409,7 @@ namespace OmanCommunityServicesPlatform.Services
                 dto.categoryName = issue.category?.categoryName;
                 dto.regionName = issue.region?.regionName;
                 dto.assignedDepartmentName = issue.assignedDepartment?.departmentName;
+                dto.isUrgent = issue.isUrgent;
 
                 response.Add(dto);
             }
