@@ -42,6 +42,7 @@ namespace OmanCommunityServicesPlatform
             builder.Services.AddScoped<RegionRepo>();
             builder.Services.AddScoped<StatusUpdateRepo>();
             builder.Services.AddScoped<CommentRepo>();
+            builder.Services.AddScoped<PaymentRepo>();
 
             // Services
             builder.Services.AddScoped<UserService>();
@@ -55,6 +56,7 @@ namespace OmanCommunityServicesPlatform
             builder.Services.AddScoped<StatusUpdateService>();
             builder.Services.AddScoped<CommentService>();
             builder.Services.AddScoped<EmailService>();
+            builder.Services.AddScoped<PaymentService>();
 
             // Typed HttpClient: one pooled client for every call to Thawani.
             builder.Services.AddHttpClient<ThawaniClient>();
