@@ -1,4 +1,5 @@
 using OmanCommunityServicesPlatform.DTOs;
+using OmanCommunityServicesPlatform.Enums;
 using OmanCommunityServicesPlatform.Models;
 using OmanCommunityServicesPlatform.Repositories;
 
@@ -31,16 +32,87 @@ namespace OmanCommunityServicesPlatform.Services
 
         // Step 3 CONFIRM (#139): the caller's own payment, confirmed with Thawani
         // while it is still Pending. Returns null when missing or not theirs.
-        public Task<PaymentStatusDto?> GetStatusAsync(int paymentId, int userId)
+        public async Task<PaymentStatusDto?> GetStatusAsync(int paymentId, int userId)
         {
-            throw new NotImplementedException("Step 3 CONFIRM — issue #139");
+            Payment? payment = paymentRepo.GetById(paymentId);
+
+            // Missing and "not yours" look the same, so payment ids can't be probed
+            if (payment == null || payment.issue == null || payment.issue.reportedById != userId)
+            {
+                return null;
+            }
+
+            if (payment.status == PaymentStatus.Pending)
+            {
+                try
+                {
+                    payment = await ConfirmAsync(paymentId) ?? payment;
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Thawani unreachable: report the current (Pending) state instead of a 500,
+                    // the result page can ask again.
+                    logger.LogWarning(ex, "Could not reach Thawani while confirming payment {PaymentId}", paymentId);
+                }
+            }
+
+            return new PaymentStatusDto
+            {
+                paymentId = payment.paymentId,
+                status = payment.status,
+                isUrgent = payment.issue?.isUrgent ?? false
+            };
         }
 
         // Step 3 CONFIRM (#139): ask Thawani, then record Paid (and issue.isUrgent)
         // or Cancelled. Reused by the webhook (#140), so it must be safe to call twice.
-        public Task<Payment?> ConfirmAsync(int paymentId)
+        public async Task<Payment?> ConfirmAsync(int paymentId)
         {
-            throw new NotImplementedException("Step 3 CONFIRM — issue #139");
+            Payment? payment = paymentRepo.GetById(paymentId);
+            if (payment == null)
+            {
+                return null;
+            }
+
+            // Already decided (Paid or Cancelled): confirming again changes nothing
+            if (payment.status != PaymentStatus.Pending)
+            {
+                return payment;
+            }
+
+            // CREATE has not saved a session yet, so there is nothing to ask Thawani
+            if (string.IsNullOrEmpty(payment.sessionId))
+            {
+                logger.LogWarning("Payment {PaymentId} has no Thawani session yet", paymentId);
+                return payment;
+            }
+
+            string thawaniStatus = await thawani.GetPaymentStatusAsync(payment.sessionId);
+
+            if (thawaniStatus == "paid")
+            {
+                payment.status = PaymentStatus.Paid;
+                if (payment.issue != null)
+                {
+                    payment.issue.isUrgent = true;
+                }
+                paymentRepo.Update(); // saves the payment and its issue together
+                logger.LogInformation("Payment {PaymentId} confirmed Paid; issue {IssueId} is now urgent", payment.paymentId, payment.issueId);
+            }
+            else if (thawaniStatus == "cancelled")
+            {
+                payment.status = PaymentStatus.Cancelled;
+                paymentRepo.Update();
+                logger.LogInformation("Payment {PaymentId} confirmed Cancelled; issue {IssueId} stays normal", payment.paymentId, payment.issueId);
+            }
+            else if (thawaniStatus != "unpaid")
+            {
+                // Anything unexpected is not proof of payment: stay Pending
+                logger.LogWarning("Payment {PaymentId}: unexpected Thawani status {ThawaniStatus}", payment.paymentId, thawaniStatus);
+            }
+            // "unpaid": leave it Pending
+
+            return payment;
         }
     }
 }
