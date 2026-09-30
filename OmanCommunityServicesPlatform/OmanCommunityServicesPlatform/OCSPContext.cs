@@ -15,6 +15,7 @@ namespace OmanCommunityServicesPlatform
         public DbSet<Region>        Regions         { get; set; }
         public DbSet<StatusUpdate>  StatusUpdates   { get; set; }
         public DbSet<User>          Users           { get; set; }
+        public DbSet<Payment>       Payments        { get; set; }
 
         public OCSPContext(DbContextOptions<OCSPContext> options) : base(options)
         {
@@ -44,6 +45,10 @@ namespace OmanCommunityServicesPlatform
 
             modelBuilder.Entity<Attachment>()
                 .Property(a => a.fileType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.status)
                 .HasConversion<string>();
         }
     }
