@@ -30,9 +30,23 @@ namespace OmanCommunityServicesPlatform.Controllers
         // Step 3 CONFIRM (#139): the payment's status, confirmed with Thawani.
         [HttpGet("{paymentId}")]
         [Authorize(Roles = "Citizen")]
-        public IActionResult GetStatus([FromRoute] int paymentId)
+        public async Task<IActionResult> GetStatus([FromRoute] int paymentId)
         {
-            return NotBuiltYet("Step 3 CONFIRM — issue #139");
+            // Get the current citizen ID from the JWT token
+            if (!User.TryGetUserId(out int userId))
+            {
+                return Unauthorized();
+            }
+
+            PaymentStatusDto? status = await paymentService.GetStatusAsync(paymentId, userId);
+
+            // Missing and "not yours" both answer 404
+            if (status == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(status);
         }
 
         // Step 4 WEBHOOK (#140): Thawani calls this directly, so it can't need a
