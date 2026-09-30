@@ -1,4 +1,4 @@
-using Serilog;
+﻿using Serilog;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -75,6 +75,9 @@ namespace OmanCommunityServicesPlatform
             builder.Services.AddScoped<StatusUpdateService>();
             builder.Services.AddScoped<CommentService>();
             builder.Services.AddScoped<EmailService>();
+
+            // Typed HttpClient: one pooled client for every call to Thawani.
+            builder.Services.AddHttpClient<ThawaniClient>();
 
             // Register AuthService 
             builder.Services.AddScoped<AuthService>();
