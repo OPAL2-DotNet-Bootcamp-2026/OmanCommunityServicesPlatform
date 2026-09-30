@@ -22,9 +22,29 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpPost("checkout")]
         [Authorize(Roles = "Citizen")]
         [EnableRateLimiting("CreatePolicy")]
-        public IActionResult Checkout([FromBody] CreateCheckoutDto dto)
+        public async Task<IActionResult> Checkout([FromBody] CreateCheckoutDto dto)
         {
-            return NotBuiltYet("Step 1 CREATE — issue #137");
+            if (!User.TryGetUserId(out int userId))
+            {
+                return Unauthorized();
+            }
+
+            CheckoutResponseDto? result =
+                await paymentService.StartCheckoutAsync(
+                    dto.issueId,
+                    userId
+                );
+
+            if (result == null)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Issue not found",
+                    detail: "Issue was not found."
+                );
+            }
+
+            return Ok(result);
         }
 
         // Step 3 CONFIRM (#139): the payment's status, confirmed with Thawani.
