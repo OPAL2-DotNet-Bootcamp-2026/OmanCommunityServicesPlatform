@@ -15,6 +15,7 @@ import {
   renderIssueImage,
   renderLocationBlock,
   renderTimelineBlock,
+  renderUrgentBadge,
   safeDomId
 } from "./issue-renderers";
 
@@ -55,6 +56,7 @@ export function renderStaffIssueCard(issue: Issue): string {
               <div class="col-6 col-md-2 text-md-center d-flex justify-content-md-center gap-2 flex-wrap status-priority-group">
                 <span class="status-badge status-badge--${status.key}">${escapeHtml(status.label)}</span>
                 <span class="priority-badge priority-badge--${priority.key}">${escapeHtml(priority.label)}</span>
+                ${renderUrgentBadge(issue)}
               </div>
               <time class="col-12 col-md-2 text-md-end text-muted issue-date" datetime="${escapeHtml(issue.reportedDate || "")}">
                 ${escapeHtml(formatDate(issue.reportedDate))}

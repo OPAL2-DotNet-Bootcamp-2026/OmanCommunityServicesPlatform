@@ -152,6 +152,13 @@ function asAnnouncement(text: string): string {
   return /[.!?]$/.test(text) ? text : `${text}.`;
 }
 
+/** Shown only once Thawani confirmed the payment; the server owns isUrgent. */
+export function renderUrgentBadge(issue: Issue): string {
+  return issue.isUrgent
+    ? '<span class="priority-badge priority-badge--urgent" title="Paid urgent service">Urgent</span>'
+    : "";
+}
+
 export function renderIssueCard(issue: Issue): string {
   const status = getStatusMeta(issue.currentStatus);
   const priority = getPriorityMeta(issue.priority);
@@ -188,6 +195,7 @@ export function renderIssueCard(issue: Issue): string {
             <span class="col-md-2 text-md-center status-priority-group">
               <span class="status-badge status-badge--${status.key}">${escapeHtml(status.label)}</span>
               <span class="priority-badge priority-badge--${priority.key}">${escapeHtml(priority.label)}</span>
+              ${renderUrgentBadge(issue)}
             </span>
             <span class="col-md-2 text-md-end text-muted issue-date">
               <time datetime="${escapeHtml(issue.reportedDate || "")}">${escapeHtml(formatDate(issue.reportedDate))}</time>
