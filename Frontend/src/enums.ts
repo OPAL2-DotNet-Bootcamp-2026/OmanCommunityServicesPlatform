@@ -25,6 +25,9 @@ export type NotificationType = "StatusChange" | "Comment" | "Assignment";
 /** Enums/AttachmentFileType.cs */
 export type AttachmentFileType = "Image" | "Document";
 
+/** Enums/PaymentStatus.cs */
+export type PaymentStatus = "Pending" | "Paid" | "Cancelled";
+
 /** Enums/Governorate.cs */
 export type Governorate =
   | "Muscat"
