@@ -36,8 +36,7 @@ namespace OmanCommunityServicesPlatform.Services
 
             var body = new
             {
-                client_reference_id = payment.paymentId.ToString(),
-                mode = "payment",
+                client_reference_id = payment.paymentId.ToString(),           
                 products = new[]
                 {
             new
