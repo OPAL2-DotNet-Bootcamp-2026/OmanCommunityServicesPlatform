@@ -1193,6 +1193,26 @@ export class MyIssuesPage {
     window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
   }
 
+  /**
+   * Sends the citizen to Thawani's hosted page to pay for an urgent issue.
+   * The issue already exists here, so a failure must never undo it.
+   */
+  private async startUrgentCheckout(issueId: number): Promise<void> {
+    this.setPageStatus("Issue submitted. Taking you to Thawani to pay...", "info");
+    try {
+      const { payUrl } = await this.data.startCheckout(issueId);
+      if (!payUrl.startsWith("https://")) {
+        throw new Error("The payment page address is not valid.");
+      }
+      // assign(), not replace(): Back returns the citizen to My Issues.
+      window.location.assign(payUrl);
+    } catch (error) {
+      const message = `Your issue was submitted normally, but the payment could not be started. ${errorMessage(error, "Please try again later.")}`;
+      this.setPageStatus(message, "warning");
+      feedback.warning(message, { announce: false });
+    }
+  }
+
   private async createIssue(form: HTMLFormElement): Promise<void> {
     const submitButton = form.querySelector<HTMLButtonElement>('[type="submit"]');
     if (!submitButton) {
@@ -1203,6 +1223,8 @@ export class MyIssuesPage {
     const latitude = Number.parseFloat(formString(formData, "issueLatitude"));
     const longitude = Number.parseFloat(formString(formData, "issueLongitude"));
     const imageUrl = formString(formData, "issueImageUrl").trim();
+    // Not part of the payload: only a confirmed payment makes an issue urgent.
+    const wantsUrgent = formData.get("issueUrgent") === "on";
     const payload: CreateIssueRequest = {
       title: formString(formData, "issueTitle").trim(),
       description: formString(formData, "issueDescription").trim(),
@@ -1302,6 +1324,10 @@ export class MyIssuesPage {
         this.setPageStatus("The issue and its image were added successfully.", "success");
       } else {
         this.setPageStatus("The issue was added successfully.", "success");
+      }
+
+      if (wantsUrgent) {
+        await this.startUrgentCheckout(created.issueId);
       }
     } catch (error) {
       this.setCreateIssueStatus(
