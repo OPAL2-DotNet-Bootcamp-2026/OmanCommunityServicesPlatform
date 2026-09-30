@@ -128,11 +128,12 @@ export class PaymentResultPage {
       }
       this.render(PaymentResultPage.viewFor(payment));
     } catch (error) {
+      const reason = errorMessage(error, "Please try again.").trim();
       this.render({
         icon: "bi-exclamation-triangle",
         tone: "danger",
         title: "We could not check this payment",
-        message: `${errorMessage(error, "Please try again.")} Your issue itself was already submitted.`,
+        message: `${reason}${/[.!?]$/.test(reason) ? "" : "."} Your issue itself was already submitted.`,
         canCheckAgain: true
       });
     } finally {
