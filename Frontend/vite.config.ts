@@ -48,6 +48,7 @@ export default defineConfig({
         register: fromRoot("./pages/register.html"),
         myIssues: fromRoot("./pages/my-issues.html"),
         notifications: fromRoot("./pages/notifications.html"),
+        paymentResult: fromRoot("./pages/payment-result.html"),
         dashboard: fromRoot("./pages/dashboard.html")
       }
     }
