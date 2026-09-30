@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Primitives;
 using OmanCommunityServicesPlatform.DTOs;
 using OmanCommunityServicesPlatform.Services;
+using System.Text.Json;
 
 namespace OmanCommunityServicesPlatform.Controllers
 {
@@ -39,9 +41,37 @@ namespace OmanCommunityServicesPlatform.Controllers
         // token. Never trust the body — confirm with Thawani via ConfirmAsync.
         [HttpPost("webhook")]
         [AllowAnonymous]
-        public IActionResult Webhook()
+        [RequestSizeLimit(64 * 1024)]
+        public async Task<IActionResult> Webhook()
         {
-            return NotBuiltYet("Step 4 WEBHOOK — issue #140");
+            using MemoryStream body = new MemoryStream();
+            await Request.Body.CopyToAsync(body, HttpContext.RequestAborted);
+            byte[] rawBody = body.ToArray();
+            StringValues signatures = Request.Headers["thawani-signature"];
+            StringValues timestamps = Request.Headers["thawani-timestamp"];
+
+            if (!paymentService.IsWebhookSignatureValid(rawBody,
+                signatures.Count == 1 ? signatures[0] : null,
+                timestamps.Count == 1 ? timestamps[0] : null))
+            {
+                return Unauthorized();
+            }
+
+            PaymentWebhookDto? dto;
+            try
+            {
+                dto = JsonSerializer.Deserialize<PaymentWebhookDto>(rawBody);
+            }
+            catch (JsonException)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Invalid webhook payload",
+                    detail: "The webhook body must be a valid JSON object.");
+            }
+
+            await paymentService.HandleWebhookAsync(dto);
+            return Ok();
         }
 
         private IActionResult NotBuiltYet(string step)
