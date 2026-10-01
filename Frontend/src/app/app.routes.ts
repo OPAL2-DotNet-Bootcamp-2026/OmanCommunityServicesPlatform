@@ -1,5 +1,5 @@
 import { type Routes } from "@angular/router";
-import { guestOnlyGuard } from "./core/auth/auth.guard";
+import { guestOnlyGuard, signedInGuard } from "./core/auth/auth.guard";
 import { HELP_STRIPS } from "./core/routing/help-strip-content";
 import { type PageRouteData } from "./core/routing/page-route-data";
 
@@ -29,6 +29,14 @@ export const appRoutes: Routes = [
     title: `Create Account${TITLE_SUFFIX}`,
     canActivate: [guestOnlyGuard],
     loadComponent: () => import("./features/auth/register-page/register-page.component").then((m) => m.RegisterPageComponent)
+  },
+  {
+    path: "notifications",
+    title: `Notifications${TITLE_SUFFIX}`,
+    canActivate: [signedInGuard],
+    loadComponent: () =>
+      import("./features/notifications/notifications-page/notifications-page.component").then((m) => m.NotificationsPageComponent),
+    data: { roles: ["Citizen", "Staff", "Admin"], helpStrip: HELP_STRIPS.notifications } satisfies PageRouteData
   },
   // An unknown address goes home rather than to a blank page.
   { path: "**", redirectTo: "" }
