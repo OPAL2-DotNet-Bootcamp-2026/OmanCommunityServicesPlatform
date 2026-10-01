@@ -1,4 +1,4 @@
-namespace OmanCommunityServicesPlatform.Enums
+﻿namespace OmanCommunityServicesPlatform.Enums
 {
     public enum PaymentStatus
     {
