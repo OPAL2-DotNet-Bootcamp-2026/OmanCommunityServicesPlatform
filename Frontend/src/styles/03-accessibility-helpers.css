@@ -1,0 +1,22 @@
+/* ==========================================================================
+   03. Accessibility helpers
+   ========================================================================== */
+
+.skip-link {
+  position: fixed;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0.75rem;
+  z-index: 1100;
+  padding: 0.65rem 1rem;
+  background: var(--ocsp-ink);
+  border-radius: var(--ocsp-radius-sm);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(-170%);
+  transition: transform 0.18s ease;
+}
+.skip-link:focus {
+  color: #fff;
+  transform: translateY(0);
+}

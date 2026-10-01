@@ -1,0 +1,121 @@
+/* ==========================================================================
+   11. Help strip and footer
+   ========================================================================== */
+
+.site-footer-scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background-color: #0a3555;
+  background-image: linear-gradient(100deg,rgba(6,29,49,0.97),rgba(10,58,93,0.9) 55%,rgba(7,39,64,0.76)),url("/images/hero-bg.webp");
+  background-position: center 68%;
+  background-size: cover;
+  color: #fff;
+}
+.site-footer-scene>.help-strip,.site-footer-scene>.site-footer {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+.help-strip {
+  flex: 0 0 auto;
+  color: #fff;
+}
+.help-strip__inner {
+  display: flex;
+  min-height: 104px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-block: 1.25rem;
+}
+.help-strip__main {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 1rem;
+}
+/* One shared group aligns both single-link and multi-link support actions. */
+.help-strip__contacts {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.help-strip__icon {
+  display: inline-grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 0.55rem;
+  color: #d8ebff;
+  font-size: 1.25rem;
+}
+.help-strip h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+.help-strip p {
+  margin: 0.2rem 0 0;
+  color: rgba(255,255,255,0.82);
+  font-size: 0.8rem;
+}
+.help-strip__contact {
+  display: inline-flex;
+  min-height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.48rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.24);
+  border-radius: var(--ocsp-radius-sm);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.help-strip__contact:hover,.help-strip__contact:focus {
+  background: rgba(255,255,255,0.17);
+  color: #fff;
+}
+.site-footer {
+  flex: 0 0 auto;
+  background: transparent;
+  border-top: 1px solid rgba(255,255,255,0.16);
+}
+.site-footer__inner {
+  display: grid;
+  min-height: 72px;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 1rem 2rem;
+  padding-block: 1rem;
+}
+.site-footer__brand {
+  min-width: 0;
+}
+.site-footer__title {
+  margin: 0;
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.site-footer__copy,.site-footer__meta {
+  margin: 0.2rem 0 0;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.72rem;
+}
+.site-footer__meta {
+  max-width: 30rem;
+  margin: 0;
+  text-align: end;
+}

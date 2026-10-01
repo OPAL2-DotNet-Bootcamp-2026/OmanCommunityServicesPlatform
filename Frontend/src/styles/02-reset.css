@@ -1,0 +1,53 @@
+/* ==========================================================================
+   02. Reset and document foundations
+   ========================================================================== */
+
+*,*::before,*::after {
+  box-sizing: border-box;
+}
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+  background: var(--ocsp-bg);
+}
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--ocsp-bg);
+  color: var(--ocsp-text);
+  font-family: var(--ocsp-font);
+  font-size: 15px;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+}
+.site-page {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+.site-page>main {
+  flex: 1 0 auto;
+}
+button,input,select,textarea {
+  font: inherit;
+}
+img,svg {
+  max-width: 100%;
+}
+a {
+  color: var(--ocsp-primary-dark);
+  text-underline-offset: 0.16em;
+}
+a:hover {
+  color: var(--ocsp-primary-hover);
+}
+::selection {
+  background: #cfe8f8;
+  color: var(--ocsp-ink);
+}
+:where(a,button,input,select,textarea,[tabindex]):focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 3px;
+}

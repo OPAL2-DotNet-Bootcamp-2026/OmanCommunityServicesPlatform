@@ -1,0 +1,28 @@
+/* ==========================================================================
+   01. Fonts and global design tokens
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+  --ocsp-primary: #277bbc;
+  --ocsp-primary-hover: #176ba9;
+  --ocsp-primary-dark: #0b426d;
+  --ocsp-primary-soft: #eef6fc;
+  --ocsp-success: #00703c;
+  --ocsp-warning: #9a5c08;
+  --ocsp-danger: #d4351c;
+  --ocsp-ink: #171717;
+  --ocsp-text: #25384a;
+  --ocsp-muted: #5d6b78;
+  --ocsp-bg: #f5f4f3;
+  --ocsp-surface: #ffffff;
+  --ocsp-border: #e2e2e2;
+  --ocsp-border-strong: #cbd1d6;
+  --ocsp-radius-sm: 0.4rem;
+  --ocsp-radius-md: 0.65rem;
+  --ocsp-radius-lg: 0.8rem;
+  --ocsp-shadow-sm: 0 3px 12px rgba(11,12,12,0.06);
+  --ocsp-shadow-md: 0 14px 34px rgba(11,12,12,0.1);
+  --ocsp-shadow-lg: 0 24px 54px rgba(6,29,49,0.16);
+  --ocsp-font: "IBM Plex Sans","Tajawal","Segoe UI",Arial,sans-serif;
+}

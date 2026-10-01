@@ -1,0 +1,183 @@
+/* ==========================================================================
+   21. Canonical issue status and priority tokens
+   ========================================================================== */
+
+body.ocsp-portal {
+  --issue-font-family: "Inter","Segoe UI",Arial,sans-serif;
+  --status-open: #047857;
+  --status-open-bg: #ecfdf5;
+  --status-open-border: #a7f3d0;
+  --status-open-text: #047857;
+  --status-inprogress: #9a3412;
+  --status-inprogress-bg: #fff7ed;
+  --status-inprogress-border: #fed7aa;
+  --status-inprogress-text: #9a3412;
+  --status-resolved: #1d4ed8;
+  --status-resolved-bg: #eff6ff;
+  --status-resolved-border: #bfdbfe;
+  --status-resolved-text: #1d4ed8;
+  --priority-low: #475569;
+  --priority-low-bg: #f8fafc;
+  --priority-low-border: #cbd5e1;
+  --priority-low-text: #475569;
+  --priority-medium: #6d28d9;
+  --priority-medium-bg: #f5f3ff;
+  --priority-medium-border: #ddd6fe;
+  --priority-medium-text: #6d28d9;
+  --priority-high: #b91c1c;
+  --priority-high-bg: #fef2f2;
+  --priority-high-border: #fecaca;
+  --priority-high-text: #b91c1c;
+  --issue-dialog-border: #dce4eb;
+  --issue-dialog-radius: 18px;
+  --issue-dialog-shadow: 0 30px 80px rgba(15,23,42,0.24),0 10px 28px rgba(30,58,138,0.12);
+  --issue-dialog-header: linear-gradient(135deg,#f7faff 0%,#f5fbf8 100%);
+}
+body.ocsp-portal .issue-card,body.ocsp-portal .issue-detail-modal {
+  font-family: var(--issue-font-family)!important;
+  font-style: normal;
+}
+body.ocsp-portal .issue-card :where(button,input,select,textarea),body.ocsp-portal .issue-detail-modal :where(button,input,select,textarea) {
+  font-family: inherit!important;
+}
+body.ocsp-portal .issue-card .issue-title,body.ocsp-portal .issue-card:not([open]) .issue-title,body.ocsp-portal .issue-card h6,body.ocsp-portal .issue-card .accordion-button h6,body.ocsp-portal .issue-card .accordion-button.collapsed h6 {
+  margin: 0!important;
+  color: var(--ocsp-ink)!important;
+  font-size: 0.875rem!important;
+  font-weight: 600!important;
+  line-height: 1.35!important;
+  letter-spacing: -0.012em!important;
+}
+body.ocsp-portal .issue-card .issue-meta,body.ocsp-portal .issue-card:not([open]) .issue-meta,body.ocsp-portal .issue-card .accordion-button.collapsed .issue-meta,body.ocsp-portal .issue-card .accordion-button.collapsed small,body.ocsp-portal .issue-card .accordion-button.collapsed>.row>:nth-child(2),body.ocsp-portal .issue-card .accordion-button.collapsed>.row>:nth-child(3),body.ocsp-portal .issue-card .issue-meta span,body.ocsp-portal .issue-card small,body.ocsp-portal .issue-card .small {
+  color: var(--ocsp-slate)!important;
+  font-size: 0.75rem!important;
+  font-weight: 400!important;
+  line-height: 1.45!important;
+}
+body.ocsp-portal .issue-card .issue-meta strong,body.ocsp-portal .issue-card:not([open]) .issue-meta strong,body.ocsp-portal .issue-card .accordion-button.collapsed .fw-semibold.text-dark,body.ocsp-portal .issue-card .issue-meta .fw-semibold,body.ocsp-portal .issue-card .issue-meta .fw-bold {
+  font-size: 0.75rem!important;
+  font-weight: 600!important;
+  line-height: 1.45!important;
+}
+body.ocsp-portal .issue-card .issue-date,body.ocsp-portal .issue-card:not([open]) .issue-date,body.ocsp-portal .issue-card .accordion-button.collapsed .issue-date {
+  color: #64748b!important;
+  font-size: 0.6875rem!important;
+  font-weight: 400!important;
+  line-height: 1.45!important;
+}
+body.ocsp-portal .issue-detail-modal :is(p,li,.location-value,.comment-copy) {
+  font-size: 0.8125rem!important;
+  font-weight: 400!important;
+  line-height: 1.6!important;
+}
+body.ocsp-portal .issue-detail-modal .content-label,body.ocsp-portal .issue-card .content-label {
+  font-size: 0.6875rem!important;
+  font-weight: 700!important;
+  line-height: 1.2!important;
+}
+body.ocsp-portal .issue-card--open {
+  border-left-color: var(--status-open)!important;
+}
+body.ocsp-portal .issue-card--progress {
+  border-left-color: var(--status-inprogress)!important;
+}
+body.ocsp-portal .issue-card--resolved {
+  border-left-color: var(--status-resolved)!important;
+}
+body.ocsp-portal .issue-card--open::before {
+  background: var(--status-open)!important;
+}
+body.ocsp-portal .issue-card--progress::before {
+  background: var(--status-inprogress)!important;
+}
+body.ocsp-portal .issue-card--resolved::before {
+  background: var(--status-resolved)!important;
+}
+body.ocsp-portal .issue-stat--open::after,body.ocsp-portal .issue-stat--open .issue-stat__icon {
+  color: var(--status-open)!important;
+  background: var(--status-open-bg)!important;
+}
+body.ocsp-portal .issue-stat--open::after {
+  background: var(--status-open)!important;
+}
+body.ocsp-portal .issue-stat--open .issue-stat__value {
+  color: var(--status-open-text)!important;
+}
+body.ocsp-portal .issue-stat--progress::after,body.ocsp-portal .issue-stat--progress .issue-stat__icon {
+  color: var(--status-inprogress)!important;
+  background: var(--status-inprogress-bg)!important;
+}
+body.ocsp-portal .issue-stat--progress::after {
+  background: var(--status-inprogress)!important;
+}
+body.ocsp-portal .issue-stat--progress .issue-stat__value {
+  color: var(--status-inprogress-text)!important;
+}
+body.ocsp-portal .issue-stat--resolved::after,body.ocsp-portal .issue-stat--resolved .issue-stat__icon {
+  color: var(--status-resolved)!important;
+  background: var(--status-resolved-bg)!important;
+}
+body.ocsp-portal .issue-stat--resolved::after {
+  background: var(--status-resolved)!important;
+}
+body.ocsp-portal .issue-stat--resolved .issue-stat__value {
+  color: var(--status-resolved-text)!important;
+}
+body.ocsp-portal .status-change-banner {
+  color: var(--status-inprogress-text)!important;
+  background: var(--status-inprogress-bg)!important;
+  border-color: var(--status-inprogress-border)!important;
+  border-left-color: var(--status-inprogress)!important;
+}
+body.ocsp-portal .status-change-banner--resolved {
+  color: var(--status-resolved-text)!important;
+  background: var(--status-resolved-bg)!important;
+  border-color: var(--status-resolved-border)!important;
+  border-left-color: var(--status-resolved)!important;
+}
+body.ocsp-portal .timeline-item--open .timeline-dot {
+  background: var(--status-open)!important;
+}
+body.ocsp-portal .timeline-item--progress .timeline-dot {
+  background: var(--status-inprogress)!important;
+}
+body.ocsp-portal .timeline-item--resolved .timeline-dot {
+  background: var(--status-resolved)!important;
+}
+body.ocsp-portal .priority-option--low::before {
+  background: var(--priority-low)!important;
+}
+body.ocsp-portal .priority-option--medium::before {
+  background: var(--priority-medium)!important;
+}
+body.ocsp-portal .priority-option--high::before {
+  background: var(--priority-high)!important;
+}
+body.ocsp-portal .priority-option--low:hover,body.ocsp-portal #priorityLow:checked+.priority-option--low {
+  color: var(--priority-low-text)!important;
+  background: var(--priority-low-bg)!important;
+  box-shadow: inset 0 -3px 0 var(--priority-low)!important;
+}
+body.ocsp-portal .priority-option--medium:hover,body.ocsp-portal #priorityMedium:checked+.priority-option--medium {
+  color: var(--priority-medium-text)!important;
+  background: var(--priority-medium-bg)!important;
+  box-shadow: inset 0 -3px 0 var(--priority-medium)!important;
+}
+body.ocsp-portal .priority-option--high:hover,body.ocsp-portal #priorityHigh:checked+.priority-option--high {
+  color: var(--priority-high-text)!important;
+  background: var(--priority-high-bg)!important;
+  box-shadow: inset 0 -3px 0 var(--priority-high)!important;
+}
+body.ocsp-portal .issue-card-trigger {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+}
+body.ocsp-portal .issue-card-trigger:focus-visible {
+  z-index: 5;
+  outline: 3px solid rgba(37,99,235,0.28);
+  outline-offset: -3px;
+}

@@ -1,0 +1,82 @@
+/* ==========================================================================
+   05. Shared cards and action buttons
+   ========================================================================== */
+
+.ocsp-card {
+  background: var(--ocsp-surface);
+  border: 1px solid #dde5ed;
+  border-radius: var(--ocsp-radius-lg);
+  box-shadow: var(--ocsp-shadow-sm);
+}
+.ocsp-card--interactive {
+  transition: transform 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease;
+}
+.ocsp-card--interactive:hover {
+  border-color: #cbd8e5;
+  box-shadow: 0 15px 32px rgba(30,58,138,0.085),0 3px 8px rgba(15,23,42,0.04);
+  transform: translateY(-2px);
+}
+.btn-ocsp-primary,.btn-ocsp-light,.ocsp-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.48rem;
+  padding: 0.65rem 1.05rem;
+  border: 1px solid transparent;
+  border-radius: 0.42rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color 0.18s ease,border-color 0.18s ease,color 0.18s ease,box-shadow 0.18s ease,transform 0.18s ease;
+}
+.btn-ocsp-primary,.ocsp-button--submit {
+  background: var(--ocsp-primary);
+  border-color: var(--ocsp-primary);
+  box-shadow: 0 5px 12px rgba(39,123,188,0.2);
+  color: #fff;
+}
+.btn-ocsp-primary:hover,.btn-ocsp-primary:focus,.ocsp-button--submit:hover,.ocsp-button--submit:focus-visible {
+  background: var(--ocsp-primary-hover);
+  border-color: var(--ocsp-primary-hover);
+  color: #fff;
+}
+.btn-ocsp-light {
+  background: rgba(255,255,255,0.96);
+  border-color: rgba(255,255,255,0.86);
+  box-shadow: 0 5px 14px rgba(0,0,0,0.12);
+  color: var(--ocsp-primary-dark);
+}
+.btn-ocsp-light:hover,.btn-ocsp-light:focus {
+  background: #fff;
+  border-color: #fff;
+  color: var(--ocsp-primary-hover);
+}
+.ocsp-button--cancel {
+  background: rgba(255,255,255,0.97);
+  border-color: var(--ocsp-border-strong);
+  box-shadow: 0 4px 12px rgba(30,58,138,0.06);
+  color: var(--ocsp-primary-dark);
+}
+.ocsp-button--cancel:hover,.ocsp-button--cancel:focus-visible {
+  background: var(--ocsp-primary-soft);
+  border-color: #8fb9d8;
+  color: var(--ocsp-primary-hover);
+}
+.btn-ocsp-primary:active,.btn-ocsp-light:active,.ocsp-button:active {
+  transform: translateY(1px);
+}
+.ocsp-button:disabled,.ocsp-button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+.ocsp-button--icon {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  border-radius: 50%;
+}

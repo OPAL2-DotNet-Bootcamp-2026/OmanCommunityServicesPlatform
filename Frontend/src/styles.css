@@ -1,1 +1,45 @@
-/* Global styles. The site stylesheet is split into src/styles/ in the next step. */
+/*
+ * Global stylesheet. The site's CSS is split into src/styles/, one file per
+ * section, imported in the original order: later files deliberately refine
+ * earlier ones, so the order is part of the design. Add new rules to the file
+ * whose name matches what they style; component-only rules go in that
+ * component's .css file instead.
+ */
+
+@import "./styles/01-design-tokens.css";
+@import "./styles/02-reset.css";
+@import "./styles/03-accessibility-helpers.css";
+@import "./styles/04-site-navigation.css";
+@import "./styles/05-cards-and-buttons.css";
+@import "./styles/06-form-controls.css";
+@import "./styles/07-page-hero-and-breadcrumbs.css";
+@import "./styles/08-home-page.css";
+@import "./styles/09-auth-pages.css";
+@import "./styles/10-filters-and-notifications.css";
+@import "./styles/11-help-strip-and-footer.css";
+@import "./styles/12-responsive-behaviour.css";
+@import "./styles/13-portal-foundations.css";
+@import "./styles/14-issue-media-and-portal-actions.css";
+@import "./styles/15-status-priority-alignment.css";
+@import "./styles/16-portal-typography-and-layout.css";
+@import "./styles/17-brand-and-badges.css";
+@import "./styles/18-status-grid-tuning.css";
+@import "./styles/19-issue-gallery-and-cards.css";
+@import "./styles/20-focus-hover-and-motion-fixes.css";
+@import "./styles/21-status-and-priority-tokens.css";
+@import "./styles/22-issue-detail-dialog.css";
+@import "./styles/23-create-issue-dialog.css";
+@import "./styles/24-equal-height-cards-and-create-form.css";
+@import "./styles/25-card-ribbon-and-utilities.css";
+@import "./styles/26-modal-and-drawer-states.css";
+@import "./styles/27-portal-shell-colors.css";
+@import "./styles/28-issue-images-and-backdrops.css";
+@import "./styles/29-admin-setup-dialog.css";
+@import "./styles/30-bootstrap-modal-states.css";
+@import "./styles/31-motion-system.css";
+@import "./styles/32-leaflet-maps.css";
+@import "./styles/33-issue-dialog-divider.css";
+@import "./styles/34-dialog-action-buttons.css";
+@import "./styles/35-auth-dependent-chrome.css";
+@import "./styles/36-fluid-interface.css";
+@import "./styles/37-create-issue-fab.css";

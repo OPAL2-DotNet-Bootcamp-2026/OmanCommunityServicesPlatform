@@ -1,0 +1,131 @@
+/* ==========================================================================
+   14. Issue media, summary filters, and shared portal actions
+   ========================================================================== */
+
+body.ocsp-portal .issue-card-media {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: 100%;
+  height: 118px;
+  min-height: 118px;
+  place-items: center;
+  margin: 0;
+  overflow: hidden;
+  color: #ffffff;
+  background: #eaf0f6;
+  border: 0;
+  border-radius: 0;
+}
+body.ocsp-portal .issue-card-media::before {
+  content: attr(data-preview-label);
+  position: absolute;
+  z-index: 3;
+  left: 0.75rem;
+  bottom: 0.65rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.28rem 0.52rem;
+  overflow: hidden;
+  color: #ffffff;
+  background: rgba(15,23,42,0.72);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  backdrop-filter: blur(5px);
+}
+body.ocsp-portal .issue-card-media::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(135deg,rgba(255,255,255,0.2),transparent 48%),linear-gradient(0deg,rgba(15,23,42,0.2),transparent 62%);
+  pointer-events: none;
+}
+body.ocsp-portal .issue-card-media--water {
+  color: #ffffff;
+  background: linear-gradient(145deg,#4ca6c7,#2d7fa9 56%,#224d67);
+}
+body.ocsp-portal .issue-card-media--fixed {
+  color: #ffffff;
+  background: linear-gradient(145deg,#1e3a8a,#2563eb 58%,#2dbe8c);
+}
+body.ocsp-portal .issue-card-media--document {
+  color: var(--ocsp-royal);
+  background: linear-gradient(145deg,rgba(255,255,255,0.68),transparent 46%),linear-gradient(135deg,#dce8f6 0 42%,#eef4ff 43% 68%,#b7c9dc 69% 100%);
+}
+body.ocsp-portal .issue-summary-filter-label {
+  --summary-filter-accent: var(--ocsp-royal);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease,box-shadow 0.2s ease,transform 0.2s ease;
+}
+body.ocsp-portal .issue-summary-filter-label.issue-stat--open {
+  --summary-filter-accent: var(--status-open);
+}
+body.ocsp-portal .issue-summary-filter-label.issue-stat--progress {
+  --summary-filter-accent: var(--status-inprogress);
+}
+body.ocsp-portal .issue-summary-filter-label.issue-stat--resolved {
+  --summary-filter-accent: var(--status-resolved);
+}
+body.ocsp-portal .issue-summary-filter-label:hover {
+  z-index: 1;
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+body.ocsp-portal .issue-stat__copy {
+  min-width: 0;
+}
+body.ocsp-portal #citizenIssueFilterTotal:checked~.issue-stats [for="citizenIssueFilterTotal"],body.ocsp-portal #citizenIssueFilterOpen:checked~.issue-stats [for="citizenIssueFilterOpen"],body.ocsp-portal #citizenIssueFilterProgress:checked~.issue-stats [for="citizenIssueFilterProgress"],body.ocsp-portal #citizenIssueFilterResolved:checked~.issue-stats [for="citizenIssueFilterResolved"],body.ocsp-portal #staffIssueFilterTotal:checked~.issue-stats [for="staffIssueFilterTotal"],body.ocsp-portal #staffIssueFilterOpen:checked~.issue-stats [for="staffIssueFilterOpen"],body.ocsp-portal #staffIssueFilterProgress:checked~.issue-stats [for="staffIssueFilterProgress"],body.ocsp-portal #staffIssueFilterResolved:checked~.issue-stats [for="staffIssueFilterResolved"] {
+  z-index: 2;
+  background: #f8fafc;
+  box-shadow: inset 0 0 0 2px var(--summary-filter-accent);
+}
+body.ocsp-portal #citizenIssueFilterTotal:checked~.issue-stats [for="citizenIssueFilterTotal"]::after,body.ocsp-portal #citizenIssueFilterOpen:checked~.issue-stats [for="citizenIssueFilterOpen"]::after,body.ocsp-portal #citizenIssueFilterProgress:checked~.issue-stats [for="citizenIssueFilterProgress"]::after,body.ocsp-portal #citizenIssueFilterResolved:checked~.issue-stats [for="citizenIssueFilterResolved"]::after,body.ocsp-portal #staffIssueFilterTotal:checked~.issue-stats [for="staffIssueFilterTotal"]::after,body.ocsp-portal #staffIssueFilterOpen:checked~.issue-stats [for="staffIssueFilterOpen"]::after,body.ocsp-portal #staffIssueFilterProgress:checked~.issue-stats [for="staffIssueFilterProgress"]::after,body.ocsp-portal #staffIssueFilterResolved:checked~.issue-stats [for="staffIssueFilterResolved"]::after {
+  height: 4px;
+  opacity: 1;
+}
+body.ocsp-portal #citizenIssueFilterTotal:focus-visible~.issue-stats [for="citizenIssueFilterTotal"],body.ocsp-portal #citizenIssueFilterOpen:focus-visible~.issue-stats [for="citizenIssueFilterOpen"],body.ocsp-portal #citizenIssueFilterProgress:focus-visible~.issue-stats [for="citizenIssueFilterProgress"],body.ocsp-portal #citizenIssueFilterResolved:focus-visible~.issue-stats [for="citizenIssueFilterResolved"],body.ocsp-portal #staffIssueFilterTotal:focus-visible~.issue-stats [for="staffIssueFilterTotal"],body.ocsp-portal #staffIssueFilterOpen:focus-visible~.issue-stats [for="staffIssueFilterOpen"],body.ocsp-portal #staffIssueFilterProgress:focus-visible~.issue-stats [for="staffIssueFilterProgress"],body.ocsp-portal #staffIssueFilterResolved:focus-visible~.issue-stats [for="staffIssueFilterResolved"] {
+  outline: 3px solid rgba(37,99,235,0.3);
+  outline-offset: -4px;
+}
+body.ocsp-portal #citizenIssueFilterOpen:checked~#citizenIssuesGallery .issue-filter-item:not(.issue-filter-item--open),body.ocsp-portal #citizenIssueFilterProgress:checked~#citizenIssuesGallery .issue-filter-item:not(.issue-filter-item--progress),body.ocsp-portal #citizenIssueFilterResolved:checked~#citizenIssuesGallery .issue-filter-item:not(.issue-filter-item--resolved),body.ocsp-portal #staffIssueFilterOpen:checked~#issuesAccordion .issue-filter-item:not(.issue-filter-item--open),body.ocsp-portal #staffIssueFilterProgress:checked~#issuesAccordion .issue-filter-item:not(.issue-filter-item--progress),body.ocsp-portal #staffIssueFilterResolved:checked~#issuesAccordion .issue-filter-item:not(.issue-filter-item--resolved) {
+  display: none!important;
+}
+body.ocsp-portal .issue-form__cancel {
+  display: inline-flex!important;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  color: var(--ocsp-royal)!important;
+  background: #ffffff!important;
+  border-color: #cbd8e6!important;
+  border-radius: 10px!important;
+  font-weight: 600!important;
+  text-decoration: none!important;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(30,58,138,0.06);
+}
+body.ocsp-portal .issue-form__cancel:hover,body.ocsp-portal .issue-form__cancel:focus-visible {
+  color: #173678!important;
+  background: #f5f8ff!important;
+  border-color: #9db4dc!important;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.09);
+}
+@media (hover:none) {
+  body.ocsp-portal .issue-summary-filter-label:hover {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  body.ocsp-portal .issue-summary-filter-label,body.ocsp-portal .issue-form__cancel {
+    transition-duration: 0.01ms!important;
+  }
+  body.ocsp-portal .issue-summary-filter-label:hover {
+    transform: none!important;
+  }
+}

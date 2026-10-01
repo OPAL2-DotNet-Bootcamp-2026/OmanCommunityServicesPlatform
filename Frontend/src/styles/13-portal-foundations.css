@@ -1,0 +1,474 @@
+/* ==========================================================================
+   13. Portal foundations and original issue-detail components
+   ========================================================================== */
+
+body.ocsp-portal {
+  --royal-blue: #1E3A8A;
+  --bright-blue: #2563EB;
+  --mint-green: #2DBE8C;
+  --pale-green: #E9F6EE;
+  --slate-gray: #64748B;
+  --primary-color: var(--royal-blue);
+  --primary-soft: #EEF4FF;
+  --neutral-color: #10233F;
+  --text-color: #25364D;
+  --text-muted: #66768A;
+  --surface-color: #FFFFFF;
+  --surface-muted: #F7F9FC;
+  --border-color: #E3E9F1;
+  --border-strong: #CBD5E1;
+}
+body.ocsp-portal *,body.ocsp-portal *::before,body.ocsp-portal *::after {
+  box-sizing: border-box;
+}
+html:has(body.ocsp-portal) {
+  min-height: 100%;
+}
+body.ocsp-portal {
+  min-height: 100vh;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+body.ocsp-portal h1,body.ocsp-portal h2,body.ocsp-portal h3,body.ocsp-portal h4,body.ocsp-portal h5,body.ocsp-portal h6 {
+  font-family: inherit;
+  color: var(--neutral-color);
+}
+body.ocsp-portal h1 {
+  font-size: 24px;
+  font-weight: 700;
+}
+body.ocsp-portal h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+body.ocsp-portal h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+body.ocsp-portal p,body.ocsp-portal span,body.ocsp-portal label,body.ocsp-portal input,body.ocsp-portal select,body.ocsp-portal textarea,body.ocsp-portal button {
+  font-family: inherit;
+}
+body.ocsp-portal .input-group-text {
+  min-height: 42px;
+  background-color: var(--surface-color);
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
+body.ocsp-portal .my-issues-shell {
+  color: var(--text-color);
+}
+body.ocsp-portal .issues-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+body.ocsp-portal .issue-filter-drawer .offcanvas-title {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+}
+body.ocsp-portal .issue-filter-drawer .form-label {
+  margin-bottom: 0.4rem;
+}
+body.ocsp-portal .issue-filter-drawer .form-select {
+  width: 100%;
+  min-height: 42px;
+  border-color: var(--border-strong);
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+}
+body.ocsp-portal .issue-filter-drawer .btn {
+  min-height: 42px;
+  border-radius: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+body.ocsp-portal .issues-list {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+}
+body.ocsp-portal .issue-card .accordion-button,body.ocsp-portal .issue-card>.citizen-row-summary {
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+body.ocsp-portal .issue-card.accordion-item {
+  margin: 0;
+  border-radius: 10px!important;
+}
+body.ocsp-portal .issue-card .accordion-header {
+  margin: 0;
+}
+body.ocsp-portal .issue-card .accordion-button {
+  border-radius: 0!important;
+}
+body.ocsp-portal .citizen-row-summary {
+  display: block;
+  user-select: none;
+}
+body.ocsp-portal .citizen-row-summary>.row {
+  min-height: 56px;
+}
+body.ocsp-portal .citizen-row-summary>.row>.col-auto {
+  width: 58px;
+  flex: 0 0 58px;
+}
+body.ocsp-portal .citizen-row-summary>.row>.col {
+  min-width: 0;
+}
+body.ocsp-portal .issue-title,body.ocsp-portal .issue-card .issue-title {
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.ocsp-portal .issue-meta,body.ocsp-portal .issue-card .issue-meta {
+  line-height: 1.4;
+}
+body.ocsp-portal .issue-date, body.ocsp-portal .issue-card .issue-date, body.ocsp-portal .status-priority-group {
+  white-space: nowrap;
+}
+body.ocsp-portal .status-badge--open,body.ocsp-portal .status-badge--progress,body.ocsp-portal .status-badge--resolved,body.ocsp-portal .priority-badge {
+  background: transparent!important;
+  background-color: transparent!important;
+}
+body.ocsp-portal .fresh-update {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+body.ocsp-portal .issue-chevron {
+  margin-left: 0.55rem!important;
+  font-size: 0.68rem;
+  transition: transform 0.25s ease,background-color 0.2s ease;
+}
+body.ocsp-portal .issue-card .accordion-button::after {
+  padding: 7px;
+}
+body.ocsp-portal .description-block p {
+  margin: 0;
+}
+body.ocsp-portal .attachment-thumb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+body.ocsp-portal .status-change-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #f0d8b6;
+  border-left: 4px solid var(--status-inprogress);
+}
+body.ocsp-portal .status-change-banner strong,body.ocsp-portal .status-change-banner span {
+  display: block;
+}
+body.ocsp-portal .status-change-banner strong {
+  font-size: 0.76rem;
+}
+body.ocsp-portal .status-change-banner span {
+  margin-top: 0.15rem;
+  font-size: 0.69rem;
+}
+body.ocsp-portal .activity-timeline {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+body.ocsp-portal .activity-timeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 7px;
+  bottom: 8px;
+  width: 1px;
+}
+body.ocsp-portal .timeline-item {
+  position: relative;
+  display: flex;
+  gap: 0.7rem;
+  padding-bottom: 0.8rem;
+}
+body.ocsp-portal .timeline-item:last-child {
+  padding-bottom: 0;
+}
+body.ocsp-portal .timeline-dot {
+  position: relative;
+  z-index: 1;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
+  margin-top: 0.22rem;
+  background-color: #9aa4ae;
+  border: 2px solid var(--surface-color);
+  border-radius: 50%;
+}
+body.ocsp-portal .timeline-item--neutral .timeline-dot {
+  background-color: #aab3bc;
+}
+body.ocsp-portal .timeline-item strong,body.ocsp-portal .timeline-item small {
+  display: block;
+}
+body.ocsp-portal .timeline-item strong {
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+body.ocsp-portal .timeline-item small {
+  margin-top: 0.15rem;
+  font-size: 0.64rem;
+}
+body.ocsp-portal .comments-column {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch!important;
+}
+body.ocsp-portal .comment-thread {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+}
+body.ocsp-portal .comment-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+body.ocsp-portal .comment-avatar {
+  display: inline-grid;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 0.63rem;
+  font-weight: 700;
+}
+body.ocsp-portal .comment-copy {
+  min-width: 0;
+  flex: 1;
+}
+body.ocsp-portal .comment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+body.ocsp-portal .comment-header strong {
+  font-size: 0.74rem;
+}
+body.ocsp-portal .comment-header time {
+  font-size: 0.61rem;
+}
+body.ocsp-portal .comment-copy p {
+  margin: 0.4rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+body.ocsp-portal .role-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.3rem;
+  padding: 0.2rem 0.38rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+}
+/* The composer was originally written around a send button welded to the
+   input - a square button sharing its border, hence the flat right edge the
+   input used to have. Both composers render a detached circular
+   .ocsp-button--icon, so the input closes itself and the two sit side by side.
+   align-items: center rather than stretch, which would pull the circle out of
+   round.
+
+   One block. This selector used to be declared three times, several hundred
+   lines apart, and the later copies quietly won: editing the min-height in the
+   middle one did nothing. */
+body.ocsp-portal .comment-composer {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+  margin-top: auto!important;
+  padding-top: 0.65rem;
+  background: transparent;
+}
+body.ocsp-portal .comment-composer .form-control {
+  min-height: 40px;
+  background: #ffffff;
+  border: 1px solid #DCE5EE;
+  border-radius: 0.6rem;
+  font-size: 0.75rem;
+  box-shadow: none;
+}
+body.ocsp-portal .comment-composer .form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: none;
+}
+body.ocsp-portal .rating-copy h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+body.ocsp-portal .rating-copy p {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.71rem;
+}
+body.ocsp-portal .rating-stars {
+  display: flex;
+  gap: 0.2rem;
+  margin: 0.65rem 0;
+}
+body.ocsp-portal .rating-stars button {
+  padding: 0.1rem;
+  background-color: transparent;
+  border: 0;
+  font-size: 1.1rem;
+}
+
+body.ocsp-portal .issue-dialog__header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.35rem 1rem;
+}
+body.ocsp-portal .issue-dialog__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+body.ocsp-portal .dialog-close {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+body.ocsp-portal .issue-form {
+  padding: 0 1.35rem 1.35rem;
+}
+body.ocsp-portal .issue-form fieldset {
+  margin: 0;
+  padding: 1.1rem 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+body.ocsp-portal .issue-form legend {
+  margin: 0 0 0.85rem;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+body.ocsp-portal .issue-form .form-label {
+  margin-bottom: 0.35rem;
+  color: var(--text-color);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+body.ocsp-portal .issue-form textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+body.ocsp-portal .priority-selector input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+body.ocsp-portal .location-capture {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+  padding: 0.8rem;
+  border: 1px solid #c9dced;
+  border-radius: 0.55rem;
+}
+body.ocsp-portal .location-capture__button {
+  font-weight: 700;
+}
+body.ocsp-portal .location-capture__status {
+  flex: 1 1 220px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+body.ocsp-portal .initial-status-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.72rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.72rem;
+}
+body.ocsp-portal .initial-status-note i {
+  color: var(--primary-color);
+}
+body.ocsp-portal .issue-form__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  padding-top: 1.1rem;
+}
+@media (max-width:991.98px) {
+  body.ocsp-portal .issues-toolbar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+@media (max-width:767.98px) {
+  body.ocsp-portal .citizen-row-summary>.row>.col-auto {
+    width: 52px;
+    flex-basis: 52px;
+  }
+  body.ocsp-portal .issue-title {
+    white-space: normal;
+  }
+  body.ocsp-portal .issue-date {
+    display: none;
+  }
+  body.ocsp-portal .comment-header {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  body.ocsp-portal .comment-thread {
+    height: auto;
+  }
+  body.ocsp-portal .comment-composer {
+    margin-top: 12px!important;
+  }
+}
+@media (max-width:575.98px) {
+  body.ocsp-portal .location-capture {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  body.ocsp-portal .location-capture__button {
+    width: 100%;
+  }
+}

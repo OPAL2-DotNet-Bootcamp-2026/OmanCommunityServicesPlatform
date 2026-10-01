@@ -1,0 +1,40 @@
+/* ==========================================================================
+   15. Status and priority alignment correction layer
+   ========================================================================== */
+
+body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge),body.ocsp-portal .issue-card .status-priority-group {
+  display: grid!important;
+  grid-template-columns: 110px 72px!important;
+  align-items: center!important;
+  justify-content: center!important;
+  column-gap: 18px!important;
+  white-space: nowrap!important;
+}
+body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge)>.status-badge--open,body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge)>.status-badge--progress,body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge)>.status-badge--resolved,body.ocsp-portal .issue-card .status-priority-group>.status-badge--open,body.ocsp-portal .issue-card .status-priority-group>.status-badge--progress,body.ocsp-portal .issue-card .status-priority-group>.status-badge--resolved {
+  width: 110px!important;
+  margin: 0!important;
+  padding: 0!important;
+  justify-content: flex-start!important;
+}
+body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge)>.priority-badge,body.ocsp-portal .issue-card .status-priority-group>.priority-badge {
+  width: 72px!important;
+  margin: 0!important;
+  padding: 0!important;
+  justify-content: flex-start!important;
+}
+body.ocsp-portal .issue-card .priority-badge.ms-1 {
+  margin-left: 0!important;
+}
+@media (max-width:767.98px) {
+  body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge),body.ocsp-portal .issue-card .status-priority-group {
+    grid-template-columns: 100px 68px!important;
+    justify-content: flex-start!important;
+    column-gap: 14px!important;
+  }
+  body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge)>.status-badge--open,body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge)>.status-badge--progress,body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge)>.status-badge--resolved {
+    width: 100px!important;
+  }
+  body.ocsp-portal .issue-card .col-md-2:has(>.priority-badge)>.priority-badge,body.ocsp-portal .issue-card .status-priority-group>.priority-badge {
+    width: 68px!important;
+  }
+}

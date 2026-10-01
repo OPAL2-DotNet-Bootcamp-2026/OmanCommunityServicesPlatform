@@ -1,0 +1,36 @@
+/* ==========================================================================
+   25. Card ribbon and supporting utility sizing
+   ========================================================================== */
+
+body.ocsp-portal .issue-card>.citizen-row-summary .fresh-update {
+  position: absolute;
+  z-index: 6;
+  display: inline-flex!important;
+  max-width: none!important;
+  min-height: 24px;
+  flex: 0 0 auto!important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin: 0!important;
+  overflow: visible!important;
+  color: #ffffff!important;
+  background: linear-gradient(135deg,var(--ocsp-primary-dark),var(--ocsp-primary))!important;
+  border: 0!important;
+  border-radius: 0!important;
+  box-shadow: 0 5px 14px rgba(11,66,109,0.24);
+  font-weight: 700!important;
+  line-height: 1!important;
+  text-align: center;
+  text-overflow: clip!important;
+  white-space: nowrap;
+  transform: rotate(45deg);
+  transform-origin: center;
+  pointer-events: none;
+}
+body.ocsp-portal .active-filters__label {
+  font-size: 0.95rem;
+}
+body.ocsp-portal .active-filter__dismiss {
+  font-size: 0.75rem;
+}

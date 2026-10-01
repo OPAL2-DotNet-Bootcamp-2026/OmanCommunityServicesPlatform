@@ -1,0 +1,36 @@
+/* ==========================================================================
+   30. Bootstrap JavaScript state aliases
+   ========================================================================== */
+
+body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).show {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: block!important;
+  visibility: visible!important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  opacity: 1!important;
+  pointer-events: auto;
+}
+body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal).show .modal-dialog {
+  position: relative;
+  z-index: 1;
+  transform: none!important;
+  pointer-events: auto;
+}
+body.ocsp-portal .issue-filter-drawer.show {
+  z-index: 1045;
+  visibility: visible!important;
+  pointer-events: auto;
+  transform: none!important;
+}
+body.ocsp-portal>.modal-backdrop.show,body.ocsp-portal>.offcanvas-backdrop.show {
+  background: rgba(15,23,42,0.6);
+  opacity: 1;
+  backdrop-filter: blur(2px);
+}
+html:has(body.ocsp-portal :is(.create-issue-modal,.issue-detail-modal,.issue-filter-drawer).show),body.ocsp-portal:has(:is(.create-issue-modal,.issue-detail-modal,.issue-filter-drawer).show) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}

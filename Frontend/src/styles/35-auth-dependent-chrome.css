@@ -1,0 +1,43 @@
+/* ============================================================
+   Auth-dependent chrome
+
+   Elements that depend on who is signed in are laid out by the
+   browser before site-session gets to decide about them, so a
+   signed-in visitor saw "Sign In" flash and vanish.
+
+   They start invisible and are revealed once the session has
+   been resolved. visibility, not display, so the space is
+   reserved and nothing shifts when they appear.
+   ============================================================ */
+
+[data-nav-auth],
+[data-nav-roles],
+[data-role-hidden] {
+  visibility: hidden;
+  /* The safety net. Hiding until a class arrives means that if the class never
+     arrives - the module 404s after a bad deploy, a proxy blocks the CDN - the
+     page keeps its primary actions invisible forever and says nothing about
+     why. A zero-length animation on a two second delay reveals them anyway, so
+     the worst case is the flash this rule was written to prevent rather than a
+     home page with no "Sign In" and no "Create an Issue".
+
+     Elements the session decided to hide are unaffected: site-session sets the
+     hidden attribute on those, and display: none outranks any visibility. */
+  animation: ocsp-session-reveal 0s linear 2s forwards;
+}
+
+@keyframes ocsp-session-reveal {
+  to {
+    visibility: visible;
+  }
+}
+
+body.ocsp-session-ready [data-nav-auth],
+body.ocsp-session-ready [data-nav-roles],
+body.ocsp-session-ready [data-role-hidden] {
+  visibility: visible;
+}
+
+/* No fallback for JavaScript being off: every page here already renders its
+   content from the API, and each carries a <noscript> saying so. A rule keyed
+   on a class nothing sets would only look like a safety net. */

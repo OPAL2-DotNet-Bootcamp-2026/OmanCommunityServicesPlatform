@@ -1,0 +1,184 @@
+/* ==========================================================================
+   07. Page hero and breadcrumbs
+   ========================================================================== */
+
+.page-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #0a3555;
+  background-image: linear-gradient(90deg,rgba(6,29,49,0.97) 0%,rgba(10,58,93,0.88) 52%,rgba(7,39,64,0.5) 100%),url("/images/hero-bg.webp");
+  background-position: center 48%;
+  background-size: cover;
+  color: #fff;
+}
+.page-hero .container-xxl {
+  position: relative;
+  z-index: 1;
+}
+.page-hero--home {
+  min-height: 560px;
+}
+.page-hero--home .page-hero__grid {
+  min-height: 420px;
+}
+.page-hero--compact {
+  min-height: 330px;
+}
+.page-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(260px,340px);
+  align-items: center;
+  gap: clamp(2rem,5vw,5rem);
+}
+.page-kicker,.section-heading__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.page-hero .page-kicker {
+  margin-block-end: 0.75rem;
+  color: #beddff;
+}
+.page-hero h1 {
+  max-width: 760px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2.5rem,5.5vw,4.2rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+}
+.page-hero--compact h1 {
+  font-size: clamp(2.25rem,4.5vw,3.45rem);
+}
+.page-hero__copy {
+  max-width: 680px;
+  margin: 1rem 0 0;
+  color: rgba(255,255,255,0.88);
+  font-size: clamp(0.98rem,1.6vw,1.12rem);
+  line-height: 1.65;
+}
+.page-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-start: 1.5rem;
+}
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.35rem;
+  margin-block-start: 1.5rem;
+}
+.hero-meta__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.48rem;
+  color: rgba(255,255,255,0.93);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.hero-meta__item i {
+  color: #beddff;
+  font-size: 1rem;
+}
+.breadcrumb-ocsp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 1rem;
+  color: rgba(255,255,255,0.72);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.breadcrumb-ocsp a {
+  color: #fff;
+  text-decoration: none;
+}
+.breadcrumb-ocsp a:hover,.breadcrumb-ocsp a:focus {
+  color: #beddff;
+  text-decoration: none;
+}
+.breadcrumb-ocsp a:focus-visible {
+  border-radius: 0.2rem;
+  outline: 2px solid #beddff;
+  outline-offset: 4px;
+}
+/* A framed chevron makes the current path easier to scan without adding markup. */
+.breadcrumb-ocsp>.bi-chevron-right {
+  display: inline-grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  color: #beddff;
+  background: rgba(190,221,255,0.12);
+  border: 1px solid rgba(190,221,255,0.28);
+  border-radius: 50%;
+  line-height: 1;
+  animation: ocsp-breadcrumb-chevron 2.4s ease-in-out infinite;
+  will-change: transform,opacity;
+}
+@keyframes ocsp-breadcrumb-chevron {
+  0%,100% {
+    opacity: 0.72;
+    transform: translate3d(-1px,0,0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(3px,0,0);
+  }
+}
+.hero-panel {
+  min-width: 0;
+  padding: 1.35rem;
+  background: rgba(255,255,255,0.97);
+  border: 1px solid rgba(255,255,255,0.78);
+  border-radius: 0.75rem;
+  box-shadow: var(--ocsp-shadow-lg);
+  color: var(--ocsp-text);
+}
+.hero-panel__label {
+  display: block;
+  color: var(--ocsp-primary-dark);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.hero-panel__value {
+  margin: 0.22rem 0;
+  color: var(--ocsp-ink);
+  font-size: clamp(1.25rem,2.5vw,1.55rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+.hero-panel__copy {
+  margin: 0;
+  color: var(--ocsp-muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.hero-panel__divider {
+  height: 1px;
+  margin: 1rem 0;
+  background: var(--ocsp-border);
+}
+.icon-tile {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  background: var(--ocsp-primary-soft);
+  border: 1px solid #c9dced;
+  border-radius: 0.55rem;
+  color: var(--ocsp-primary-dark);
+  font-size: 1.2rem;
+}
