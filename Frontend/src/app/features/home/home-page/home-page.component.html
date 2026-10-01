@@ -1,0 +1,98 @@
+<main id="mainContent">
+  <header class="page-hero page-hero--home">
+    <div class="container-xxl px-3 px-md-4 py-5">
+      <div class="page-hero__grid py-lg-5">
+        <div ocspReveal="static">
+          <span class="page-kicker"><i class="bi bi-geo-alt" aria-hidden="true"></i>Community services across Oman</span>
+          <h1>Report. Track. Resolve.</h1>
+          <p class="page-hero__copy">The official platform for Oman citizens to report infrastructure issues and track their resolution in real-time.</p>
+
+          <div class="page-hero__actions">
+            @if (!isStaff()) {
+              <a class="btn-ocsp-primary" [routerLink]="paths.myIssues" fragment="createIssueModal"><i class="bi bi-plus-circle" aria-hidden="true"></i>Create an Issue</a>
+            }
+            @if (!signedIn()) {
+              <a class="btn-ocsp-light" [routerLink]="paths.login"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Sign In</a>
+            }
+          </div>
+
+          <div class="hero-meta" aria-label="Service highlights">
+            <span class="hero-meta__item"><i class="bi bi-shield-check" aria-hidden="true"></i>Secure citizen service</span>
+            <span class="hero-meta__item"><i class="bi bi-bell" aria-hidden="true"></i>Clear status updates</span>
+            <span class="hero-meta__item"><i class="bi bi-check-circle" aria-hidden="true"></i>Track every report</span>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="Platform response summary" ocspReveal="static" [revealIndex]="1">
+          <span class="hero-panel__label">Average response</span>
+          <p class="hero-panel__value">Within 48 hours</p>
+          <p class="hero-panel__copy">Your report is routed to the appropriate community services team.</p>
+          <div class="hero-panel__divider"></div>
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <div>
+              <span class="hero-panel__label">Issues resolved</span>
+              <p class="hero-panel__value mb-0" ocspCountUp [countTo]="980" [countWhenVisible]="true">980</p>
+            </div>
+            <span class="icon-tile" aria-hidden="true"><i class="bi bi-check2-circle"></i></span>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <section class="content-shell" aria-labelledby="howItWorksTitle">
+    <div class="container-xxl px-3 px-md-4">
+      <div class="section-heading section-heading--center" ocspReveal="static">
+        <span class="section-heading__kicker">A simple public service</span>
+        <h2 id="howItWorksTitle">How it works</h2>
+        <p>Send a clear report, follow its progress and know when your community issue has been resolved.</p>
+      </div>
+
+      <div class="row g-4">
+        @for (step of steps; track step.title) {
+          <div class="col-12 col-md-4">
+            <article class="process-card" ocspReveal="static" [revealIndex]="$index">
+              <span class="process-card__number">{{ $index + 1 }}</span>
+              <span class="icon-tile" aria-hidden="true"><i class="bi {{ step.icon }}"></i></span>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.text }}</p>
+            </article>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="stats-band" aria-label="Platform statistics">
+    <div class="container-xxl px-3 px-md-4">
+      <div class="row g-0">
+        <div class="col-12 col-md-4 stat-block" ocspReveal="static">
+          <span class="stat-block__value" ocspCountUp [countTo]="1240" [countGrouping]="true" [countWhenVisible]="true">1,240</span>
+          <span class="stat-block__label">Issues Reported</span>
+        </div>
+        <div class="col-12 col-md-4 stat-block" ocspReveal="static" [revealIndex]="1">
+          <span class="stat-block__value" ocspCountUp [countTo]="980" [countWhenVisible]="true">980</span>
+          <span class="stat-block__label">Resolved</span>
+        </div>
+        <div class="col-12 col-md-4 stat-block" ocspReveal="static" [revealIndex]="2">
+          <span class="stat-block__value" ocspCountUp [countTo]="48" countSuffix="hr" [countWhenVisible]="true">48hr</span>
+          <span class="stat-block__label">Avg Response</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  @if (!isStaff()) {
+    <section class="content-shell" aria-labelledby="homeCtaTitle">
+      <div class="container-xxl px-3 px-md-4">
+        <div class="cta-panel" ocspReveal="static">
+          <div>
+            <h2 id="homeCtaTitle">See an issue in your community?</h2>
+            <p>Help the right team respond by sharing the location and a clear description.</p>
+          </div>
+          <a class="btn-ocsp-primary flex-shrink-0" [routerLink]="paths.myIssues" fragment="createIssueModal"><i class="bi bi-plus-circle" aria-hidden="true"></i>Create an Issue</a>
+        </div>
+      </div>
+    </section>
+  }
+</main>

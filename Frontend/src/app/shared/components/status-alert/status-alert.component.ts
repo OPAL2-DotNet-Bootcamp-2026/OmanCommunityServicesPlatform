@@ -1,4 +1,4 @@
-import { Component, ElementRef, effect, inject, input } from "@angular/core";
+import { Component, ElementRef, Injector, afterNextRender, effect, inject, input } from "@angular/core";
 import { type ToastTone, ToastService } from "../../services/toast.service";
 import { replayAnimation } from "../../utils/reduced-motion.util";
 
@@ -31,6 +31,7 @@ export class StatusAlertComponent {
 
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly toast = inject(ToastService);
+  private readonly injector = inject(Injector);
 
   constructor() {
     effect(() => {
@@ -43,7 +44,8 @@ export class StatusAlertComponent {
     });
   }
 
+  /** Focuses the alert once it has rendered; it is display:none until its message arrives. */
   focus(): void {
-    this.element.focus();
+    afterNextRender(() => this.element.focus(), { injector: this.injector });
   }
 }

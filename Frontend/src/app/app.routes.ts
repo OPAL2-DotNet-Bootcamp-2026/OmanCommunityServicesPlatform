@@ -1,14 +1,23 @@
 import { type Routes } from "@angular/router";
 import { guestOnlyGuard } from "./core/auth/auth.guard";
+import { HELP_STRIPS } from "./core/routing/help-strip-content";
+import { type PageRouteData } from "./core/routing/page-route-data";
 
 const TITLE_SUFFIX = " | Oman Community Services Platform";
 
 /**
  * Every page of the site. Each page is loaded only when first visited
  * (loadComponent), so the dashboard's code never ships to a citizen.
- * Paths match core/routing/app-paths.ts.
+ * Paths match core/routing/app-paths.ts; `data` is a PageRouteData.
  */
 export const appRoutes: Routes = [
+  {
+    path: "",
+    pathMatch: "full",
+    title: `Home${TITLE_SUFFIX}`,
+    loadComponent: () => import("./features/home/home-page/home-page.component").then((m) => m.HomePageComponent),
+    data: { helpStrip: HELP_STRIPS.home } satisfies PageRouteData
+  },
   {
     path: "login",
     title: `Sign In${TITLE_SUFFIX}`,
@@ -20,5 +29,7 @@ export const appRoutes: Routes = [
     title: `Create Account${TITLE_SUFFIX}`,
     canActivate: [guestOnlyGuard],
     loadComponent: () => import("./features/auth/register-page/register-page.component").then((m) => m.RegisterPageComponent)
-  }
+  },
+  // An unknown address goes home rather than to a blank page.
+  { path: "**", redirectTo: "" }
 ];
