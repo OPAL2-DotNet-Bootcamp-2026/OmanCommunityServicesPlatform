@@ -2985,6 +2985,15 @@ body.ocsp-portal .priority-badge--low {
 body.ocsp-portal .priority-badge--low::before {
   background: var(--priority-low)!important;
 }
+/* Paid urgent service: filled, so it never reads as the outlined High priority. */
+body.ocsp-portal .priority-badge--urgent {
+  color: #fff!important;
+  background: #b45309!important;
+  border-color: #b45309!important;
+}
+body.ocsp-portal .priority-badge--urgent::before {
+  background: #fff!important;
+}
 body.ocsp-portal .issue-card:not([open]) .issue-date,body.ocsp-portal .issue-card .accordion-button.collapsed .issue-date {
   display: flex!important;
   align-items: center;

@@ -12,11 +12,14 @@ import type {
   Attachment,
   AttachmentFileType,
   Category,
+  CheckoutRequest,
+  CheckoutResponse,
   Comment,
   CreateIssueRequest,
   Issue,
   IssueDetail,
   Notification,
+  PaymentStatusResponse,
   Rating,
   Region,
   StatusUpdate
@@ -295,5 +298,16 @@ export class DataService {
 
     // Create returns the rating directly; update wraps it in { rating }.
     return "rating" in response ? response.rating : response;
+  }
+
+  /** Opens a Thawani checkout for an issue; the browser then goes to payUrl. */
+  startCheckout(issueId: number): Promise<CheckoutResponse> {
+    const payload: CheckoutRequest = { issueId: Number(issueId) };
+    return this.api.post<CheckoutResponse>(this.api.endpoints.checkout, payload);
+  }
+
+  /** The server re-checks with Thawani while the payment is still Pending. */
+  getPaymentStatus(paymentId: number): Promise<PaymentStatusResponse> {
+    return this.api.get<PaymentStatusResponse>(this.api.endpoints.paymentById(Number(paymentId)));
   }
 }

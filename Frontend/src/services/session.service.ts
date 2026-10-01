@@ -34,7 +34,8 @@ const ALLOWED_PAGE_ROLES: Record<string, SessionRole[]> = {
   "index.html": [],
   "my-issues.html": ["Citizen"],
   "dashboard.html": ["Staff", "Admin"],
-  "notifications.html": ["Citizen", "Staff", "Admin"]
+  "notifications.html": ["Citizen", "Staff", "Admin"],
+  "payment-result.html": ["Citizen"]
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

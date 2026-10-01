@@ -70,6 +70,14 @@ const routes: Record<string, () => Promise<Page>> = {
     return new NotificationsPage(new DataService(api, session), session);
   },
 
+  "payment-result.html": async () => {
+    const [{ PaymentResultPage }, { DataService }] = await Promise.all([
+      import("./pages/payment-result.page"),
+      import("./services/data.service")
+    ]);
+    return new PaymentResultPage(new DataService(api, session), session);
+  },
+
   "dashboard.html": async () => {
     const [{ DashboardPage }, { DashboardService }] = await Promise.all([
       import("./pages/dashboard.page"),
