@@ -24,17 +24,51 @@ namespace OmanCommunityServicesPlatform.Controllers
         [HttpPost("checkout")]
         [Authorize(Roles = "Citizen")]
         [EnableRateLimiting("CreatePolicy")]
-        public IActionResult Checkout([FromBody] CreateCheckoutDto dto)
+        public async Task<IActionResult> Checkout([FromBody] CreateCheckoutDto dto)
         {
-            return NotBuiltYet("Step 1 CREATE — issue #137");
+            if (!User.TryGetUserId(out int userId))
+            {
+                return Unauthorized();
+            }
+
+            CheckoutResponseDto? result =
+                await paymentService.StartCheckoutAsync(
+                    dto.issueId,
+                    userId
+                );
+
+            if (result == null)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "Issue not found",
+                    detail: "Issue was not found."
+                );
+            }
+
+            return Ok(result);
         }
 
         // Step 3 CONFIRM (#139): the payment's status, confirmed with Thawani.
         [HttpGet("{paymentId}")]
         [Authorize(Roles = "Citizen")]
-        public IActionResult GetStatus([FromRoute] int paymentId)
+        public async Task<IActionResult> GetStatus([FromRoute] int paymentId)
         {
-            return NotBuiltYet("Step 3 CONFIRM — issue #139");
+            // Get the current citizen ID from the JWT token
+            if (!User.TryGetUserId(out int userId))
+            {
+                return Unauthorized();
+            }
+
+            PaymentStatusDto? status = await paymentService.GetStatusAsync(paymentId, userId);
+
+            // Missing and "not yours" both answer 404
+            if (status == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(status);
         }
 
         // Step 4 WEBHOOK (#140): Thawani calls this directly, so it can't need a
