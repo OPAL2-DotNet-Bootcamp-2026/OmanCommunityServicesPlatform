@@ -8,9 +8,7 @@ import { HelpStripComponent } from "./layout/help-strip/help-strip.component";
 import { SiteFooterComponent } from "./layout/site-footer/site-footer.component";
 import { SiteHeaderComponent } from "./layout/site-header/site-header.component";
 import { ToastContainerComponent } from "./shared/components/toast-container/toast-container.component";
-import { type ToastTone, ToastService } from "./shared/services/toast.service";
-
-const TONES: readonly ToastTone[] = ["success", "danger", "warning", "info"];
+import { ToastService, toToastTone } from "./shared/services/toast.service";
 
 /** The page shell: header, the routed page, help strip, footer and toasts. */
 @Component({
@@ -31,8 +29,7 @@ export class AppComponent {
       if (event.urlAfterRedirects.startsWith(AppPaths.login)) return;
       const flash = session.consumeFlash();
       if (flash?.message) {
-        const tone = TONES.includes(flash.tone as ToastTone) ? (flash.tone as ToastTone) : "info";
-        toast.show(flash.message, { tone });
+        toast.show(flash.message, { tone: toToastTone(flash.tone) });
       }
     });
   }

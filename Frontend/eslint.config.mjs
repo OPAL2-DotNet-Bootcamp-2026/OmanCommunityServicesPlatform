@@ -50,6 +50,10 @@ export default tseslint.config(
         { type: "attribute", prefix: "ocsp", style: "camelCase" }
       ],
 
+      // Angular's Validators.required & co. are static and safe to pass around;
+      // this rule cannot tell, and flags every reactive form.
+      "@typescript-eslint/unbound-method": "off",
+
       "no-console": ["warn", { allow: ["warn", "error"] }],
       eqeqeq: ["error", "smart"]
     }

@@ -3,6 +3,11 @@ import { prefersReducedMotion } from "../utils/reduced-motion.util";
 
 export type ToastTone = "success" | "danger" | "warning" | "info";
 
+/** A tone from storage or the API; anything unknown becomes "info". */
+export function toToastTone(value: string | null | undefined): ToastTone {
+  return ["success", "danger", "warning", "info"].includes(value ?? "") ? (value as ToastTone) : "info";
+}
+
 export interface ToastOptions {
   tone?: ToastTone;
   title?: string;

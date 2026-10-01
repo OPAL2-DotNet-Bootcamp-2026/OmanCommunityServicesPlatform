@@ -1,0 +1,71 @@
+<main class="auth-shell" id="mainContent">
+  <div class="container-xxl px-3 px-md-4">
+    <div class="auth-card auth-card--register" ocspReveal="static">
+      <section class="auth-visual" aria-labelledby="registerWelcomeTitle">
+        <div>
+          <p class="mb-2 text-uppercase fw-bold"><i class="bi bi-people me-2"></i>Built for Oman's communities</p>
+          <p class="auth-visual__title" id="registerWelcomeTitle">A direct line to local services.</p>
+          <p>Create your account to share community concerns and see how municipal teams are responding.</p>
+          <ul class="auth-benefits">
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Submit civic reports in a few simple steps</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Keep all your reports in one secure account</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Follow updates through to resolution</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="auth-form-panel" aria-labelledby="registerTitle">
+        <div class="auth-form-panel__header">
+          <p class="mb-2 text-uppercase fw-bold text-primary"><i class="bi bi-person-plus me-2"></i>Citizen registration</p>
+          <h1 id="registerTitle">Create Your Account</h1>
+          <p>Join the Oman Community Services Platform to access civic services.</p>
+        </div>
+
+        <div ocspStatusAlert [status]="status()" tabindex="-1"></div>
+
+        <form ngNativeValidate [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="name">Full Name <span class="required-mark" aria-hidden="true">*</span></label>
+              <input class="form-control" type="text" id="name" formControlName="name" placeholder="e.g. Ahmed Al Harthi"
+                maxlength="50" autocomplete="name" required>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="email">Email <span class="required-mark" aria-hidden="true">*</span></label>
+              <input class="form-control" type="email" id="email" formControlName="email" placeholder="ahmed@example.com"
+                maxlength="150" autocomplete="email" required>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="phoneNumber">Phone Number <span class="fw-normal text-secondary">(optional)</span></label>
+              <input class="form-control" type="tel" id="phoneNumber" formControlName="phoneNumber" placeholder="+968 9123 4567"
+                minlength="8" maxlength="20" autocomplete="tel">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="password">Password <span class="required-mark" aria-hidden="true">*</span></label>
+              <input class="form-control" type="password" id="password" formControlName="password" minlength="6" maxlength="256"
+                placeholder="Enter your password" autocomplete="new-password" aria-describedby="passwordHint" required>
+              <p class="field-hint" id="passwordHint">Use at least 6 characters.</p>
+            </div>
+          </div>
+
+          <p class="field-hint mt-3 mb-4">Fields marked with * are required.</p>
+
+          <button ocspBusyButton class="btn-ocsp-primary ocsp-button ocsp-button--submit w-100" type="submit"
+            [busy]="submitting()" busyLabel="Creating account...">
+            <i class="bi bi-person-check" aria-hidden="true"></i>Register
+          </button>
+        </form>
+
+        <div class="auth-separator"></div>
+
+        <p class="auth-switch">
+          Already have an account?
+          <a [routerLink]="paths.login">Sign In</a>
+        </p>
+      </section>
+    </div>
+  </div>
+</main>
