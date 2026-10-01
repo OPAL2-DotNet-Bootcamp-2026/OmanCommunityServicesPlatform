@@ -1,0 +1,37 @@
+@for (group of groups(); track group.label) {
+  <section class="notification-group" [attr.aria-labelledby]="group.label.toLowerCase() + 'Notifications'">
+    <h3 class="group-label" [id]="group.label.toLowerCase() + 'Notifications'">{{ group.label }}</h3>
+    <div class="notification-list">
+      @for (row of group.rows; track row.notification.notificationId) {
+        <ng-template #content>
+          <span class="notification-icon{{ row.tone }}" aria-hidden="true"><i class="bi {{ row.icon }}"></i></span>
+          <span class="flex-grow-1">
+            <span class="notification-card__title">{{ row.notification.message || "Notification update" }}</span>
+            <span class="notification-card__time">{{ row.time }}</span>
+          </span>
+          @if (!row.notification.isRead) {
+            <span class="unread-dot" aria-label="Unread"></span>
+          }
+        </ng-template>
+
+        @if (row.href) {
+          <a class="notification-card" [class.is-unread]="!row.notification.isRead" [href]="row.href"
+            ocspReveal [revealIndex]="$index" (click)="select($event, row)">
+            <ng-container [ngTemplateOutlet]="content" />
+          </a>
+        } @else {
+          <button class="notification-card w-100 text-start" [class.is-unread]="!row.notification.isRead" type="button"
+            ocspReveal [revealIndex]="$index" (click)="select($event, row)">
+            <ng-container [ngTemplateOutlet]="content" />
+          </button>
+        }
+      }
+    </div>
+  </section>
+} @empty {
+  <div class="ocsp-card p-4 text-center" role="status">
+    <i class="bi bi-bell-slash fs-3 text-secondary" aria-hidden="true"></i>
+    <h3 class="h5 mt-3">No notifications yet</h3>
+    <p class="text-secondary mb-0">Updates connected to your reports will appear here.</p>
+  </div>
+}

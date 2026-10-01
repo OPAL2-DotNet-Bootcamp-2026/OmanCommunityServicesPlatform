@@ -1,0 +1,33 @@
+<button #trigger class="citizen-row-summary issue-card-preview issue-card-trigger" type="button"
+  aria-haspopup="dialog" [attr.aria-label]="ariaLabel()" (click)="open.emit(trigger)">
+  <span class="row align-items-center w-100 g-2 text-start">
+    <span class="col-auto"><span ocspIssuePhoto [issue]="issue()"></span></span>
+    <span class="col">
+      <span class="issue-title-row">
+        <span class="issue-title d-block">{{ issue().title }}</span>
+        @if (issue().ui.hasFreshUpdate) {
+          <span class="fresh-update" aria-hidden="true"><i class="bi bi-stars"></i>{{ freshUpdateLabel() }}</span>
+        }
+      </span>
+      <span class="issue-meta mt-1 d-block">
+        <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>
+        {{ issue().location }}
+      </span>
+    </span>
+    <span class="col-md-3 issue-meta">
+      <strong>{{ issue().categoryName || "Uncategorized" }}</strong>
+      <small class="d-block text-muted">{{ issue().assignedDepartmentName || "Awaiting assignment" }}</small>
+    </span>
+    <span class="col-md-2 text-md-center status-priority-group">
+      <span ocspStatusBadge [status]="issue().currentStatus"></span>
+      <span ocspPriorityBadge [priority]="issue().priority"></span>
+      @if (issue().isUrgent) {
+        <span ocspUrgentBadge></span>
+      }
+    </span>
+    <span class="col-md-2 text-md-end text-muted issue-date">
+      <time [attr.datetime]="issue().reportedDate || ''">{{ issue().reportedDate | apiDate }}</time>
+      <i class="bi bi-chevron-right ms-2 issue-chevron" aria-hidden="true"></i>
+    </span>
+  </span>
+</button>

@@ -1,0 +1,182 @@
+/* ==========================================================================
+   04. Site navigation
+   ========================================================================== */
+
+.site-nav {
+  /* Keep the shared shell independent from page-specific portal themes. */
+  --ocsp-ink: #171717;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1030;
+  min-height: 72px;
+  background: rgba(255,255,255,0.72);
+  font-family: var(--ocsp-font);
+  font-size: 15px;
+  line-height: 1.55;
+  border-bottom: 1px solid rgba(203,209,214,0.82);
+  box-shadow: 0 2px 10px rgba(11,12,12,0.04);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+}
+@supports not ((-webkit-backdrop-filter:blur(12px)) or (backdrop-filter:blur(12px))) {
+  .site-nav {
+    background: #fff;
+  }
+}
+.site-nav__inner {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  gap: 1rem;
+}
+.site-brand {
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ocsp-ink);
+  text-decoration: none;
+}
+.site-brand:hover,.site-brand:focus {
+  color: var(--ocsp-ink);
+}
+.site-brand__mark {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  background: var(--ocsp-primary);
+  border-radius: 0.5rem;
+  box-shadow: 0 5px 14px rgba(39,123,188,0.24);
+  color: #fff;
+  font-size: 1.15rem;
+}
+.site-brand__name,.site-brand__subtitle {
+  display: block;
+}
+.site-brand__name {
+  color: var(--ocsp-ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+.site-brand__subtitle {
+  margin-block-start: 0.16rem;
+  color: var(--ocsp-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.nav-switch {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.nav-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  margin-inline-start: auto;
+  place-items: center;
+  background: var(--ocsp-primary-soft);
+  border: 1px solid #c9dced;
+  border-radius: 0.5rem;
+  color: var(--ocsp-primary-dark);
+  cursor: pointer;
+  font-size: 1.35rem;
+}
+.nav-switch:focus-visible+.nav-toggle {
+  outline: 3px solid #ffbf47;
+  outline-offset: 3px;
+}
+.nav-menu {
+  display: flex;
+  min-width: 0;
+  margin-inline-start: auto;
+  align-items: center;
+  gap: 0.1rem;
+}
+.nav-link-ocsp {
+  position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.56rem 0.58rem;
+  border-radius: var(--ocsp-radius-sm);
+  color: #384b5d;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-link-ocsp:hover,.nav-link-ocsp:focus,.nav-link-ocsp.is-active {
+  background: var(--ocsp-primary-soft);
+  color: var(--ocsp-primary-dark);
+}
+.nav-link-ocsp.is-active::after {
+  position: absolute;
+  inset-inline: 0.6rem;
+  inset-block-end: -14px;
+  height: 2px;
+  background: var(--ocsp-primary);
+  content: "";
+}
+.nav-count {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  padding-inline: 0.28rem;
+  place-items: center;
+  background: var(--ocsp-danger);
+  border: 2px solid #fff;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.user-chip {
+  display: inline-flex;
+  min-height: 44px;
+  margin-inline-start: 0.45rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.35rem 0.68rem 0.35rem 0.38rem;
+  background: var(--ocsp-primary-soft);
+  border: 1px solid #c9dced;
+  border-radius: 0.55rem;
+  color: var(--ocsp-primary-dark);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.user-chip:hover,.user-chip:focus {
+  background: #e2f0fa;
+  border-color: var(--ocsp-primary);
+  color: var(--ocsp-primary-dark);
+}
+.user-chip__avatar {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  background: var(--ocsp-primary);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}

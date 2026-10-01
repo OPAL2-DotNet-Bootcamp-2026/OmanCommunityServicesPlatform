@@ -1,0 +1,490 @@
+/* ==========================================================================
+   16. V5 portal typography and layout refinement
+   ========================================================================== */
+body.ocsp-portal .ocsp-page,body.ocsp-portal .my-issues-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background: transparent;
+}
+body.ocsp-portal .ocsp-page::before,body.ocsp-portal .my-issues-shell::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  width: 420px;
+  height: 420px;
+  right: -190px;
+  top: 140px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle at 50% 50%,rgba(37,99,235,0.055) 0 1px,transparent 1px 12px);
+  mask-image: linear-gradient(to bottom,rgba(0,0,0,.65),transparent 80%);
+  pointer-events: none;
+}
+body.ocsp-portal .ocsp-page-container {
+  width: min(1320px,calc(100% - 2rem));
+  margin-inline: auto;
+}
+body.ocsp-portal .issues-toolbar {
+  align-items: flex-end;
+  margin-bottom: 1.4rem;
+}
+body.ocsp-portal .page-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+  color: var(--bright-blue);
+  font-size: 0.69rem;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+body.ocsp-portal .page-kicker i {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: var(--royal-blue);
+  background: var(--primary-soft);
+  border-radius: 8px;
+  font-size: 0.76rem;
+}
+body.ocsp-portal .issues-heading :is(h1,h2) {
+  margin: 0;
+  font-size: clamp(1.65rem,2.4vw,2.05rem);
+  line-height: 1.18;
+}
+body.ocsp-portal .issues-heading p {
+  max-width: 760px;
+  margin: 0.48rem 0 0;
+  color: var(--slate-gray);
+  font-size: 0.91rem;
+  line-height: 1.65;
+}
+body.ocsp-portal .ocsp-control-row {
+  margin-bottom: 1rem!important;
+}
+body.ocsp-portal .ocsp-search {
+  min-height: 48px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #DCE5EF;
+  border-radius: 13px;
+  box-shadow: 0 7px 20px rgba(30,58,138,0.055)!important;
+  transition: border-color 0.2s ease,box-shadow 0.2s ease;
+}
+body.ocsp-portal .ocsp-search:focus-within {
+  border-color: rgba(37,99,235,0.5);
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.08),0 10px 26px rgba(30,58,138,0.07)!important;
+}
+body.ocsp-portal .ocsp-search .input-group-text,body.ocsp-portal .ocsp-search .form-control {
+  min-height: 48px;
+  border: 0!important;
+  background: transparent!important;
+  box-shadow: none!important;
+}
+body.ocsp-portal .ocsp-search .input-group-text {
+  color: var(--bright-blue)!important;
+}
+body.ocsp-portal .ocsp-search .form-control {
+  color: var(--text-color);
+  font-size: 0.84rem;
+}
+body.ocsp-portal .ocsp-search .form-control::placeholder {
+  color: #8B98A9;
+}
+body.ocsp-portal .ocsp-filter-trigger {
+  min-height: 48px;
+  padding-inline: 1rem!important;
+  color: var(--royal-blue)!important;
+  background: #ffffff!important;
+  border: 1px solid #DCE5EF!important;
+  border-radius: 13px!important;
+  box-shadow: 0 7px 20px rgba(30,58,138,0.055)!important;
+  transition: transform 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease,background-color 0.2s ease;
+}
+body.ocsp-portal .ocsp-filter-trigger:hover {
+  transform: translateY(-1px);
+  color: var(--royal-blue)!important;
+  background: linear-gradient(180deg,#ffffff,#F8FBFF)!important;
+  border-color: rgba(37,99,235,0.33)!important;
+  box-shadow: 0 10px 24px rgba(30,58,138,0.08)!important;
+}
+body.ocsp-portal .ocsp-filter-trigger .bi-funnel-fill {
+  color: var(--mint-green)!important;
+}
+body.ocsp-portal .ocsp-filter-trigger>.badge {
+  min-width: 25px;
+  background: linear-gradient(135deg,var(--royal-blue),var(--bright-blue))!important;
+  color: #ffffff!important;
+  border: 0!important;
+  box-shadow: none!important;
+}
+body.ocsp-portal .active-filters-panel {
+  background: linear-gradient(110deg,rgba(238,244,255,.78),rgba(233,246,238,.55))!important;
+  border: 1px solid rgba(30,58,138,0.10)!important;
+  border-radius: 14px!important;
+  box-shadow: 0 7px 22px rgba(30,58,138,0.045)!important;
+}
+body.ocsp-portal .active-filters-panel .badge {
+  min-height: 34px;
+  padding: 0.38rem 0.72rem!important;
+  color: var(--text-color)!important;
+  background: rgba(255,255,255,.92)!important;
+  border: 1px solid rgba(30,58,138,0.10)!important;
+  border-radius: 999px!important;
+  box-shadow: 0 4px 12px rgba(30,58,138,.035)!important;
+  font-size: 0.74rem!important;
+}
+body.ocsp-portal .active-filters-panel .btn-close {
+  transform: scale(.78);
+  opacity: .56;
+}
+body.ocsp-portal .active-filters-panel .btn-link {
+  color: #C53E4A!important;
+  font-size: 0.75rem!important;
+}
+body.ocsp-portal .form-control,body.ocsp-portal .form-select {
+  min-height: 44px;
+  color: var(--text-color);
+  background-color: #ffffff;
+  border: 1px solid #D9E2EC;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  box-shadow: none;
+}
+body.ocsp-portal .form-control:focus,body.ocsp-portal .form-select:focus {
+  border-color: rgba(37,99,235,0.55);
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
+}
+body.ocsp-portal .form-control::placeholder {
+  color: #8E9BAB;
+}
+body.ocsp-portal .btn-primary-custom,body.ocsp-portal .my-issues-shell .btn-primary {
+  color: #ffffff;
+  background: linear-gradient(135deg,var(--royal-blue),var(--bright-blue));
+  border-color: transparent;
+  border-radius: 10px;
+  font-weight: 650;
+  box-shadow: 0 7px 18px rgba(37,99,235,0.18);
+}
+body.ocsp-portal .btn-primary-custom:hover,body.ocsp-portal .btn-primary-custom:focus,body.ocsp-portal .my-issues-shell .btn-primary:hover,body.ocsp-portal .my-issues-shell .btn-primary:focus {
+  color: #ffffff;
+  background: linear-gradient(135deg,#172F72,#1F55D6);
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+body.ocsp-portal .btn-light.border {
+  color: var(--royal-blue);
+  background: #ffffff;
+  border-color: #D9E2EC!important;
+  border-radius: 10px;
+}
+body.ocsp-portal .issue-filter-drawer {
+  width: min(420px,94vw);
+  border-left: 0;
+  box-shadow: -20px 0 60px rgba(15,35,68,0.15);
+}
+body.ocsp-portal .issue-filter-drawer .offcanvas-header {
+  padding: 1.1rem 1.2rem;
+  background: linear-gradient(135deg,var(--royal-blue),#244BA8);
+  border-bottom: 0!important;
+}
+body.ocsp-portal .issue-filter-drawer .offcanvas-title {
+  color: #ffffff;
+  font-size: 0.96rem;
+}
+body.ocsp-portal .issue-filter-drawer .offcanvas-title i {
+  color: #AEEAD2;
+}
+body.ocsp-portal .issue-filter-drawer .btn-close {
+  filter: invert(1);
+  opacity: .85;
+}
+body.ocsp-portal .issue-filter-drawer .offcanvas-body {
+  padding: 1.15rem 1.2rem;
+  background: linear-gradient(180deg,#ffffff,#FBFCFE);
+}
+body.ocsp-portal .issue-filter-drawer .form-label {
+  color: #263D5B!important;
+  font-size: 0.7rem!important;
+  font-weight: 700!important;
+}
+body.ocsp-portal .issue-filter-drawer .form-select {
+  background-color: var(--surface-muted)!important;
+}
+body.ocsp-portal .issues-list,body.ocsp-portal #issuesAccordion {
+  gap: 0.95rem!important;
+}
+body.ocsp-portal .issue-card .accordion-button,body.ocsp-portal .issue-card>.citizen-row-summary {
+  color: var(--text-color);
+}
+body.ocsp-portal .issue-card .accordion-button:hover,body.ocsp-portal .issue-card>.citizen-row-summary:hover {
+  background: linear-gradient(180deg,#ffffff,#F8FBFE)!important;
+}
+body.ocsp-portal .issue-card .accordion-button:focus {
+  box-shadow: none;
+}
+body.ocsp-portal .issue-card .accordion-button::after,body.ocsp-portal .issue-chevron {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border: 1px solid #DDE5EE;
+  border-radius: 50%;
+  background-size: 11px;
+  background-position: center;
+  color: var(--royal-blue);
+  box-shadow: 0 3px 10px rgba(30,58,138,.05);
+}
+body.ocsp-portal .issue-chevron {
+  display: inline-grid;
+  place-items: center;
+}
+body.ocsp-portal .issue-title,body.ocsp-portal .issue-card .issue-title,body.ocsp-portal .issue-card h6 {
+  font-size: 0.92rem;
+}
+body.ocsp-portal .issue-meta,body.ocsp-portal .issue-card .issue-meta,body.ocsp-portal .issue-date,body.ocsp-portal .issue-card .issue-date,body.ocsp-portal .issue-card small.text-muted {
+  color: var(--slate-gray)!important;
+  font-size: 0.69rem;
+}
+body.ocsp-portal .issue-meta strong,body.ocsp-portal .issue-card .issue-meta strong,body.ocsp-portal .issue-card .fw-semibold.text-dark {
+  color: #2A415F!important;
+  font-weight: 650!important;
+}
+body.ocsp-portal .fresh-update {
+  min-height: 23px;
+  padding: 0.28rem 0.55rem;
+  color: #ffffff;
+  background: linear-gradient(135deg,var(--royal-blue),var(--bright-blue));
+  border: 0;
+  border-radius: 999px;
+  box-shadow: 0 5px 12px rgba(37,99,235,.15);
+  font-size: 0.61rem;
+  font-weight: 700;
+}
+body.ocsp-portal .issue-card .border-end {
+  border-color: #E7ECF2!important;
+}
+body.ocsp-portal .content-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+body.ocsp-portal .content-label i {
+  color: var(--mint-green);
+}
+body.ocsp-portal .description-block p {
+  color: #33475F;
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+body.ocsp-portal .location-value {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 42px;
+  margin-bottom: 0.55rem;
+  padding: 0.68rem 0.78rem;
+  color: #33475F;
+  background: linear-gradient(90deg,#F7FAFD,#FBFCFE);
+  border: 1px solid #E0E7EF;
+  border-radius: 11px;
+  font-size: 0.74rem;
+}
+body.ocsp-portal .location-value i {
+  color: var(--bright-blue);
+}
+body.ocsp-portal .attachment-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 0.65rem;
+}
+body.ocsp-portal .attachment-thumb {
+  min-height: 94px;
+  padding: 0.7rem;
+  border: 1px solid #DEE6EE;
+  border-radius: 12px;
+  box-shadow: none;
+  transition: transform 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease;
+}
+body.ocsp-portal .attachment-thumb:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37,99,235,0.26);
+  box-shadow: 0 9px 20px rgba(30,58,138,0.08);
+}
+body.ocsp-portal .attachment-thumb--road {
+  color: #ffffff;
+  background: linear-gradient(145deg,#334A66 0 34%,#B48A62 35% 62%,#1E2B3A 63% 100%);
+}
+body.ocsp-portal .attachment-thumb--water {
+  color: #ffffff;
+  background: linear-gradient(145deg,#4CA6C7,#2D7FA9 56%,#224D67);
+}
+body.ocsp-portal .attachment-thumb--night {
+  color: #ffffff;
+  background: linear-gradient(145deg,#17273E,#2C4665 58%,#A77C26);
+}
+body.ocsp-portal .attachment-thumb--fixed {
+  color: #ffffff;
+  background: linear-gradient(145deg,#1E3A8A,#2563EB 58%,#2DBE8C);
+}
+body.ocsp-portal .attachment-thumb--document {
+  color: var(--royal-blue);
+  background: linear-gradient(145deg,#F7FAFD,#EEF4FF);
+  border-style: dashed;
+}
+body.ocsp-portal .attachment-thumb i {
+  font-size: 1.12rem;
+}
+body.ocsp-portal .attachment-thumb span {
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+body.ocsp-portal .attachment-thumb small {
+  opacity: .78;
+  font-size: .58rem;
+}
+body.ocsp-portal .status-change-banner {
+  border-radius: 12px;
+}
+body.ocsp-portal .activity-timeline::before {
+  background: linear-gradient(to bottom,var(--bright-blue),rgba(45,190,140,.35));
+}
+body.ocsp-portal .timeline-dot {
+  box-shadow: 0 0 0 3px #ffffff;
+}
+body.ocsp-portal .timeline-item strong {
+  color: #223A59;
+}
+body.ocsp-portal .timeline-item small {
+  color: var(--slate-gray);
+}
+body.ocsp-portal .comments-column {
+  min-height: 100%;
+}
+body.ocsp-portal .comment-thread {
+  gap: 0.72rem;
+  scrollbar-width: thin;
+  scrollbar-color: #C8D5E4 transparent;
+}
+body.ocsp-portal .comment-card {
+  padding: 0.78rem;
+  border: 1px solid #E1E8F0;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(30,58,138,.035);
+}
+body.ocsp-portal .comment-card--highlighted {
+  background: linear-gradient(145deg,#EEF4FF,#F8FBFF);
+  border-color: #C9D9F6;
+}
+body.ocsp-portal .comment-avatar {
+  width: 35px;
+  height: 35px;
+  flex-basis: 35px;
+  background: linear-gradient(145deg,var(--royal-blue),var(--bright-blue));
+  box-shadow: 0 6px 13px rgba(37,99,235,.15);
+}
+body.ocsp-portal .comment-header strong {
+  color: #203957;
+}
+body.ocsp-portal .comment-header time,body.ocsp-portal .comment-copy p {
+  color: var(--slate-gray);
+}
+body.ocsp-portal .role-badge {
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+body.ocsp-portal .role-badge--citizen {
+  color: var(--royal-blue);
+  background: #EEF4FF;
+  border-color: #D8E3FB;
+}
+body.ocsp-portal .role-badge--admin {
+  color: #ffffff;
+  background: var(--bright-blue);
+}
+body.ocsp-portal .rating-panel {
+  margin-top: 1.15rem;
+  padding: 1rem;
+  background: linear-gradient(125deg,#FFF9EF,#F4FBF8);
+  border: 1px solid #E8E4D8;
+  border-radius: 13px;
+  box-shadow: 0 6px 18px rgba(30,58,138,.04);
+}
+body.ocsp-portal .rating-copy h3 {
+  color: var(--royal-blue);
+}
+body.ocsp-portal .rating-stars button {
+  color: #B5BCC7;
+}
+body.ocsp-portal .rating-stars button:hover {
+  color: #E3A129;
+  transform: translateY(-1px);
+}
+
+body.ocsp-portal .issue-dialog__header {
+  background: linear-gradient(135deg,#F7FAFF,#F6FCF9);
+  border-bottom: 1px solid #E3EAF1;
+}
+body.ocsp-portal .issue-dialog__header h2 {
+  color: var(--royal-blue);
+}
+body.ocsp-portal .location-capture {
+  color: #245E4E;
+  background: linear-gradient(110deg,var(--pale-green),#F6FBF9);
+  border-color: #CBEBDD;
+}
+body.ocsp-portal .location-capture__button {
+  color: #167C5B;
+  border-color: #7DD6B6;
+}
+body.ocsp-portal .location-capture__button:hover {
+  color: #ffffff;
+  background: #1F9D72;
+  border-color: #1F9D72;
+}
+body.ocsp-portal .initial-status-note {
+  color: #294868;
+  background: linear-gradient(90deg,var(--primary-soft),#F7FAFF);
+}
+@media (max-width:991.98px) {
+  body.ocsp-portal .ocsp-page-container {
+    width: min(100% - 1.5rem,1320px);
+  }
+}
+@media (max-width:767.98px) {
+  body.ocsp-portal .issues-heading :is(h1,h2) {
+    font-size: 1.65rem;
+  }
+  body.ocsp-portal .ocsp-control-row {
+    row-gap: .7rem!important;
+  }
+  body.ocsp-portal .ocsp-filter-trigger {
+    min-height: 46px;
+  }
+  body.ocsp-portal .issue-card .border-end {
+    border-right: 0!important;
+    padding-right: calc(var(--bs-gutter-x) * .5)!important;
+  }
+  body.ocsp-portal .comments-column {
+    margin-top: 1.25rem;
+    padding-left: calc(var(--bs-gutter-x) * .5)!important;
+  }
+  body.ocsp-portal .attachment-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+@media (max-width:575.98px) {
+  body.ocsp-portal .ocsp-page-container {
+    width: calc(100% - 1rem);
+  }
+  body.ocsp-portal .active-filters-panel .d-flex {
+    align-items: flex-start!important;
+  }
+  body.ocsp-portal .attachment-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+}

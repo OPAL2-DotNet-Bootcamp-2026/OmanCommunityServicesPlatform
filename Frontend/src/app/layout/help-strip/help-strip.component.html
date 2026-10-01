@@ -1,0 +1,17 @@
+<section class="help-strip" aria-labelledby="helpStripTitle">
+  <div class="container-xxl px-3 px-md-4 help-strip__inner">
+    <div class="help-strip__main" ocspReveal="static">
+      <span class="help-strip__icon" aria-hidden="true"><i class="bi bi-headset"></i></span>
+      <div>
+        <h2 id="helpStripTitle">{{ content().title }}</h2>
+        <p>{{ content().text }}</p>
+      </div>
+    </div>
+    <div class="help-strip__contacts" role="group" aria-label="Support contact options">
+      @if (content().showPhone) {
+        <a class="help-strip__contact" href="tel:80000000"><i class="bi bi-telephone" aria-hidden="true"></i>8000 0000</a>
+      }
+      <a class="help-strip__contact" [href]="'mailto:' + content().email"><i class="bi bi-envelope" aria-hidden="true"></i>{{ content().emailLabel }}</a>
+    </div>
+  </div>
+</section>

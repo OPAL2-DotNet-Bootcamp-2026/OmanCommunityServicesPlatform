@@ -1,0 +1,166 @@
+<header class="page-hero page-hero--compact">
+  <div class="container-xxl px-3 px-md-4 py-5">
+    <div class="page-hero__grid">
+      <div ocspReveal="static">
+        <nav class="breadcrumb-ocsp" aria-label="Breadcrumb">
+          <a [routerLink]="paths.home">Home</a>
+          <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          <span aria-current="page">My Issues</span>
+        </nav>
+        <h1>Track every report.</h1>
+        <p class="page-hero__copy">Follow your submitted civic issues, read municipal updates and share feedback after work is completed.</p>
+        <div class="page-hero__actions">
+          <a class="btn-ocsp-primary" href="#createIssueModal" aria-controls="createIssueModal" aria-haspopup="dialog"
+            (click)="$event.preventDefault(); openCreateDialog()">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>Create a new issue
+          </a>
+          <a class="btn-ocsp-light" [routerLink]="[]" fragment="citizenIssuesGallery"><i class="bi bi-arrow-down"></i>View my reports</a>
+        </div>
+      </div>
+      <aside class="hero-panel" aria-label="Report summary" ocspReveal="static" [revealIndex]="1">
+        <span class="hero-panel__label">Reports on your account</span>
+        <p class="hero-panel__value">{{ counts()['total'] }} total issue{{ counts()['total'] === 1 ? "" : "s" }}</p>
+        <p class="hero-panel__copy">{{ data() ? heroSummary() : "Loading your reports..." }}</p>
+        <div class="hero-panel__divider"></div>
+        <div class="d-flex align-items-center justify-content-between gap-3">
+          <div>
+            <span class="hero-panel__label">Completed</span>
+            <p class="hero-panel__value mb-0">{{ counts()['resolved'] }} resolved</p>
+          </div>
+          <i class="bi bi-check-circle-fill fs-2 text-success" aria-hidden="true"></i>
+        </div>
+      </aside>
+    </div>
+  </div>
+</header>
+
+<main class="my-issues-shell ocsp-page ocsp-page--citizen" id="mainContent">
+  <div class="container-xxl py-4 py-lg-5 ocsp-page-container">
+    <div class="issues-toolbar">
+      <div class="issues-heading">
+        <span class="page-kicker"><i class="bi bi-person-circle"></i>Citizen Portal</span>
+        <h2>My Issues</h2>
+        <p>Track your submitted civic issues, status changes, staff updates and service ratings.</p>
+      </div>
+    </div>
+
+    <!-- The stat tiles are labels for these radios, so a tile also filters by its status. -->
+    @for (tile of statusTiles; track tile.id) {
+      <input class="issue-summary-filter-input visually-hidden" type="radio" name="citizen-issue-summary-filter"
+        [id]="tile.id" aria-controls="citizenIssuesGallery" [checked]="filters().status === tile.status"
+        (change)="setStatusFilter(tile.status)" />
+    }
+    <section class="issue-stats" aria-label="Issue statistics and status filters">
+      @for (tile of statusTiles; track tile.id) {
+        <label class="issue-stat issue-stat--{{ tile.key }} issue-summary-filter-label" [for]="tile.id" ocspReveal="static" [revealIndex]="$index">
+          <span class="issue-stat__icon"><i class="bi {{ tile.icon }}"></i></span>
+          <span class="issue-stat__copy">
+            <strong class="issue-stat__value" ocspCountUp [countTo]="counts()[tile.key] ?? 0" [countMinDigits]="2"></strong>
+            <span class="issue-stat__label">{{ tile.label }}</span>
+          </span>
+        </label>
+      }
+    </section>
+
+    <div class="row g-2 mb-4 align-items-center ocsp-control-row">
+      <div class="col">
+        <label class="visually-hidden" for="searchInput">Search issues by title</label>
+        <div class="input-group shadow-sm ocsp-search">
+          <span class="input-group-text bg-white border-end-0 px-3"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" class="form-control border-start-0 py-2" placeholder="Search by issue title..." id="searchInput"
+            [value]="searchText()" (input)="onSearch($any($event.target).value)">
+        </div>
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-white border shadow-sm position-relative d-flex align-items-center gap-2 bg-white px-3 py-2 ocsp-filter-trigger"
+          aria-controls="filterDrawer" aria-haspopup="dialog" (click)="filterDrawer.open()">
+          <i class="bi bi-funnel-fill text-primary"></i>
+          <span class="fw-semibold">Filters & Sort</span>
+          @if (activeFilterCount()) {
+            <span class="badge bg-primary rounded-pill ms-1">{{ activeFilterCount() }}</span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <ocsp-active-filters-panel [filters]="filters()" (remove)="removeFilter($event)" (clearAll)="clearFilters()" />
+
+    <div ocspStatusAlert #pageStatusAlert [status]="pageStatus()" spacing="mb-4" role="status" tabindex="-1"></div>
+
+    @if (retryQueue.hasPending()) {
+      <div class="alert alert-warning mb-4" aria-live="polite" [attr.aria-busy]="retryingIssueId() !== null ? 'true' : null">
+        <strong class="d-block mb-2">Some issue images still need to be attached.</strong>
+        @for (pending of retryQueue.pending(); track pending.issueId) {
+          <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mt-2">
+            <span>Issue #{{ pending.issueId }}: retry the saved image URL without creating another issue.</span>
+            <button type="button" class="ocsp-button ocsp-button--cancel flex-shrink-0" [attr.aria-label]="'Retry image for issue #' + pending.issueId"
+              [disabled]="retryBlocked(pending.issueId)" (click)="retryImage(pending.issueId)">
+              @if (retryingIssueId() === pending.issueId) {
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Retrying image...
+              } @else {
+                <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>Retry image
+              }
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <p class="visually-hidden" aria-live="polite">
+      @if (data()) {
+        {{ issues().length === 0 ? "No issues submitted yet." : "Showing " + visibleIssues().length + " of " + issues().length + " issue" + (issues().length === 1 ? "" : "s") + "." }}
+      }
+    </p>
+
+    <div class="issues-gallery issues-gallery--citizen" id="citizenIssuesGallery" [attr.aria-busy]="!data() && !loadError()">
+      @if (loadError()) {
+        <div class="alert alert-danger" role="alert">
+          <p>{{ loadError() }}</p>
+          <button class="ocsp-button ocsp-button--submit" type="button" (click)="load()">Try again</button>
+        </div>
+      } @else if (!data()) {
+        <ocsp-loading-skeleton [count]="3" variant="issue" label="Loading issues..." />
+      } @else if (issues().length === 0) {
+        <div class="ocsp-card p-4 text-center" role="status">
+          <i class="bi bi-clipboard-plus fs-2 text-primary mb-2" aria-hidden="true"></i>
+          <h3 class="h5">No issues submitted yet</h3>
+          <p class="text-muted mb-3">Create your first report to start tracking community service work.</p>
+          <button class="ocsp-button ocsp-button--submit align-self-center" type="button" (click)="openCreateDialog()">Report an issue</button>
+        </div>
+      } @else if (visibleIssues().length === 0) {
+        <div class="ocsp-card p-4 text-center" role="status">
+          <i class="bi bi-search fs-2 text-primary mb-2" aria-hidden="true"></i>
+          <h3 class="h5">No matching issues</h3>
+          <p class="text-muted mb-3">Try changing your search or filters.</p>
+          <button class="ocsp-button ocsp-button--cancel align-self-center" type="button" (click)="clearFilters()">Clear filters</button>
+        </div>
+      } @else {
+        <div class="issues-list">
+          @for (issue of visibleIssues(); track issue.issueId) {
+            <article ocspIssueCard [issue]="issue" ocspReveal [revealIndex]="$index"
+              ocspNearViewport (nearViewport)="loadPhoto(issue)" (open)="showDetails(issue.issueId, $event)"></article>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</main>
+
+<!-- Stays put the whole way down the list; the plus turns into a close mark while the dialog is open. -->
+<a class="btn-ocsp-primary issues-fab" href="#createIssueModal" aria-controls="createIssueModal" aria-haspopup="dialog"
+  [attr.aria-expanded]="createDialogOpen()" [attr.aria-label]="createDialogOpen() ? 'Close the new issue form' : 'Create a new issue'"
+  (click)="$event.preventDefault(); createDialogOpen() ? createIssueDialog.close() : openCreateDialog()">
+  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+</a>
+
+<ocsp-issue-filters-drawer #filterDrawer [filters]="filters()" [departments]="departments()" [categories]="categoryNames()"
+  (filtersChange)="filters.set($event)" (resetFilters)="clearFilters()" />
+
+<ocsp-create-issue-dialog #createIssueDialog [categories]="data()?.categories ?? []" [regions]="data()?.regions ?? []"
+  (created)="onIssueCreated($event)" (openChange)="createDialogOpen.set($event)" />
+
+@if (detailIssue(); as issue) {
+  <ocsp-citizen-issue-detail-dialog [issue]="issue" [imageRetryRunning]="isImageRetryRunning(issue.issueId)"
+    (closed)="onDetailClosed()" (imageSaved)="onImageSaved($event)" (imageUpdateBusy)="onImageUpdateBusy(issue.issueId, $event)"
+    (statusChanged)="onStatusChanged($event)" (ratingSaved)="onRatingSaved($event)" />
+}

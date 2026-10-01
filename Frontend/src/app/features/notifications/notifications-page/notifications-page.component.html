@@ -1,0 +1,79 @@
+<main id="mainContent">
+  <header class="page-hero page-hero--compact">
+    <div class="container-xxl px-3 px-md-4 py-5">
+      <div class="page-hero__grid">
+        <div ocspReveal="static">
+          <nav class="breadcrumb-ocsp" aria-label="Breadcrumb">
+            <a [routerLink]="paths.home">Home</a>
+            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+            <span aria-current="page">Notifications</span>
+          </nav>
+          <span class="page-kicker"><i class="bi bi-bell" aria-hidden="true"></i>Your account</span>
+          <h1>Notifications</h1>
+          <p class="page-hero__copy">Follow status changes and new activity connected to your community reports.</p>
+        </div>
+
+        <aside class="hero-panel" aria-label="Unread notification summary" ocspReveal="static" [revealIndex]="1">
+          <span class="hero-panel__label">Unread updates</span>
+          @if (notifications() === null) {
+            <p class="hero-panel__value">Loading...</p>
+          } @else if (unread()) {
+            <p class="hero-panel__value" ocspCountUp [countTo]="unread()" [countSuffix]="unread() === 1 ? ' notification' : ' notifications'"></p>
+          } @else {
+            <p class="hero-panel__value">No unread notifications</p>
+          }
+          <p class="hero-panel__copy">Review the latest progress on reports that matter to you.</p>
+        </aside>
+      </div>
+    </div>
+  </header>
+
+  <section class="content-shell content-shell--compact" aria-labelledby="recentActivityTitle">
+    <div class="container-xxl px-3 px-md-4">
+      <div class="row justify-content-center">
+        <div class="col-12 col-xl-9">
+          <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-between gap-3 mb-4">
+            <div>
+              <span class="section-heading__kicker">Account activity</span>
+              <h2 class="h4 mb-1" id="recentActivityTitle">Recent activity</h2>
+              <p class="small text-secondary mb-0" aria-live="polite">
+                @if (notifications() === null) {
+                  Loading notifications...
+                } @else if (unread()) {
+                  You have {{ unread() }} unread notification{{ unread() === 1 ? "" : "s" }}.
+                } @else {
+                  You have no unread notifications.
+                }
+              </p>
+            </div>
+            <span class="filter-chip align-self-start align-self-sm-center">
+              <i class="bi bi-sort-down" aria-hidden="true"></i>Updates shown newest first
+            </span>
+          </div>
+
+          <div ocspStatusAlert [status]="status()" spacing="mb-4"></div>
+
+          @if (loadError()) {
+            <div class="alert alert-danger" role="alert">
+              <p class="mb-3">{{ loadError() }}</p>
+              <button class="ocsp-button ocsp-button--submit" type="button" (click)="load()">Try again</button>
+            </div>
+          } @else if (notifications(); as notifications) {
+            <div aria-busy="false">
+              <ocsp-notification-list [notifications]="notifications" [role]="role()" (open)="open($event)" />
+            </div>
+            @if (notifications.length) {
+              <p class="small text-secondary text-center mt-4 mb-0 pt-2">
+                <i class="bi bi-check2-circle me-1" aria-hidden="true"></i>All recent notifications are shown.
+              </p>
+            }
+          } @else {
+            <div aria-busy="true">
+              <ocsp-loading-skeleton variant="notification" label="Loading notifications..." />
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

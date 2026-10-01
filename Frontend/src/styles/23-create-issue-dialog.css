@@ -1,0 +1,62 @@
+/* ==========================================================================
+   23. Create-issue dialog foundation
+   ========================================================================== */
+
+body.ocsp-portal .create-issue-modal {
+  --bs-modal-margin: 1rem;
+}
+body.ocsp-portal .create-issue-modal .create-issue-dialog {
+  width: calc(100% - 2rem);
+  margin-inline: auto;
+}
+body.ocsp-portal .create-issue-modal .modal-content {
+  max-height: calc(100dvh - 2rem);
+  overflow: hidden;
+}
+body.ocsp-portal .create-issue-modal .modal-header {
+  position: relative;
+  flex: 0 0 auto;
+  gap: 1rem;
+}
+body.ocsp-portal .create-issue-modal .modal-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+body.ocsp-portal .create-issue-modal .dialog-close {
+  min-width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  margin: -0.4rem -0.4rem -0.4rem auto;
+  border-radius: 50%;
+}
+body.ocsp-portal .create-issue-modal .btn-primary {
+  min-height: 42px;
+  color: #ffffff;
+  background: linear-gradient(135deg,var(--royal-blue),var(--bright-blue));
+  border-color: transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 9px 18px rgba(37,99,235,0.18);
+}
+body.ocsp-portal .create-issue-modal .btn-primary:hover,body.ocsp-portal .create-issue-modal .btn-primary:focus-visible {
+  color: #ffffff;
+  background: linear-gradient(135deg,#172f72,#1f55d6);
+  border-color: transparent;
+}
+@media (max-width:575.98px) {
+  body.ocsp-portal .create-issue-modal {
+    --bs-modal-margin: 0;
+  }
+  body.ocsp-portal .create-issue-modal .create-issue-dialog {
+    width: 100%;
+    min-height: 100dvh;
+    margin: 0;
+  }
+  body.ocsp-portal .create-issue-modal .modal-content {
+    min-height: 100dvh;
+    max-height: 100dvh;
+  }
+  body.ocsp-portal .create-issue-modal .modal-header {
+    padding-inline: 1rem;
+  }
+}

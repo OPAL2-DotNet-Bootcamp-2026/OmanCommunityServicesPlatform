@@ -1,0 +1,49 @@
+<nav class="site-nav" aria-label="Primary navigation">
+  <div class="container-xxl px-3 px-md-4 site-nav__inner">
+    <a class="site-brand" [routerLink]="paths.home" aria-label="OCSP home">
+      <span class="site-brand__mark" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+      <span>
+        <span class="site-brand__name">OCSP</span>
+        <span class="site-brand__subtitle">Oman Community Services Platform</span>
+      </span>
+    </a>
+
+    <input #menuSwitch class="nav-switch" type="checkbox" id="siteNavSwitch" aria-label="Toggle navigation menu" aria-controls="siteNavMenu">
+    <label class="nav-toggle" for="siteNavSwitch" aria-label="Open or close navigation">
+      <i class="bi bi-list" aria-hidden="true"></i>
+    </label>
+
+    <div class="nav-menu" id="siteNavMenu">
+      <a class="nav-link-ocsp" [routerLink]="paths.home" routerLinkActive="is-active" ariaCurrentWhenActive="page"
+        [routerLinkActiveOptions]="{ exact: true }">Home</a>
+      @if (isCitizen()) {
+        <a class="nav-link-ocsp" [routerLink]="paths.myIssues" routerLinkActive="is-active" ariaCurrentWhenActive="page">My Issues</a>
+      }
+      @if (isStaff()) {
+        <a class="nav-link-ocsp" [routerLink]="paths.dashboard" routerLinkActive="is-active" ariaCurrentWhenActive="page">Dashboard</a>
+      }
+      @if (user()) {
+        <a class="nav-link-ocsp" [routerLink]="paths.notifications" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+          Notifications
+          @if (notifications.unreadCount(); as count) {
+            <span #countBadge class="nav-count" [attr.aria-label]="unreadLabel(count)">{{ count }}</span>
+          }
+        </a>
+      }
+
+      @if (user(); as user) {
+        <a class="user-chip" [href]="paths.login" [attr.aria-label]="'Sign out ' + user.name" (click)="signOut($event)">
+          <span class="user-chip__avatar" aria-hidden="true">{{ user.name | initials: "U" }}</span>
+          <span>{{ user.name }}</span>
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+        </a>
+      } @else {
+        <a class="user-chip" [routerLink]="paths.login" ariaCurrentWhenActive="page" routerLinkActive="" aria-label="Sign in">
+          <span class="user-chip__avatar" aria-hidden="true">?</span>
+          <span>Sign in</span>
+          <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+        </a>
+      }
+    </div>
+  </div>
+</nav>

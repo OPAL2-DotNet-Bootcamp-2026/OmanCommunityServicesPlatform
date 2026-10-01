@@ -1,130 +1,102 @@
 # OCSP Frontend
 
-The web client for the Oman Community Services Platform. TypeScript, built with
-Vite, structured so the move to Angular is mechanical.
+The web client for the Oman Community Services Platform, built with **Angular 22**
+(standalone components, signals, `HttpClient` interceptors, functional route guards).
 
 ```bash
 npm install
-npm run dev        # http://localhost:4200
+npm start            # http://localhost:4200 (ng serve)
 npm run typecheck
 npm run lint
-npm run build
+npm test             # unit tests (Vitest)
+npm run build        # production build in dist/
 ```
 
-The API base URL defaults to `http://localhost:5037`, matching the `http` launch
-profile of the Web API. Override it with a `.env.local` containing
-`VITE_API_BASE_URL=...`, or by setting `window.OCSP_RUNTIME_CONFIG` before the
-page scripts load on a host that cannot rebuild the bundle.
+Start the API first (`http` launch profile, port 5037). The client has no mock data.
+The API address is in `src/environments/environment.development.ts` (dev) and
+`environment.ts` (production builds).
 
-Start the backend first — the client is API-only and has no mock data.
+## Pages
 
-## Layout
+| Address | Page | Who |
+| --- | --- | --- |
+| `/` | Home | everyone |
+| `/login`, `/register` | Sign in, create account | signed-out users |
+| `/my-issues` | Citizen portal: issues, create dialog, details dialog | Citizen |
+| `/payment-result?paymentId=` | Result of an urgent-issue payment (Thawani returns here) | Citizen |
+| `/dashboard` | Staff/Admin workspace; `?issueId=` opens an issue | Staff, Admin |
+| `/notifications` | Notifications | any signed-in user |
+
+The old `pages/*.html` addresses no longer exist: `pages/my-issues.html` is now `/my-issues`, and so on.
+
+## Folder structure
 
 ```
 src/
-  bootstrap.ts        composition root and page router - the only place that calls new
-  models.ts           the backend contract as interfaces
-  enums.ts            string unions matching the C# enums
-  text.ts             safe coercion for untrusted values and form data
-  dom.ts              byId / setAlert / errorMessage
-  globals.d.ts        window.bootstrap, window.OCSP_RUNTIME_CONFIG
-  core/
-    config.ts         app configuration
-    api-client.ts     HTTP layer, generic methods, ApiError
-    api-endpoints.ts  every backend route in one place
-    settled.ts        helpers for "one essential request, several optional ones"
-  services/           session, auth, data, dashboard
-  components/         issue / dashboard / notification renderers, site-session
-  pages/              one class per HTML page, each exposing start()
-pages/*.html          six entries, each loading /src/bootstrap.ts
+  main.ts · index.html · styles.css        styles.css imports src/styles/ in order
+  styles/NN-what-it-styles.css             the site's global CSS, split by section
+  environments/                            API address per build
+  app/
+    app.component.{ts,html,css}            the shell: header, page, help strip, footer, toasts
+    app.config.ts                          providers: router, HttpClient + interceptors
+    app.routes.ts                          every page, its guard, roles and help strip
+    core/                                  app-wide plumbing, no UI
+      api/        endpoints, ApiError, interceptors (base URL, token, errors)
+      auth/       SessionService, AuthService, route guards
+      config/     APP_CONFIG token
+      models/     the backend DTOs, one file per entity
+      routing/    page addresses, roles per page, route data, help-strip wording
+      utils/      small pure functions (dates, filtering, text)
+    layout/                                the parts around every page
+      site-header/ · site-footer/ · help-strip/ · current-page.service.ts
+    shared/                                reusable building blocks
+      components/ directives/ pipes/ services/ utils/
+    features/                              one folder per feature, holding its pages and its service
+      home/ · auth/ · citizen-issues/ · staff-dashboard/ · notifications/ · payments/
 ```
+
+## Naming rules
+
+- **Every component is a folder** with three files: `name.component.ts`, `.html`, `.css`.
+  Related components may sit under a group folder (`shared/components/issue-badges/status-badge/`).
+- **The file name says what is inside**: `<what>.<kind>.ts`, where kind is `component`,
+  `service`, `guard`, `interceptor`, `directive`, `pipe`, `model` or `util`.
+  `staff-dashboard.service.ts` is the staff dashboard's data; `toast.service.ts` shows toasts.
+- **Pages end in `-page`**, dialogs in `-dialog`: `my-issues-page/`, `create-issue-dialog/`.
+- **Selectors start with `ocsp-`** (`<ocsp-site-header>`). A few components use an attribute
+  instead (`<span ocspStatusBadge>`, `<article ocspIssueCard>`) so the element stays a real
+  `<span>`/`<button>`/`<div>` and the existing CSS keeps matching.
+- `ng generate component features/x/y-page` follows these rules (configured in `angular.json`).
+
+## Styles
+
+The site's CSS is still global, in `src/styles/01-…37-….css`, imported in its original order:
+later files deliberately refine earlier ones, so **the order matters**. Each component's `.css`
+file names the global files that style it today. Put rules that belong to one component only
+in its `.css` (Angular scopes them to that component), and move existing rules there one at a
+time as you touch them.
+
+Bootstrap 5, Bootstrap Icons and Leaflet's CSS come from npm (see `angular.json` → `styles`).
 
 ## How it fits together
 
-Each HTML page loads exactly one module:
+- **HTTP.** Services call `HttpClient` with paths from `core/api/api-endpoints.ts`. Three
+  interceptors run on every request: add the API address, add `Authorization: Bearer` (only to
+  our API, never to OpenStreetMap), and turn failures into an `ApiError` whose `message` is
+  safe to show. A 401 outside sign-in signs the user out and returns them to `/login`.
+- **Session.** `SessionService` keeps the JWT in `sessionStorage` (closing the tab signs out),
+  rejects an expired token, and exposes `currentUser` as a signal.
+- **Guards.** `signedInGuard` checks the session and `route.data.roles`; `guestOnlyGuard`
+  sends a signed-in user home. Return-to-after-login only accepts known pages the role may open.
+- **Pages** hold state in signals; lists, counts and filters are `computed()`. Optional
+  requests (lookups, notifications) degrade to a warning instead of failing the page.
+- **Dialogs** wrap Bootstrap's own JavaScript (`BootstrapModalDirective`,
+  `BootstrapOffcanvasDirective`), so focus trapping, Escape and backdrops behave as before.
 
-```html
-<script type="module" src="/src/bootstrap.ts"></script>
-```
+## Adding a page
 
-`bootstrap.ts` builds `ApiClient` and `SessionService`, runs the route guard,
-then looks up the current page by filename and lazily imports it with its
-services. The dynamic imports are deliberate: Vite gives each page its own
-chunk, so my-issues does not ship the dashboard's code.
-
-Three rules hold across the codebase:
-
-1. **ES modules only.** No globals. `window.OCSP` does not exist.
-2. **Services are classes; dependencies arrive through the constructor.**
-   Nothing reaches out to find a collaborator.
-3. **Renderers are pure.** Data in, HTML string out. No fetching, no document
-   access. `site-session` is the single deliberate exception — it owns the
-   chrome around every page.
-
-Page protection is declared in markup, so the guard stays generic:
-
-```html
-<body data-auth-page="protected" data-allowed-roles="Staff, Admin">
-```
-
-`data-auth-page` is `public`, `guest` (signed-in users are bounced away) or
-`protected`. Role visibility within a page uses `data-role-hidden`,
-`data-nav-roles` and `data-nav-auth`.
-
-## Moving to Angular
-
-The structure was chosen so this is a port, not a rewrite.
-
-| Here | There |
-| --- | --- |
-| `core/config.ts` | `environments/environment.ts` + an `APP_CONFIG` token |
-| `core/api-client.ts` | `HttpClient` wrapper + auth and error `HttpInterceptor`s |
-| `services/*.service.ts` | add `@Injectable({providedIn:"root"})` — names unchanged |
-| `models.ts`, `enums.ts` | copied over as they are |
-| `components/*-renderers.ts` | `@Component`; the returned template string becomes the template, the arguments become `@Input()`s |
-| `pages/*.page.ts` | routed standalone components; `start()` becomes `ngOnInit` |
-| `bootstrap.ts` | `app.routes.ts` with lazy `loadComponent` |
-| `SiteSession.isPageAllowed` | a `CanActivate` guard |
-| `data-auth-page` / `data-allowed-roles` | route `data` on the guard |
-
-Concretely, `DataService` needs one decorator and nothing else:
-
-```ts
-@Injectable({ providedIn: "root" })
-export class DataService {
-  constructor(
-    private readonly api: ApiClient,
-    private readonly session: SessionService
-  ) {}
-}
-```
-
-Two things to decide when you get there, neither of them blocking:
-
-- **Promises or RxJS.** The services return promises today. Angular's
-  `HttpClient` returns observables; `firstValueFrom` bridges them, or convert the
-  service bodies. The method signatures stay the same either way.
-- **The renderers return HTML strings**, which a template replaces directly. Keep
-  them pure and that is a copy-paste; let one start fetching and it becomes a
-  rewrite.
-
-Port order that keeps a working app throughout: models and enums, then `core`,
-then services, then one page at a time.
-
-## Notes on the code
-
-- The backend serialises its enums as **strings** (`StoreEnumsAsStrings`
-  migration), so they are string unions here — `"Open"`, never `0`.
-- `Issue` carries fields the DTO does not send. `categoryId`, `regionId` and
-  `governorate` are resolved client-side by matching names against the lookup
-  lists, which is why they are nullable. `ui` is presentation-only.
-- Both dashboards degrade rather than fail: the issue list is the essential
-  request, everything around it is `Promise.allSettled`, and the names of failed
-  sections surface as warnings on the page.
-- Writes update local state from the response instead of refetching, so a later
-  read failure can never make a saved change look like a failed one.
-- `ApiError` calls `Object.setPrototypeOf` in its constructor. Without it
-  `instanceof ApiError` returns false once transpiled, and every page branches
-  on that check.
-- The dashboard's issue dialog is URL-driven, so Back and Forward work and
-  notification deep links (`?issueId=`) are consumed exactly once.
+1. `npx ng generate component features/<feature>/<name>-page`
+2. Add a route in `app.routes.ts` with `loadComponent`, a `title`, and, if it needs a
+   signed-in user, `canActivate: [signedInGuard]` with `data: { roles: [...] }`.
+3. Add its path to `core/routing/app-paths.ts` (and to `PAGE_ROLES` if it is a valid return-to target).
+4. Render its own `<main id="mainContent">`; the shell already provides the header and footer.

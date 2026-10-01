@@ -1,0 +1,195 @@
+<section #dialog class="reference-admin-modal" id="adminManagement" role="dialog" aria-modal="true" tabindex="-1"
+  [class.is-open]="isOpen()" [class.has-panel]="panel() !== null" [hidden]="!isOpen()"
+  aria-labelledby="adminManagementTitle" aria-describedby="adminManagementDescription" (keydown)="onKeydown($event)">
+  <a class="ocsp-target-backdrop ocsp-target-backdrop--modal" href="#adminManagementTrigger" aria-label="Close platform setup"
+    tabindex="-1" (click)="$event.preventDefault(); close()"></a>
+
+  <div class="reference-admin-dialog">
+    <div class="reference-admin">
+      <header class="reference-admin__header">
+        <div>
+          <span class="reference-admin__eyebrow"><i class="bi bi-sliders2" aria-hidden="true"></i>Admin setup</span>
+          <h2 id="adminManagementTitle">Manage Platform Setup</h2>
+          <p id="adminManagementDescription">Choose what you want to add, then complete the matching setup form.</p>
+        </div>
+        <button type="button" class="reference-admin__close border-0 bg-transparent" aria-label="Close platform setup" (click)="close()">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="reference-admin__body">
+        <section class="reference-admin__chooser" aria-labelledby="adminManagementChoiceTitle">
+          <div class="reference-admin__chooser-heading">
+            <div>
+              <h3 id="adminManagementChoiceTitle">What would you like to add?</h3>
+              <p>Select one setup type. Its complete form will appear below.</p>
+            </div>
+            <span class="reference-admin__status"><i class="bi bi-database-check" aria-hidden="true"></i>Connected to platform API</span>
+          </div>
+
+          <div class="reference-admin__flow" aria-label="Recommended setup order">
+            <span class="reference-admin__flow-item"><b>1</b> Region</span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            <span class="reference-admin__flow-item"><b>2</b> Department</span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            <span class="reference-admin__flow-item"><b>3</b> Category</span>
+          </div>
+
+          <nav class="reference-admin__workspace" aria-label="Choose a platform setup type">
+            <div class="reference-admin__switcher">
+              <a class="reference-admin__label" id="manageRegionsLabel" href="#adminRegionPanel" aria-controls="adminRegionPanel"
+                [class.is-active]="panel() === 'regions'" [attr.aria-current]="panel() === 'regions' ? 'true' : null" (click)="choose('regions', $event)">
+                <i class="bi bi-geo-alt" aria-hidden="true"></i>Regions
+              </a>
+              <a class="reference-admin__label" id="manageDepartmentsLabel" href="#adminDepartmentPanel" aria-controls="adminDepartmentPanel"
+                [class.is-active]="panel() === 'departments'" [attr.aria-current]="panel() === 'departments' ? 'true' : null" (click)="choose('departments', $event)">
+                <i class="bi bi-building" aria-hidden="true"></i>Departments
+              </a>
+              <a class="reference-admin__label" id="manageCategoriesLabel" href="#adminCategoryPanel" aria-controls="adminCategoryPanel"
+                [class.is-active]="panel() === 'categories'" [attr.aria-current]="panel() === 'categories' ? 'true' : null" (click)="choose('categories', $event)">
+                <i class="bi bi-tags" aria-hidden="true"></i>Categories
+              </a>
+            </div>
+          </nav>
+
+          <div class="reference-admin__selection-prompt">
+            <span class="reference-admin__selection-icon" aria-hidden="true"><i class="bi bi-hand-index-thumb"></i></span>
+            <div>
+              <strong>Select a setup type</strong>
+              <span>The corresponding form will be displayed here.</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="reference-admin__panels">
+          <section class="reference-admin__panel reference-admin__panel--regions" id="adminRegionPanel" aria-labelledby="manageRegionsLabel"
+            tabindex="-1" [class.is-active]="panel() === 'regions'">
+            <div class="reference-admin__intro">
+              <span class="reference-admin__step">Step 01</span>
+              <span class="reference-admin__icon" aria-hidden="true"><i class="bi bi-geo-alt"></i></span>
+              <h3>Add a region</h3>
+              <p>Regions define the service area used when departments and citizen reports are routed.</p>
+            </div>
+            <form class="reference-admin__form" ngNativeValidate [formGroup]="regionForm" (ngSubmit)="addRegion()" aria-describedby="adminManagementNote" autocomplete="off">
+              <fieldset [disabled]="saving()">
+                <legend class="visually-hidden">New region details</legend>
+                <div class="reference-admin__field-grid">
+                  <div class="reference-admin__field">
+                    <label class="form-label" for="adminRegionName">Region name</label>
+                    <input class="form-control" id="adminRegionName" formControlName="regionName" type="text" maxlength="100" required placeholder="Example: Bawshar">
+                  </div>
+                  <div class="reference-admin__field">
+                    <label class="form-label" for="adminRegionGovernorate">Governorate</label>
+                    <select class="form-select" id="adminRegionGovernorate" formControlName="governorate" required>
+                      <option value="" disabled>Select a governorate</option>
+                      @for (governorate of governorates; track governorate.value) {
+                        <option [value]="governorate.value">{{ governorate.label }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+                <div class="reference-admin__actions">
+                  <button class="btn ocsp-button ocsp-button--cancel" type="button" (click)="regionForm.reset()">Clear</button>
+                  <button ocspBusyButton class="btn ocsp-button ocsp-button--submit" type="submit" aria-describedby="adminManagementNote"
+                    [busy]="saving()" busyLabel="Adding region..."><i class="bi bi-plus-lg" aria-hidden="true"></i>Add region</button>
+                </div>
+              </fieldset>
+            </form>
+          </section>
+
+          <section class="reference-admin__panel reference-admin__panel--departments" id="adminDepartmentPanel" aria-labelledby="manageDepartmentsLabel"
+            tabindex="-1" [class.is-active]="panel() === 'departments'">
+            <div class="reference-admin__intro">
+              <span class="reference-admin__step">Step 02</span>
+              <span class="reference-admin__icon" aria-hidden="true"><i class="bi bi-building"></i></span>
+              <h3>Add a department</h3>
+              <p>Departments own service delivery and are linked to the region they support.</p>
+            </div>
+            <form class="reference-admin__form" ngNativeValidate [formGroup]="departmentForm" (ngSubmit)="addDepartment()" aria-describedby="adminManagementNote" autocomplete="off">
+              <fieldset [disabled]="saving()">
+                <legend class="visually-hidden">New department details</legend>
+                <div class="reference-admin__field-grid">
+                  <div class="reference-admin__field">
+                    <label class="form-label" for="adminDepartmentName">Department name</label>
+                    <input class="form-control" id="adminDepartmentName" formControlName="departmentName" type="text" maxlength="100" required placeholder="Example: Roads &amp; Infrastructure">
+                  </div>
+                  <div class="reference-admin__field">
+                    <label class="form-label" for="adminDepartmentEmail">Contact email</label>
+                    <input class="form-control" id="adminDepartmentEmail" formControlName="contactEmail" type="email" maxlength="150" required placeholder="roads.dept@ocsp.om">
+                  </div>
+                  <div class="reference-admin__field reference-admin__field--full">
+                    <label class="form-label" for="adminDepartmentDescription">Description</label>
+                    <textarea class="form-control" id="adminDepartmentDescription" formControlName="description" rows="3" maxlength="500"
+                      placeholder="Example: Handles road maintenance, paving, and pothole repairs."></textarea>
+                  </div>
+                  <div class="reference-admin__field reference-admin__field--full">
+                    <label class="form-label" for="adminDepartmentRegion">Region</label>
+                    <select class="form-select" id="adminDepartmentRegion" formControlName="regionId" aria-describedby="adminDepartmentRegionHint">
+                      <option value="">No region (optional)</option>
+                      @for (region of sortedRegions(); track region.regionId) {
+                        <option [value]="region.regionId">{{ region.regionName }} — {{ region.governorate }}</option>
+                      }
+                    </select>
+                    <small class="reference-admin__hint" id="adminDepartmentRegionHint">Select a region when the department belongs to a specific service area.</small>
+                  </div>
+                </div>
+                <div class="reference-admin__actions">
+                  <button class="btn ocsp-button ocsp-button--cancel" type="button" (click)="departmentForm.reset()">Clear</button>
+                  <button ocspBusyButton class="btn ocsp-button ocsp-button--submit" type="submit" aria-describedby="adminManagementNote"
+                    [busy]="saving()" busyLabel="Adding department..."><i class="bi bi-plus-lg" aria-hidden="true"></i>Add department</button>
+                </div>
+              </fieldset>
+            </form>
+          </section>
+
+          <section class="reference-admin__panel reference-admin__panel--categories" id="adminCategoryPanel" aria-labelledby="manageCategoriesLabel"
+            tabindex="-1" [class.is-active]="panel() === 'categories'">
+            <div class="reference-admin__intro">
+              <span class="reference-admin__step">Step 03</span>
+              <span class="reference-admin__icon" aria-hidden="true"><i class="bi bi-tags"></i></span>
+              <h3>Add a category</h3>
+              <p>Categories classify incoming reports and route them to the responsible department.</p>
+            </div>
+            <form class="reference-admin__form" ngNativeValidate [formGroup]="categoryForm" (ngSubmit)="addCategory()" aria-describedby="adminManagementNote" autocomplete="off">
+              <fieldset [disabled]="saving()">
+                <legend class="visually-hidden">New category details</legend>
+                <div class="reference-admin__field-grid">
+                  <div class="reference-admin__field">
+                    <label class="form-label" for="adminCategoryName">Category name</label>
+                    <input class="form-control" id="adminCategoryName" formControlName="categoryName" type="text" maxlength="100" required placeholder="Example: Potholes &amp; Asphalt">
+                  </div>
+                  <div class="reference-admin__field">
+                    <label class="form-label" for="adminCategoryDepartment">Department</label>
+                    <select class="form-select" id="adminCategoryDepartment" formControlName="departmentId" required aria-describedby="adminCategoryDepartmentHint">
+                      <option value="" disabled>Select a department</option>
+                      @for (department of sortedDepartments(); track department.departmentId) {
+                        <option [value]="department.departmentId">{{ department.departmentName }}</option>
+                      }
+                    </select>
+                    <small class="reference-admin__hint" id="adminCategoryDepartmentHint">The selected value supplies the departmentId.</small>
+                  </div>
+                  <div class="reference-admin__field reference-admin__field--full">
+                    <label class="form-label" for="adminCategoryDescription">Description</label>
+                    <textarea class="form-control" id="adminCategoryDescription" formControlName="description" rows="3" maxlength="300"
+                      placeholder="Example: Reports regarding street damage and potholes."></textarea>
+                  </div>
+                </div>
+                <div class="reference-admin__actions">
+                  <button class="btn ocsp-button ocsp-button--cancel" type="button" (click)="categoryForm.reset()">Clear</button>
+                  <button ocspBusyButton class="btn ocsp-button ocsp-button--submit" type="submit" aria-describedby="adminManagementNote"
+                    [busy]="saving()" busyLabel="Adding category..."><i class="bi bi-plus-lg" aria-hidden="true"></i>Add category</button>
+                </div>
+              </fieldset>
+            </form>
+          </section>
+        </div>
+
+        <div ocspStatusAlert id="adminManagementStatus" [status]="status()" tabindex="-1"></div>
+        <p class="reference-admin__note" id="adminManagementNote" role="note">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          Changes are saved directly through the backend's protected Admin routes.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

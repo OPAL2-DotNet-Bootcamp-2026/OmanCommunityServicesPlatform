@@ -1,0 +1,34 @@
+/**
+ * Every backend route the frontend calls, relative to the API origin (the
+ * api-base-url interceptor adds it). Casing matches the controllers exactly.
+ */
+export const apiEndpoints = Object.freeze({
+  login: "/user/login",
+  register: "/user/register",
+  myIssues: "/issue/GetMyIssues",
+  allIssues: "/issue/GetAllIssues",
+  issueById: (issueId: number) => `/issue/GetIssueById/${issueId}`,
+  createIssue: "/issue/Create",
+  changeIssueStatus: (issueId: number) => `/issue/ChangeIssueStatus/${issueId}`,
+  allStatusUpdates: "/api/StatusUpdate",
+  statusUpdatesByIssue: (issueId: number) => `/api/StatusUpdate/issue/${issueId}`,
+  categories: "/category/GetAllCategories",
+  createCategory: "/category/Add",
+  regions: "/region/GetAll",
+  createRegion: "/region/Add",
+  departments: "/department/GetAllDepartments",
+  createDepartment: "/department/Add",
+  commentsByIssue: (issueId: number) => `/comment/issue/${issueId}`,
+  createComment: "/comment/newComment",
+  attachmentsByIssue: (issueId: number) => `/attachment/Issue/${issueId}`,
+  createAttachment: "/attachment/Create",
+  updateAttachment: (attachmentId: number) => `/attachment/Update/${attachmentId}`,
+  ratingsByIssue: (issueId: number) => `/rating/GetByIssueId/${issueId}`,
+  createRating: "/rating/Create",
+  updateRating: (ratingId: number) => `/rating/Update/${ratingId}`,
+  myNotifications: "/notification/my",
+  unreadNotifications: "/notification/my/unread",
+  markNotificationRead: (notificationId: number) => `/notification/${notificationId}/read`,
+  checkout: "/payment/checkout",
+  paymentById: (paymentId: number) => `/payment/${paymentId}`
+});

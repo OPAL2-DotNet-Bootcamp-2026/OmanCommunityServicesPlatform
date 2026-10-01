@@ -1,0 +1,59 @@
+<main class="auth-shell" id="mainContent">
+  <div class="container-xxl px-3 px-md-4">
+    <div class="auth-card" ocspReveal="static">
+      <section class="auth-visual" aria-labelledby="loginWelcomeTitle">
+        <div>
+          <p class="mb-2 text-uppercase fw-bold"><i class="bi bi-shield-check me-2"></i>Secure citizen access</p>
+          <p class="auth-visual__title" id="loginWelcomeTitle">Your community services, in one place.</p>
+          <p>Sign in to report local concerns, follow their progress and stay informed as service teams respond.</p>
+          <ul class="auth-benefits">
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Track every report from submission to resolution</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Receive clear service-status notifications</li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i>Access civic services securely</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="auth-form-panel" aria-labelledby="loginTitle">
+        <div class="auth-form-panel__header">
+          <p class="mb-2 text-uppercase fw-bold text-primary"><i class="bi bi-person-circle me-2"></i>Citizen portal</p>
+          <h1 id="loginTitle">Sign In</h1>
+          <p>Welcome back to the Oman Community Services Platform.</p>
+        </div>
+
+        <div ocspStatusAlert [status]="status()" tabindex="-1"></div>
+
+        <form ngNativeValidate [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()">
+          <div class="mb-3">
+            <label class="form-label" for="email">Email Address <span class="required-mark" aria-hidden="true">*</span></label>
+            <input class="form-control" type="email" id="email" formControlName="email" placeholder="name@example.com"
+              autocomplete="email" maxlength="150" required>
+          </div>
+
+          <div class="mb-2">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+              <label class="form-label" for="password">Password <span class="required-mark" aria-hidden="true">*</span></label>
+              <a class="small text-decoration-none mb-2" href="mailto:support@ocsp.om?subject=Password%20help">Forgot password?</a>
+            </div>
+            <input class="form-control" type="password" id="password" formControlName="password"
+              placeholder="Enter your password" autocomplete="current-password" minlength="6" maxlength="256" required>
+          </div>
+
+          <p class="field-hint mb-4">Fields marked with * are required.</p>
+
+          <button ocspBusyButton class="btn-ocsp-primary ocsp-button ocsp-button--submit w-100" type="submit"
+            [busy]="submitting()" busyLabel="Signing in...">
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Sign In
+          </button>
+        </form>
+
+        <div class="auth-separator"></div>
+
+        <p class="auth-switch">
+          Don't have an account?
+          <a [routerLink]="paths.register">Register</a>
+        </p>
+      </section>
+    </div>
+  </div>
+</main>

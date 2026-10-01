@@ -1,0 +1,277 @@
+/* ==========================================================================
+   24. Equal-height cards and final create-form styling
+   ========================================================================== */
+
+body.ocsp-portal .issues-gallery--citizen,body.ocsp-portal #issuesAccordion {
+  align-items: stretch!important;
+}
+body.ocsp-portal .issues-gallery--citizen>.issues-list {
+  align-self: stretch;
+}
+body.ocsp-portal .issues-gallery--citizen .issue-card,body.ocsp-portal #issuesAccordion>.issue-card,body.ocsp-portal .issue-card:not([open])>.citizen-row-summary,body.ocsp-portal .issue-card .accordion-button.collapsed,body.ocsp-portal .issue-card:not([open])>.citizen-row-summary>.row,body.ocsp-portal .issue-card .accordion-button.collapsed>.row {
+  height: 100%;
+}
+body.ocsp-portal .issue-card:not([open]) .issue-title,body.ocsp-portal .issue-card .accordion-button.collapsed h6 {
+  display: block!important;
+  min-width: 0!important;
+  max-width: 100%!important;
+  overflow: hidden!important;
+  white-space: nowrap!important;
+  text-overflow: ellipsis!important;
+}
+body.ocsp-portal .issue-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+body.ocsp-portal .issue-title-row .issue-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+body.ocsp-portal .issue-card:not([open]) .fresh-update {
+  max-width: 44%;
+  flex: 0 0 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+body.ocsp-portal .create-issue-modal {
+  --bs-modal-width: 680px;
+  font-family: var(--issue-font-family);
+}
+body.ocsp-portal .create-issue-modal .create-issue-dialog {
+  max-width: 680px;
+}
+body.ocsp-portal .create-issue-modal .modal-content {
+  background: var(--ocsp-bg);
+  border: 1px solid var(--ocsp-border-strong);
+  border-radius: 12px;
+  box-shadow: 0 28px 70px rgba(6,29,49,0.24),0 8px 24px rgba(11,66,109,0.12);
+}
+body.ocsp-portal .create-issue-modal .modal-header {
+  min-height: 88px;
+  padding: 1.1rem 1.35rem;
+  align-items: center;
+  background: linear-gradient(120deg,rgba(6,29,49,0.98),rgba(23,107,169,0.96));
+  border-bottom: 0;
+}
+body.ocsp-portal .create-issue-modal .modal-header .page-kicker {
+  margin: 0 0 0.28rem;
+  color: #beddff!important;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+body.ocsp-portal .create-issue-modal .modal-header h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.35rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+body.ocsp-portal .create-issue-modal .dialog-close {
+  color: #ffffff;
+  background: rgba(255,255,255,0.1)!important;
+  border: 1px solid rgba(255,255,255,0.18)!important;
+}
+body.ocsp-portal .create-issue-modal .dialog-close:hover,body.ocsp-portal .create-issue-modal .dialog-close:focus-visible {
+  color: #ffffff;
+  background: rgba(255,255,255,0.18)!important;
+}
+body.ocsp-portal .create-issue-modal .modal-body {
+  background: var(--ocsp-bg);
+  scrollbar-color: #8fa8ba transparent;
+  scrollbar-width: thin;
+}
+body.ocsp-portal .create-issue-modal .issue-form {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.15rem;
+  counter-reset: issue-form-section;
+}
+body.ocsp-portal .create-issue-modal .issue-form fieldset {
+  margin: 0;
+  padding: 1.05rem;
+  counter-increment: issue-form-section;
+  background: #ffffff;
+  border: 1px solid var(--ocsp-border);
+  border-radius: 10px;
+  box-shadow: var(--ocsp-shadow-sm);
+}
+body.ocsp-portal .create-issue-modal .issue-form legend {
+  float: left;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  color: var(--ocsp-ink);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+body.ocsp-portal .create-issue-modal .issue-form legend+* {
+  clear: both;
+}
+body.ocsp-portal .create-issue-modal .issue-form legend::before {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  background: var(--ocsp-primary-soft);
+  border: 1px solid #c9dced;
+  border-radius: 7px;
+  color: var(--ocsp-primary-dark);
+  font-size: 0.72rem;
+  content: counter(issue-form-section);
+}
+body.ocsp-portal .create-issue-modal .issue-form .form-label {
+  margin-bottom: 0.4rem;
+  color: var(--ocsp-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+body.ocsp-portal .create-issue-modal .issue-form :is(.form-control,.form-select,.input-group-text) {
+  min-height: 44px;
+  background-color: #ffffff;
+  border-color: var(--ocsp-border-strong);
+  border-radius: 7px;
+  color: var(--ocsp-text);
+  font-size: 0.82rem;
+  box-shadow: none;
+}
+body.ocsp-portal .create-issue-modal .issue-form .input-group-text {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  color: var(--ocsp-primary-dark);
+}
+body.ocsp-portal .create-issue-modal .issue-form .input-group .form-control {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+body.ocsp-portal .create-issue-modal .issue-form :is(.form-control,.form-select):focus {
+  border-color: var(--ocsp-primary);
+  box-shadow: 0 0 0 0.2rem rgba(39,123,188,0.13);
+}
+body.ocsp-portal .create-issue-modal .issue-form :is(.form-control,.form-select)[readonly] {
+  background: #f1f3f5;
+  color: var(--ocsp-muted);
+}
+body.ocsp-portal .create-issue-modal .issue-form textarea.form-control {
+  min-height: 104px;
+}
+body.ocsp-portal .create-issue-modal .priority-selector {
+  width: 100%!important;
+  max-width: none!important;
+  margin-bottom: 0.45rem!important;
+  border-color: var(--ocsp-border-strong)!important;
+  border-radius: 8px!important;
+  box-shadow: none!important;
+}
+body.ocsp-portal .create-issue-modal .priority-selector label {
+  min-height: 42px!important;
+  padding: 0.55rem 0.7rem!important;
+  font-size: 0.75rem!important;
+}
+body.ocsp-portal .create-issue-modal .location-capture {
+  padding: 0.8rem;
+  background: var(--ocsp-primary-soft);
+  border: 1px solid #c9dced;
+  border-radius: 8px;
+  color: var(--ocsp-primary-dark);
+}
+body.ocsp-portal .create-issue-modal .location-capture__button {
+  min-height: 38px;
+  padding-inline: 0.75rem;
+  color: var(--ocsp-primary-dark);
+  background: #ffffff;
+  border-color: #8fb9d8;
+  border-radius: 7px;
+  font-size: 0.75rem;
+}
+body.ocsp-portal .create-issue-modal .location-capture__button:hover,body.ocsp-portal .create-issue-modal .location-capture__button:focus-visible {
+  color: #ffffff;
+  background: var(--ocsp-primary-hover);
+  border-color: var(--ocsp-primary-hover);
+}
+body.ocsp-portal .create-issue-modal .location-capture__status,body.ocsp-portal .create-issue-modal .field-help {
+  color: var(--ocsp-muted)!important;
+}
+body.ocsp-portal .create-issue-modal .initial-status-note {
+  margin: 0;
+  padding: 0.8rem 0.95rem;
+  color: var(--ocsp-primary-dark);
+  background: var(--ocsp-primary-soft);
+  border: 1px solid #c9dced;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+body.ocsp-portal .create-issue-modal .issue-form__actions {
+  display: flex;
+  margin: 0;
+  padding: 0.15rem 0 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+body.ocsp-portal .create-issue-modal .issue-form__actions :is(.btn,.ocsp-button) {
+  width: auto;
+  min-height: 40px;
+  padding: 0.52rem 0.9rem!important;
+  border-radius: 7px!important;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+body.ocsp-portal .create-issue-modal .issue-form__cancel {
+  color: var(--ocsp-primary-dark)!important;
+  background: #ffffff!important;
+  border-color: var(--ocsp-border-strong)!important;
+  box-shadow: none;
+}
+body.ocsp-portal .create-issue-modal .issue-form__cancel:hover,body.ocsp-portal .create-issue-modal .issue-form__cancel:focus-visible {
+  color: var(--ocsp-primary-hover)!important;
+  background: var(--ocsp-primary-soft)!important;
+  border-color: #8fb9d8!important;
+}
+body.ocsp-portal .create-issue-modal .issue-form__actions :is(.btn-primary,.ocsp-button--submit) {
+  color: #ffffff;
+  background: var(--ocsp-primary);
+  border-color: var(--ocsp-primary);
+  box-shadow: 0 6px 14px rgba(39,123,188,0.2);
+}
+body.ocsp-portal .create-issue-modal .issue-form__actions :is(.btn-primary,.ocsp-button--submit):hover,body.ocsp-portal .create-issue-modal .issue-form__actions :is(.btn-primary,.ocsp-button--submit):focus-visible {
+  background: var(--ocsp-primary-hover);
+  border-color: var(--ocsp-primary-hover);
+}
+
+body.ocsp-portal .staff-status-update {
+  width: auto;
+  min-width: 0;
+  min-height: 34px;
+  flex: 0 0 auto;
+  padding: 0.4rem 0.78rem!important;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  line-height: 1.1;
+  box-shadow: 0 4px 10px rgba(37,99,235,0.16);
+}
+@media (max-width:575.98px) {
+  body.ocsp-portal .create-issue-modal .issue-form {
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  body.ocsp-portal .create-issue-modal .issue-form fieldset {
+    padding: 0.9rem;
+  }
+  body.ocsp-portal .create-issue-modal .issue-form__actions .btn {
+    flex: 1 1 0;
+  }
+  body.ocsp-portal .issue-card:not([open]) .fresh-update {
+    max-width: 38%;
+  }
+}

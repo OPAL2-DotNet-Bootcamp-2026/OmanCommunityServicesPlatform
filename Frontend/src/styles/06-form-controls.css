@@ -1,0 +1,41 @@
+/* ==========================================================================
+   06. Shared form controls
+   ========================================================================== */
+
+:where(.site-page) .form-label {
+  margin-block-end: 0.45rem;
+  color: var(--ocsp-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+:where(.site-page) .form-control,:where(.site-page) .form-select {
+  min-height: 46px;
+  padding: 0.65rem 0.85rem;
+  background-color: #fff;
+  border: 1px solid var(--ocsp-border-strong);
+  border-radius: var(--ocsp-radius-sm);
+  color: var(--ocsp-text);
+  font-size: 0.88rem;
+  box-shadow: none;
+}
+:where(.site-page) .form-control:focus,:where(.site-page) .form-select:focus {
+  border-color: var(--ocsp-primary);
+  box-shadow: 0 0 0 0.2rem rgba(39,123,188,0.13);
+}
+:where(.site-page) .form-control::placeholder {
+  color: #6b7885;
+  opacity: 1;
+}
+:where(.site-page) :is(.form-control,.form-select):disabled {
+  background: #ecebea;
+  color: #66717c;
+  cursor: not-allowed;
+}
+.required-mark {
+  color: var(--ocsp-danger);
+}
+.field-hint {
+  margin: 0.35rem 0 0;
+  color: var(--ocsp-muted);
+  font-size: 0.73rem;
+}

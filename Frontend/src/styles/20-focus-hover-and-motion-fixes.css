@@ -1,0 +1,72 @@
+/* ==========================================================================
+   20. Layout, focus, hover, and motion hardening
+   ========================================================================== */
+
+body.ocsp-portal {
+  interpolate-size: allow-keywords;
+}
+html:has(body.ocsp-portal) {
+  scrollbar-gutter: stable;
+}
+body.ocsp-portal {
+  overflow-x: clip;
+}
+body.ocsp-portal .issue-card,body.ocsp-portal .issue-card .row>* {
+  min-inline-size: 0;
+}
+body.ocsp-portal .issue-card>.citizen-row-summary:focus-visible,body.ocsp-portal .issue-card .accordion-button:focus-visible {
+  z-index: 5;
+  outline: 3px solid rgba(37,99,235,0.28);
+  outline-offset: -3px;
+}
+
+body.ocsp-portal .issue-card .accordion-button::after {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.85rem;
+  margin: 0!important;
+  transition: transform 0.28s ease,background-color 0.2s ease,border-color 0.2s ease;
+}
+body.ocsp-portal .issue-card .accordion-button.collapsed>.row>.issue-date {
+  padding-right: 3.25rem!important;
+}
+@media (min-width:1200px) and (max-width:1399.98px) {
+  body.ocsp-portal .issues-gallery--citizen {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
+}
+@media (max-width:575.98px) {
+  body.ocsp-portal .ocsp-control-row>.col,body.ocsp-portal .ocsp-control-row>.col-auto {
+    width: 100%;
+    flex: 0 0 100%;
+  }
+  body.ocsp-portal .ocsp-filter-trigger {
+    width: 100%;
+    justify-content: center;
+  }
+  body.ocsp-portal .active-filters-panel .btn-link {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0!important;
+    padding-top: 0.35rem!important;
+  }
+  body.ocsp-portal .attachment-thumb,body.ocsp-portal .comment-card,body.ocsp-portal .description-block,body.ocsp-portal .location-value {
+    overflow-wrap: anywhere;
+  }
+}
+@media (hover:none) {
+  body.ocsp-portal .issue-card:hover,body.ocsp-portal .ocsp-filter-trigger:hover,body.ocsp-portal .attachment-thumb:hover {
+    transform: none!important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  body.ocsp-portal .issue-card,body.ocsp-portal .issue-chevron,body.ocsp-portal .issue-card .accordion-button::after,body.ocsp-portal .ocsp-filter-trigger,body.ocsp-portal .attachment-thumb,body.ocsp-portal .btn {
+    animation-duration: 0.01ms!important;
+    animation-iteration-count: 1!important;
+    transition-duration: 0.01ms!important;
+    scroll-behavior: auto!important;
+  }
+  body.ocsp-portal .issue-card:hover,body.ocsp-portal .ocsp-filter-trigger:hover,body.ocsp-portal .attachment-thumb:hover {
+    transform: none!important;
+  }
+}

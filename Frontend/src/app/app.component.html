@@ -1,0 +1,16 @@
+<!-- Not a plain href="#mainContent": with <base href="/"> that would load the home page. -->
+<a class="skip-link" href="#mainContent" (click)="skipToMainContent($event)">Skip to main content</a>
+
+<ocsp-site-header />
+
+<!-- Each page renders its own <main id="mainContent">, since the auth pages style it differently. -->
+<router-outlet />
+
+<div class="site-footer-scene">
+  @if (page.data().helpStrip; as helpStrip) {
+    <ocsp-help-strip [content]="helpStrip" />
+  }
+  <ocsp-site-footer />
+</div>
+
+<ocsp-toast-container />
