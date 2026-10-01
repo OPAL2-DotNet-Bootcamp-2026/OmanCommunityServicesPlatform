@@ -1,0 +1,45 @@
+<main id="mainContent">
+  <header class="page-hero page-hero--compact">
+    <div class="container-xxl px-3 px-md-4 py-5" ocspReveal="static">
+      <nav class="breadcrumb-ocsp" aria-label="Breadcrumb">
+        <a [routerLink]="paths.myIssues">My Issues</a>
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+        <span aria-current="page">Payment</span>
+      </nav>
+      <span class="page-kicker"><i class="bi bi-credit-card" aria-hidden="true"></i>Urgent service</span>
+      <h1>Payment result</h1>
+      <p class="page-hero__copy">We confirm every payment directly with Thawani before an issue becomes urgent.</p>
+    </div>
+  </header>
+
+  <section class="content-shell content-shell--compact" aria-label="Payment result">
+    <div class="container-xxl px-3 px-md-4">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-7">
+          <div aria-live="polite" [attr.aria-busy]="view() === null">
+            @if (view(); as view) {
+              <div class="ocsp-card p-4 p-md-5 text-center">
+                <i class="bi {{ view.icon }} display-5 text-{{ view.tone }} d-block mb-3" aria-hidden="true"></i>
+                <h2 class="h4">{{ view.title }}</h2>
+                <p class="text-secondary mb-4">{{ view.message }}</p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                  <a class="ocsp-button ocsp-button--submit" [routerLink]="paths.myIssues"><i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Back to My Issues</a>
+                  @if (view.canCheckAgain) {
+                    <button class="ocsp-button ocsp-button--cancel" type="button" (click)="check()">
+                      <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>Check again
+                    </button>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="ocsp-card p-4 text-center" role="status">
+                <span class="spinner-border text-primary mx-auto mb-3" aria-hidden="true"></span>
+                <span class="d-block">Checking your payment with Thawani...</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

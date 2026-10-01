@@ -39,6 +39,14 @@ export const appRoutes: Routes = [
     data: { roles: ["Citizen"], bodyClass: "ocsp-portal ocsp-portal--citizen", helpStrip: HELP_STRIPS.citizenIssues } satisfies PageRouteData
   },
   {
+    path: "payment-result",
+    title: `Payment Result${TITLE_SUFFIX}`,
+    canActivate: [signedInGuard],
+    loadComponent: () =>
+      import("./features/payments/payment-result-page/payment-result-page.component").then((m) => m.PaymentResultPageComponent),
+    data: { roles: ["Citizen"] } satisfies PageRouteData
+  },
+  {
     path: "notifications",
     title: `Notifications${TITLE_SUFFIX}`,
     canActivate: [signedInGuard],
