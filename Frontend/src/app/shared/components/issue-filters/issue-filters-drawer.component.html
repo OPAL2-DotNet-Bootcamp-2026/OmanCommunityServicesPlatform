@@ -1,0 +1,66 @@
+<div class="offcanvas offcanvas-end issue-filter-drawer" tabindex="-1" id="filterDrawer" ocspBootstrapOffcanvas
+  aria-labelledby="filterDrawerLabel" role="dialog">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title fw-bold" id="filterDrawerLabel"><i class="bi bi-funnel me-2"></i>Filter & Sort Issues</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+  </div>
+
+  <div class="offcanvas-body d-flex flex-column justify-content-between">
+    <div class="d-flex flex-column gap-3">
+      <div>
+        <label class="form-label small fw-bold text-dark" for="sortFilter">Sort Order</label>
+        <select class="form-select bg-light" id="sortFilter" [value]="filters().sort" (change)="set('sort', $event)">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+        </select>
+      </div>
+
+      <hr class="my-1">
+
+      <div>
+        <label class="form-label small fw-bold text-dark" for="statusFilter">Status</label>
+        <select class="form-select bg-light" id="statusFilter" [value]="filters().status" (change)="set('status', $event)">
+          <option value="">All</option>
+          <option value="Open">Open</option>
+          <option value="InProgress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label small fw-bold text-dark" for="priorityFilter">Priority</label>
+        <select class="form-select bg-light" id="priorityFilter" [value]="filters().priority" (change)="set('priority', $event)">
+          <option value="">All</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label small fw-bold text-dark" for="deptFilter">Department</label>
+        <select class="form-select bg-light" id="deptFilter" [value]="filters().department" (change)="set('department', $event)">
+          <option value="">All Departments</option>
+          @for (department of departments(); track department) {
+            <option [value]="department">{{ department }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label small fw-bold text-dark" for="categoryFilter">Category</label>
+        <select class="form-select bg-light" id="categoryFilter" [value]="filters().category" (change)="set('category', $event)">
+          <option value="">All Categories</option>
+          @for (category of categories(); track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="pt-3 border-top d-flex gap-2 issue-filter-actions">
+      <button type="button" class="btn btn-light border issue-filter-actions__button" (click)="resetFilters.emit()">Reset All</button>
+      <button type="button" class="btn btn-primary-custom issue-filter-actions__button" (click)="close()">Apply Filters</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,146 @@
+<div class="modal fade create-issue-modal" id="createIssueModal" tabindex="-1" ocspBootstrapModal
+  (modalShown)="openChange.emit(true)" (modalHidden)="openChange.emit(false)"
+  aria-labelledby="createIssueDialogTitle" aria-describedby="createIssueDialogDescription" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down create-issue-dialog">
+    <div class="modal-content">
+      <div class="modal-header issue-dialog__header">
+        <div>
+          <span class="page-kicker">Citizen issue</span>
+          <h2 id="createIssueDialogTitle">Create New Issue</h2>
+          <p class="visually-hidden" id="createIssueDialogDescription">
+            Enter the issue details, priority and location, then submit the issue.
+          </p>
+        </div>
+        <button aria-label="Close create issue form" class="dialog-close border-0 bg-transparent" type="button" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body p-0">
+        <form class="issue-form" ngNativeValidate [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()">
+          <div ocspStatusAlert id="createIssueStatus" [status]="status()" tabindex="-1"></div>
+
+          <fieldset>
+            <legend>Issue Details</legend>
+            <div class="mb-3">
+              <label class="form-label" for="issueTitle">Issue title</label>
+              <input class="form-control" id="issueTitle" formControlName="title" maxlength="150"
+                placeholder="Briefly describe the issue" required type="text" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="issueCategory">Category</label>
+              <select class="form-select" id="issueCategory" formControlName="categoryId" required>
+                <option disabled value="">Select a category</option>
+                @for (category of categories(); track category.categoryId) {
+                  <option [value]="category.categoryId">{{ category.categoryName }}</option>
+                }
+              </select>
+            </div>
+            <div class="mb-0">
+              <label class="form-label" for="issueDescription">Description</label>
+              <textarea class="form-control" id="issueDescription" formControlName="description" maxlength="2000"
+                placeholder="Provide detailed information about the issue..." required rows="4"></textarea>
+            </div>
+            <div class="mt-3">
+              <label class="form-label" for="issueImageUrl">Image URL <span class="text-muted fw-normal">(optional)</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-image" aria-hidden="true"></i></span>
+                <input class="form-control" id="issueImageUrl" formControlName="imageUrl" type="url" inputmode="url"
+                  maxlength="300" autocomplete="url" spellcheck="false" placeholder="https://example.com/issue-photo.jpg"
+                  aria-describedby="issueImageUrlHelp createIssueStatus" [attr.aria-invalid]="imageUrlInvalid() ? 'true' : null" />
+              </div>
+              <small class="field-help" id="issueImageUrlHelp">Paste a public image address beginning with http:// or https://.</small>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Priority Level</legend>
+            <div aria-label="Priority level" class="priority-selector" role="radiogroup">
+              <input id="priorityLow" formControlName="priority" type="radio" value="Low" />
+              <label class="priority-option priority-option--low" for="priorityLow">Low</label>
+              <input id="priorityMedium" formControlName="priority" type="radio" value="Medium" />
+              <label class="priority-option priority-option--medium" for="priorityMedium">Medium</label>
+              <input id="priorityHigh" formControlName="priority" type="radio" value="High" />
+              <label class="priority-option priority-option--high" for="priorityHigh">High</label>
+            </div>
+            <small class="field-help">Select the urgency of the issue to help us prioritise it.</small>
+            <div class="form-check mt-3">
+              <input class="form-check-input" id="issueUrgent" formControlName="urgent" type="checkbox" aria-describedby="issueUrgentHelp" />
+              <label class="form-check-label fw-semibold" for="issueUrgent">Mark as urgent (paid service)</label>
+            </div>
+            <small class="field-help" id="issueUrgentHelp">
+              After submitting, you will pay securely on Thawani's page. The issue becomes urgent once the payment is confirmed.
+            </small>
+          </fieldset>
+
+          <fieldset>
+            <legend>Location Details</legend>
+            <div class="location-capture mb-3">
+              <button class="ocsp-button ocsp-button--cancel location-capture__button" type="button" aria-describedby="locationStatus"
+                [disabled]="!geolocationAvailable || locating()" (click)="useCurrentLocation()">
+                <i class="bi bi-crosshair2 me-2" aria-hidden="true"></i>Use My Current Location
+              </button>
+              <small class="location-capture__status {{ locationStatus().state }}" id="locationStatus" role="status" aria-live="polite" aria-atomic="true">
+                {{ locationStatus().text }}
+              </small>
+            </div>
+            <div class="mb-3">
+              <span class="form-label d-block" id="issueLocationMapLabel">Pin the location on the map</span>
+              <div ocspIssueLocationMap class="issue-map--picker" [pickable]="true" height="220px" label="Choose the issue location"
+                [latitude]="latitude()" [longitude]="longitude()" (pick)="onMapPick($event)"
+                aria-describedby="issueLocationMapHint"></div>
+              <p class="form-text" id="issueLocationMapHint">
+                Click the map to drop a pin, or use the button above to take your current
+                position. The street below is filled in automatically and can be edited.
+              </p>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="issueLocation">Street / landmark</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                <input autocomplete="street-address" class="form-control" id="issueLocation" formControlName="location"
+                  maxlength="300" placeholder="Example: Street 21, Ghala Industrial Area" required type="text" />
+              </div>
+            </div>
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label" for="issueRegion">Region</label>
+                <select class="form-select" id="issueRegion" formControlName="regionId" required>
+                  <option disabled value="">Select region</option>
+                  @for (region of regions(); track region.regionId) {
+                    <option [value]="region.regionId">{{ region.regionName }} — {{ region.governorate }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="issueGovernorate">Governorate</label>
+                <input class="form-control" id="issueGovernorate" readonly type="text" placeholder="Selected from region" [value]="governorate()" />
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label" for="issueLatitude">Latitude</label>
+                <input class="form-control" id="issueLatitude" formControlName="latitude" placeholder="Optional" readonly step="any" type="number" />
+              </div>
+              <div class="col-6">
+                <label class="form-label" for="issueLongitude">Longitude</label>
+                <input class="form-control" id="issueLongitude" formControlName="longitude" placeholder="Optional" readonly step="any" type="number" />
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="initial-status-note">
+            <i class="bi bi-info-circle"></i>
+            New citizen issues begin with the <strong>Open</strong> status.
+          </div>
+          <div class="issue-form__actions">
+            <button class="ocsp-button ocsp-button--cancel issue-form__cancel" type="button" data-bs-dismiss="modal">Cancel</button>
+            <button ocspBusyButton class="ocsp-button ocsp-button--submit" type="submit" [busy]="submitting()" busyLabel="Submitting issue...">
+              <i class="bi bi-send-fill me-2"></i>Submit Issue
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

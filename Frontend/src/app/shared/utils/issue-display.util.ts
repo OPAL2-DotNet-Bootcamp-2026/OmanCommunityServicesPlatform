@@ -76,16 +76,3 @@ export function buildIssueTimeline(issue: Issue): StatusUpdate[] {
     (left, right) => new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime()
   );
 }
-
-/** "" for anything that is not a relative path or an http(s) URL, so javascript: links never render. */
-export function safeUrl(value: unknown): string {
-  const candidate = typeof value === "string" ? value.trim() : "";
-  if (!candidate) return "";
-  const hasScheme = /^[a-zA-Z][a-zA-Z\d+.-]*:/.test(candidate);
-  if (!hasScheme && !candidate.startsWith("//")) return candidate;
-  try {
-    return ["http:", "https:"].includes(new URL(candidate, document.baseURI).protocol) ? candidate : "";
-  } catch {
-    return "";
-  }
-}
