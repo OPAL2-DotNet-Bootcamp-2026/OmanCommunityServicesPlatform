@@ -1,7 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using OmanCommunityServicesPlatform.Models;
-using System.Text.Json;
 
 namespace OmanCommunityServicesPlatform.Services
 {
@@ -99,14 +98,8 @@ namespace OmanCommunityServicesPlatform.Services
         // Returns payment_status: "paid", "unpaid" or "cancelled".
         public async Task<string> GetPaymentStatusAsync(string sessionId)
         {
-            string baseUrl = (config["Thawani:BaseUrl"] ?? "").TrimEnd('/');
-            string secretKey = config["Thawani:SecretKey"] ?? "";
-
-            if (baseUrl == "" || secretKey == "")
-            {
-                // Name the missing setting, but never print the key itself
-                throw new InvalidOperationException("Thawani:BaseUrl and Thawani:SecretKey must be configured.");
-            }
+            string baseUrl = Required("Thawani:BaseUrl").TrimEnd('/');
+            string secretKey = Required("Thawani:SecretKey");
 
             using HttpRequestMessage request = new HttpRequestMessage(
                 HttpMethod.Get,

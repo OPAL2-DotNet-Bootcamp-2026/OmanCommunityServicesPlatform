@@ -91,10 +91,10 @@ namespace OmanCommunityServicesPlatform.Services
                 {
                     payment = await ConfirmAsync(paymentId) ?? payment;
                 }
-                catch (HttpRequestException ex)
+                catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
                 {
-                    // Thawani unreachable: report the current (Pending) state instead of a 500,
-                    // the result page can ask again.
+                    // Thawani unreachable or timed out: report the current (Pending) state
+                    // instead of a 500, the result page can ask again.
                     logger.LogWarning(ex, "Could not reach Thawani while confirming payment {PaymentId}", paymentId);
                 }
             }
