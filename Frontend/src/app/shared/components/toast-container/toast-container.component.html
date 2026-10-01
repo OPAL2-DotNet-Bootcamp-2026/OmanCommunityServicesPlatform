@@ -1,0 +1,24 @@
+@if (toastService.toasts().length) {
+  <section class="ocsp-toast-viewport" aria-label="Action messages">
+    @for (toast of toastService.toasts(); track toast.id) {
+      <article #toastElement
+        class="ocsp-toast ocsp-toast--{{ toast.tone }}"
+        [class.is-visible]="toast.visible"
+        [class.is-leaving]="toast.leaving"
+        [attr.role]="toast.announce ? (toast.tone === 'danger' ? 'alert' : 'status') : null"
+        (mouseenter)="toastService.hold(toast.id, 'hovered', true)"
+        (mouseleave)="toastService.hold(toast.id, 'hovered', false)"
+        (focusin)="toastService.hold(toast.id, 'focused', true)"
+        (focusout)="onFocusOut(toast.id, $event, toastElement)">
+        <i class="bi {{ toast.icon }} ocsp-toast__icon" aria-hidden="true"></i>
+        <div class="ocsp-toast__content">
+          <strong class="ocsp-toast__title">{{ toast.title }}</strong>
+          <p class="ocsp-toast__message">{{ toast.message }}</p>
+        </div>
+        <button class="ocsp-toast__close" type="button" aria-label="Dismiss message" (click)="toastService.dismiss(toast.id)">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </article>
+    }
+  </section>
+}
