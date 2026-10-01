@@ -22,31 +22,25 @@ namespace OmanCommunityServicesPlatform.Services
      
         public async Task<string> CreateSessionAsync(Payment payment,string productName)
         {
-            string baseUrl = config["Thawani:BaseUrl"] 
-                ?? throw new InvalidOperationException("Thawani:BaseUrl is missing.");
-
-            string secretKey =config["Thawani:SecretKey"]
-                ?? throw new InvalidOperationException("Thawani:SecretKey is missing.");
-
-            string returnUrl = config["Payments:ReturnUrl"]
-                ?? throw new InvalidOperationException("Payments:ReturnUrl is missing.");
+            string baseUrl = Required("Thawani:BaseUrl").TrimEnd('/');
+            string secretKey = Required("Thawani:SecretKey");
+            string returnUrl = Required("Payments:ReturnUrl");
 
             string paymentReturnUrl =
                 $"{returnUrl}?paymentId={payment.paymentId}";
 
             var body = new
             {
-                client_reference_id = payment.paymentId.ToString(),           
+                client_reference_id = payment.paymentId.ToString(),
                 products = new[]
                 {
-            new
-            {
-                name = productName,
-                quantity = 1,
-                unit_amount = payment.amountBaisa
-            }
-        },
-
+                    new
+                    {
+                        name = productName,
+                        quantity = 1,
+                        unit_amount = payment.amountBaisa
+                    }
+                },
                 success_url = paymentReturnUrl,
                 cancel_url = paymentReturnUrl
             };
@@ -81,11 +75,23 @@ namespace OmanCommunityServicesPlatform.Services
         // session id and Thawani:PublishableKey (format confirmed in #136).
         public string BuildPayUrl(string sessionId)
         {
-            string publishableKey = config["Thawani:PublishableKey"]
-                ?? throw new InvalidOperationException("Thawani:PublishableKey is missing.");
+            string publishableKey = Required("Thawani:PublishableKey");
 
-            return
-                $"https://uatcheckout.thawani.om/pay/{sessionId}?key={publishableKey}";
+            // Same host as the API, so switching BaseUrl to live moves the pay page too.
+            Uri api = new Uri(Required("Thawani:BaseUrl"));
+            return $"{api.Scheme}://{api.Authority}/pay/{Uri.EscapeDataString(sessionId)}" +
+                $"?key={Uri.EscapeDataString(publishableKey)}";
+        }
+
+        // appsettings.json ships the keys as "", which is missing too - never send an empty key.
+        private string Required(string key)
+        {
+            string? value = config[key];
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new InvalidOperationException($"{key} must be configured.");
+            }
+            return value;
         }
 
         // Step 3 CONFIRM (#139): GET {Thawani:BaseUrl}/checkout/session/{sessionId}.
