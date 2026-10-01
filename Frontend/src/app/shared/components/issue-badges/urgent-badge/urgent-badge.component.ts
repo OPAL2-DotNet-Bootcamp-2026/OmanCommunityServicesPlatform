@@ -10,6 +10,7 @@ import { Component } from "@angular/core";
   // eslint-disable-next-line @angular-eslint/component-selector -- stays a <span> so the badge CSS (child selectors) applies
   selector: "span[ocspUrgentBadge]",
   host: { class: "priority-badge priority-badge--urgent", title: "Paid urgent service" },
-  template: "Urgent"
+  templateUrl: "./urgent-badge.component.html",
+  styleUrl: "./urgent-badge.component.css"
 })
 export class UrgentBadgeComponent {}

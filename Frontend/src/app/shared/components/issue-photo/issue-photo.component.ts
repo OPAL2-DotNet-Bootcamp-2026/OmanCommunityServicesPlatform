@@ -17,14 +17,8 @@ import { resolveIssueImage } from "./issue-stock-images";
     "[attr.aria-label]": "image()?.alt ?? null",
     "[attr.aria-hidden]": "image() ? null : 'true'"
   },
-  template: `
-    @if (image(); as image) {
-      <img class="issue-card-media__image" [src]="image.url" alt="" width="720" height="480"
-        loading="lazy" decoding="async" referrerpolicy="no-referrer" (error)="failedUrl.set(image.url)">
-    } @else {
-      <i class="bi bi-image"></i>
-    }
-  `
+  templateUrl: "./issue-photo.component.html",
+  styleUrl: "./issue-photo.component.css"
 })
 export class IssuePhotoComponent {
   readonly issue = input.required<Issue>();

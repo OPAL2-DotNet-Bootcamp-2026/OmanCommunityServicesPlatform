@@ -1,0 +1,17 @@
+@for (comment of comments(); track comment.commentId || $index) {
+  <article class="ocsp-card comment-card" [class.comment-card--highlighted]="comment.highlighted" role="listitem" ocspReveal [revealIndex]="$index">
+    <div class="comment-avatar comment-avatar--{{ comment.isStaffComment ? 'admin' : 'citizen' }}">{{ comment.userName | initials }}</div>
+    <div class="comment-copy">
+      <div class="comment-header">
+        <div class="comment-author">
+          <strong>{{ comment.userName || (comment.isStaffComment ? "Staff" : "Citizen") }}</strong>
+          <span class="role-badge role-badge--{{ comment.isStaffComment ? 'admin' : 'citizen' }}">{{ comment.isStaffComment ? "Staff" : "Citizen" }}</span>
+        </div>
+        <time [attr.datetime]="comment.commentDate || ''">{{ comment.commentDate | apiDate: "dateTime" }}</time>
+      </div>
+      <p>{{ comment.content }}</p>
+    </div>
+  </article>
+} @empty {
+  <p class="text-muted small mb-0">{{ emptyText() }}</p>
+}

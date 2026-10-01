@@ -1,6 +1,6 @@
 import { Component, input, output, viewChild } from "@angular/core";
-import { type IssueFilters } from "../../../core/utils/issue-filter.util";
-import { BootstrapOffcanvasDirective } from "../../directives/bootstrap-offcanvas.directive";
+import { type IssueFilters } from "../../../../core/utils/issue-filter.util";
+import { BootstrapOffcanvasDirective } from "../../../directives/bootstrap-offcanvas.directive";
 
 /**
  * The "Filter & Sort Issues" side drawer, shared by the citizen and staff
@@ -12,7 +12,8 @@ import { BootstrapOffcanvasDirective } from "../../directives/bootstrap-offcanva
 @Component({
   selector: "ocsp-issue-filters-drawer",
   imports: [BootstrapOffcanvasDirective],
-  templateUrl: "./issue-filters-drawer.component.html"
+  templateUrl: "./issue-filters-drawer.component.html",
+  styleUrl: "./issue-filters-drawer.component.css"
 })
 export class IssueFiltersDrawerComponent {
   readonly filters = input.required<IssueFilters>();

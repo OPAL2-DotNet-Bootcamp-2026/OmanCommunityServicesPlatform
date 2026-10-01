@@ -6,7 +6,8 @@ import { RevealOnEnterDirective } from "../../shared/directives/reveal-on-enter.
 @Component({
   selector: "ocsp-help-strip",
   imports: [RevealOnEnterDirective],
-  templateUrl: "./help-strip.component.html"
+  templateUrl: "./help-strip.component.html",
+  styleUrl: "./help-strip.component.css"
 })
 export class HelpStripComponent {
   readonly content = input.required<HelpStripContent>();

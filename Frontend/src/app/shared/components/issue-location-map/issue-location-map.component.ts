@@ -31,13 +31,8 @@ export interface MapPick {
     "[attr.role]": "showEmptyPanel() ? 'img' : 'application'",
     "[attr.aria-label]": "ariaLabel()"
   },
-  template: `
-    @if (showEmptyPanel()) {
-      <i class="bi bi-map" aria-hidden="true"></i>
-      <span>{{ label() }}</span>
-      <small>Coordinates unavailable</small>
-    }
-  `
+  templateUrl: "./issue-location-map.component.html",
+  styleUrl: "./issue-location-map.component.css"
 })
 export class IssueLocationMapComponent implements OnDestroy {
   readonly latitude = input<number | null>(null);

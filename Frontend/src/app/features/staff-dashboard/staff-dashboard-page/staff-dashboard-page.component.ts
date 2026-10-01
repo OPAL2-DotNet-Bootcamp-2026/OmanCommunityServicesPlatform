@@ -11,8 +11,8 @@ import { type Category, type Department, type Region } from "../../../core/model
 import { AppPaths } from "../../../core/routing/app-paths";
 import { parseApiDate } from "../../../core/utils/api-date.util";
 import { type IssueFilters, emptyIssueFilters, filterIssues } from "../../../core/utils/issue-filter.util";
-import { ActiveFiltersPanelComponent } from "../../../shared/components/issue-filters/active-filters-panel.component";
-import { IssueFiltersDrawerComponent } from "../../../shared/components/issue-filters/issue-filters-drawer.component";
+import { ActiveFiltersPanelComponent } from "../../../shared/components/issue-filters/active-filters-panel/active-filters-panel.component";
+import { IssueFiltersDrawerComponent } from "../../../shared/components/issue-filters/issue-filters-drawer/issue-filters-drawer.component";
 import { LoadingSkeletonComponent } from "../../../shared/components/loading-skeleton/loading-skeleton.component";
 import { type StatusMessage, StatusAlertComponent } from "../../../shared/components/status-alert/status-alert.component";
 import { CountUpDirective } from "../../../shared/directives/count-up.directive";
@@ -47,7 +47,8 @@ const STATUS_TILES: { id: string; status: IssueStatus | ""; key: string; label: 
     CountUpDirective, NearViewportDirective, RevealOnEnterDirective, AdminSetupDialogComponent, StaffIssueCardComponent,
     StaffIssueDetailDialogComponent
   ],
-  templateUrl: "./staff-dashboard-page.component.html"
+  templateUrl: "./staff-dashboard-page.component.html",
+  styleUrl: "./staff-dashboard-page.component.css"
 })
 export class StaffDashboardPageComponent implements OnInit, OnDestroy {
   private readonly service = inject(StaffDashboardService);

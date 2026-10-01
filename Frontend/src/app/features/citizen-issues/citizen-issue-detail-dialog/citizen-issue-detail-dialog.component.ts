@@ -9,11 +9,11 @@ import { type IssueDetail } from "../../../core/models/issue.model";
 import { type IssueStatus } from "../../../core/models/enums";
 import { type Rating } from "../../../core/models/rating.model";
 import { BusyButtonComponent } from "../../../shared/components/busy-button/busy-button.component";
-import { IssueAttachmentsSectionComponent } from "../../../shared/components/issue-detail-sections/issue-attachments-section.component";
-import { IssueCommentThreadComponent } from "../../../shared/components/issue-detail-sections/issue-comment-thread.component";
-import { IssueDescriptionSectionComponent } from "../../../shared/components/issue-detail-sections/issue-description-section.component";
-import { IssueLocationSectionComponent } from "../../../shared/components/issue-detail-sections/issue-location-section.component";
-import { IssueTimelineSectionComponent } from "../../../shared/components/issue-detail-sections/issue-timeline-section.component";
+import { IssueAttachmentsSectionComponent } from "../../../shared/components/issue-detail-sections/issue-attachments-section/issue-attachments-section.component";
+import { IssueCommentThreadComponent } from "../../../shared/components/issue-detail-sections/issue-comment-thread/issue-comment-thread.component";
+import { IssueDescriptionSectionComponent } from "../../../shared/components/issue-detail-sections/issue-description-section/issue-description-section.component";
+import { IssueLocationSectionComponent } from "../../../shared/components/issue-detail-sections/issue-location-section/issue-location-section.component";
+import { IssueTimelineSectionComponent } from "../../../shared/components/issue-detail-sections/issue-timeline-section/issue-timeline-section.component";
 import { BootstrapModalDirective } from "../../../shared/directives/bootstrap-modal.directive";
 import { ToastService } from "../../../shared/services/toast.service";
 import { getStatusMeta } from "../../../shared/utils/issue-display.util";
@@ -47,7 +47,8 @@ const OPEN_STATES: readonly IssueStatus[] = ["Open", "InProgress"];
     ReactiveFormsModule, BootstrapModalDirective, BusyButtonComponent, IssueAttachmentsSectionComponent,
     IssueCommentThreadComponent, IssueDescriptionSectionComponent, IssueLocationSectionComponent, IssueTimelineSectionComponent
   ],
-  templateUrl: "./citizen-issue-detail-dialog.component.html"
+  templateUrl: "./citizen-issue-detail-dialog.component.html",
+  styleUrl: "./citizen-issue-detail-dialog.component.css"
 })
 export class CitizenIssueDetailDialogComponent {
   readonly issue = input.required<IssueDetail>();

@@ -1,0 +1,6 @@
+/*
+ * Citizen Issue Detail Dialog - styles that belong to this component only.
+ * Today it is styled by global files in src/styles/: 22-issue-detail-dialog.css, 33-issue-dialog-divider.css, 34-dialog-action-buttons.css.
+ * They stay global for now because their order matters (later files refine
+ * earlier ones); move rules here one at a time when you change them.
+ */

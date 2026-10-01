@@ -1,0 +1,25 @@
+<span class="content-label">Activity Timeline</span>
+@if (entries().length) {
+  <ol class="activity-timeline" [class.activity-timeline--compact]="compact()">
+    @for (entry of entries(); track $index) {
+      <li class="timeline-item timeline-item--{{ entry.key }}" ocspReveal [revealIndex]="$index">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div>
+          <strong>{{ entry.label }}</strong>
+          @if (entry.staffId) {
+            <small>Changed by Staff ID: {{ entry.staffId }}</small>
+          }
+          @if (entry.notes) {
+            <small>{{ entry.notes }}</small>
+          }
+          <small>{{ entry.updatedAt | apiDate: "dateTime" }}</small>
+        </div>
+      </li>
+    }
+  </ol>
+} @else {
+  <p class="text-muted small mb-0">No status updates are available.</p>
+}
+@if (note()) {
+  <p class="text-muted small mt-2 mb-0">{{ note() }}</p>
+}

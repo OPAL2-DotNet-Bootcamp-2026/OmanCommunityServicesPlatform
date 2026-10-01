@@ -1,0 +1,6 @@
+/*
+ * Urgent Badge - styles that belong to this component only.
+ * Today it is styled by global files in src/styles/: 21-status-and-priority-tokens.css.
+ * They stay global for now because their order matters (later files refine
+ * earlier ones); move rules here one at a time when you change them.
+ */

@@ -39,7 +39,8 @@ interface LocationStatus {
 @Component({
   selector: "ocsp-create-issue-dialog",
   imports: [ReactiveFormsModule, BootstrapModalDirective, BusyButtonComponent, IssueLocationMapComponent, StatusAlertComponent],
-  templateUrl: "./create-issue-dialog.component.html"
+  templateUrl: "./create-issue-dialog.component.html",
+  styleUrl: "./create-issue-dialog.component.css"
 })
 export class CreateIssueDialogComponent {
   readonly categories = input.required<Category[]>();

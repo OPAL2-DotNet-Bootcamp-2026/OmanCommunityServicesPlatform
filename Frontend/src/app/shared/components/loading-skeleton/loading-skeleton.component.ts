@@ -6,22 +6,8 @@ import { Component, computed, input } from "@angular/core";
  */
 @Component({
   selector: "ocsp-loading-skeleton",
-  template: `
-    <span class="visually-hidden" role="status" aria-live="polite">{{ label() }}</span>
-    <div class="ocsp-skeleton-list ocsp-skeleton-list--{{ variant() }}" aria-hidden="true">
-      @for (card of cards(); track card) {
-        <article class="ocsp-skeleton-card ocsp-skeleton-card--{{ variant() }}">
-          <span class="ocsp-skeleton__block {{ variant() === 'notification' ? 'ocsp-skeleton__avatar' : 'ocsp-skeleton__media' }}"></span>
-          <div class="ocsp-skeleton__content">
-            <span class="ocsp-skeleton__block ocsp-skeleton__eyebrow"></span>
-            <span class="ocsp-skeleton__block ocsp-skeleton__title"></span>
-            <span class="ocsp-skeleton__block ocsp-skeleton__line"></span>
-            <span class="ocsp-skeleton__block ocsp-skeleton__line ocsp-skeleton__line--short"></span>
-          </div>
-        </article>
-      }
-    </div>
-  `
+  templateUrl: "./loading-skeleton.component.html",
+  styleUrl: "./loading-skeleton.component.css"
 })
 export class LoadingSkeletonComponent {
   readonly count = input(3);

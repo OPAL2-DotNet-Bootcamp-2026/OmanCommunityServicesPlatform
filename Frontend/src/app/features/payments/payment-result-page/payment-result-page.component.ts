@@ -27,7 +27,8 @@ interface ResultView {
 @Component({
   selector: "ocsp-payment-result-page",
   imports: [RouterLink, RevealOnEnterDirective],
-  templateUrl: "./payment-result-page.component.html"
+  templateUrl: "./payment-result-page.component.html",
+  styleUrl: "./payment-result-page.component.css"
 })
 export class PaymentResultPageComponent implements OnInit, OnDestroy {
   private readonly payments = inject(PaymentsService);

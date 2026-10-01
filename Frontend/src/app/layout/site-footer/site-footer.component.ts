@@ -3,16 +3,7 @@ import { Component } from "@angular/core";
 /** The copyright footer at the bottom of every page. */
 @Component({
   selector: "ocsp-site-footer",
-  template: `
-    <footer class="site-footer">
-      <div class="container-xxl px-3 px-md-4 site-footer__inner">
-        <div class="site-footer__brand">
-          <p class="site-footer__title">Oman Community Services Platform</p>
-          <p class="site-footer__copy">Report and track community issues across Oman.</p>
-        </div>
-        <p class="site-footer__meta">&copy; 2026 Oman Community Services Platform. All rights reserved.</p>
-      </div>
-    </footer>
-  `
+  templateUrl: "./site-footer.component.html",
+  styleUrl: "./site-footer.component.css"
 })
 export class SiteFooterComponent {}

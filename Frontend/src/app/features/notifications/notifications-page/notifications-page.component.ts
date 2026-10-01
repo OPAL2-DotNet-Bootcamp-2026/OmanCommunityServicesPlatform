@@ -16,7 +16,8 @@ import { NotificationsService } from "../notifications.service";
 @Component({
   selector: "ocsp-notifications-page",
   imports: [RouterLink, LoadingSkeletonComponent, StatusAlertComponent, CountUpDirective, RevealOnEnterDirective, NotificationListComponent],
-  templateUrl: "./notifications-page.component.html"
+  templateUrl: "./notifications-page.component.html",
+  styleUrl: "./notifications-page.component.css"
 })
 export class NotificationsPageComponent implements OnInit {
   private readonly notificationsService = inject(NotificationsService);

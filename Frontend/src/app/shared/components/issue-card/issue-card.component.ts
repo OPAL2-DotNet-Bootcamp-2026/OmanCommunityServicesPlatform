@@ -2,9 +2,9 @@ import { Component, computed, input, output } from "@angular/core";
 import { type Issue } from "../../../core/models/issue.model";
 import { ApiDatePipe } from "../../pipes/api-date.pipe";
 import { asAnnouncement, getStatusMeta } from "../../utils/issue-display.util";
-import { PriorityBadgeComponent } from "../issue-badges/priority-badge.component";
-import { StatusBadgeComponent } from "../issue-badges/status-badge.component";
-import { UrgentBadgeComponent } from "../issue-badges/urgent-badge.component";
+import { PriorityBadgeComponent } from "../issue-badges/priority-badge/priority-badge.component";
+import { StatusBadgeComponent } from "../issue-badges/status-badge/status-badge.component";
+import { UrgentBadgeComponent } from "../issue-badges/urgent-badge/urgent-badge.component";
 import { IssuePhotoComponent } from "../issue-photo/issue-photo.component";
 
 /**
@@ -20,7 +20,8 @@ import { IssuePhotoComponent } from "../issue-photo/issue-photo.component";
     "[class]": "cardClass()",
     "[attr.data-issue-id]": "issue().issueId"
   },
-  templateUrl: "./issue-card.component.html"
+  templateUrl: "./issue-card.component.html",
+  styleUrl: "./issue-card.component.css"
 })
 export class IssueCardComponent {
   readonly issue = input.required<Issue>();

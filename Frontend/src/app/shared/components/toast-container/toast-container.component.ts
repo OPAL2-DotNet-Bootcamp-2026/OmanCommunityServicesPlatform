@@ -4,7 +4,8 @@ import { ToastService } from "../../services/toast.service";
 /** Draws the toasts from ToastService. Placed once, in the app shell. */
 @Component({
   selector: "ocsp-toast-container",
-  templateUrl: "./toast-container.component.html"
+  templateUrl: "./toast-container.component.html",
+  styleUrl: "./toast-container.component.css"
 })
 export class ToastContainerComponent {
   protected readonly toastService = inject(ToastService);

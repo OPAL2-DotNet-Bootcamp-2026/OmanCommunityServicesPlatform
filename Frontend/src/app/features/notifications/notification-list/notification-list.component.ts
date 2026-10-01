@@ -28,7 +28,8 @@ interface NotificationGroup {
 @Component({
   selector: "ocsp-notification-list",
   imports: [NgTemplateOutlet, RevealOnEnterDirective],
-  templateUrl: "./notification-list.component.html"
+  templateUrl: "./notification-list.component.html",
+  styleUrl: "./notification-list.component.css"
 })
 export class NotificationListComponent {
   readonly notifications = input.required<Notification[]>();

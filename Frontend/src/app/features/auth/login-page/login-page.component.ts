@@ -14,7 +14,8 @@ import { toToastTone } from "../../../shared/services/toast.service";
 @Component({
   selector: "ocsp-login-page",
   imports: [ReactiveFormsModule, RouterLink, BusyButtonComponent, StatusAlertComponent, RevealOnEnterDirective],
-  templateUrl: "./login-page.component.html"
+  templateUrl: "./login-page.component.html",
+  styleUrl: "./login-page.component.css"
 })
 export class LoginPageComponent implements OnInit {
   private readonly auth = inject(AuthService);

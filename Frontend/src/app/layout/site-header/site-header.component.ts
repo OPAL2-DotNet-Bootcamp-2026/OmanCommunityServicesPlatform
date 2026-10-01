@@ -14,7 +14,8 @@ import { replayAnimation } from "../../shared/utils/reduced-motion.util";
 @Component({
   selector: "ocsp-site-header",
   imports: [RouterLink, RouterLinkActive, InitialsPipe],
-  templateUrl: "./site-header.component.html"
+  templateUrl: "./site-header.component.html",
+  styleUrl: "./site-header.component.css"
 })
 export class SiteHeaderComponent {
   private readonly session = inject(SessionService);

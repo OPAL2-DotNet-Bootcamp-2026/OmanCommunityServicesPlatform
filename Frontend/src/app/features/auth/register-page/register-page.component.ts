@@ -13,7 +13,8 @@ import { RevealOnEnterDirective } from "../../../shared/directives/reveal-on-ent
 @Component({
   selector: "ocsp-register-page",
   imports: [ReactiveFormsModule, RouterLink, BusyButtonComponent, StatusAlertComponent, RevealOnEnterDirective],
-  templateUrl: "./register-page.component.html"
+  templateUrl: "./register-page.component.html",
+  styleUrl: "./register-page.component.css"
 })
 export class RegisterPageComponent {
   private readonly auth = inject(AuthService);

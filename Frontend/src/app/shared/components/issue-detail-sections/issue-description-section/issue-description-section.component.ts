@@ -5,10 +5,8 @@ import { Component, input } from "@angular/core";
   // eslint-disable-next-line @angular-eslint/component-selector -- stays a <div> so the dialog CSS applies
   selector: "div[ocspIssueDescriptionSection]",
   host: { class: "description-block" },
-  template: `
-    <span class="content-label">Description</span>
-    <p>{{ description() }}</p>
-  `
+  templateUrl: "./issue-description-section.component.html",
+  styleUrl: "./issue-description-section.component.css"
 })
 export class IssueDescriptionSectionComponent {
   readonly description = input.required<string>();

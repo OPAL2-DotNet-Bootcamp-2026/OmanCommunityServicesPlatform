@@ -1,0 +1,24 @@
+@if (chips().length) {
+  <div [class]="variant() === 'staff' ? 'card border-0 bg-light p-3 mb-4 rounded-3 shadow-sm active-filters-panel' : 'ocsp-card active-filters-panel p-3 mb-4'">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <span class="fw-bold text-dark me-2 d-flex align-items-center gap-1 active-filters__label">
+        <i class="bi bi-sliders text-secondary" aria-hidden="true"></i>Active Filters:
+      </span>
+      <div class="d-flex flex-wrap gap-2" id="activeFilterChips">
+        @for (chip of chips(); track chip.key) {
+          <span class="badge bg-white text-dark border shadow-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold" [class.fs-6]="variant() === 'staff'"
+            ocspReveal [revealIndex]="$index">
+            <span class="text-muted fw-normal">{{ chip.label }}:</span>
+            {{ chip.value }}
+            <button type="button" class="btn-close ms-1 active-filter__dismiss" [attr.aria-label]="'Remove ' + chip.label + ' filter'"
+              (click)="remove.emit(chip.key)"></button>
+          </span>
+        }
+      </div>
+      <button type="button" (click)="clearAll.emit()"
+        [class]="variant() === 'staff' ? 'btn btn-link text-danger text-decoration-none p-0 ms-auto fw-bold d-inline-flex align-items-center gap-1 fs-6' : 'ocsp-button ocsp-button--cancel ms-auto'">
+        <i class="bi bi-trash3" aria-hidden="true"></i>Clear all
+      </button>
+    </div>
+  </div>
+}

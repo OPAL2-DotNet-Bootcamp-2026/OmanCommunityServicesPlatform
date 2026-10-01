@@ -10,8 +10,8 @@ import { type Rating } from "../../../core/models/rating.model";
 import { AppPaths } from "../../../core/routing/app-paths";
 import { type IssueFilters, emptyIssueFilters, filterIssues } from "../../../core/utils/issue-filter.util";
 import { IssueCardComponent } from "../../../shared/components/issue-card/issue-card.component";
-import { ActiveFiltersPanelComponent } from "../../../shared/components/issue-filters/active-filters-panel.component";
-import { IssueFiltersDrawerComponent } from "../../../shared/components/issue-filters/issue-filters-drawer.component";
+import { ActiveFiltersPanelComponent } from "../../../shared/components/issue-filters/active-filters-panel/active-filters-panel.component";
+import { IssueFiltersDrawerComponent } from "../../../shared/components/issue-filters/issue-filters-drawer/issue-filters-drawer.component";
 import { LoadingSkeletonComponent } from "../../../shared/components/loading-skeleton/loading-skeleton.component";
 import { type StatusMessage, StatusAlertComponent } from "../../../shared/components/status-alert/status-alert.component";
 import { CountUpDirective } from "../../../shared/directives/count-up.directive";
@@ -45,7 +45,8 @@ const STATUS_TILES: { id: string; status: IssueStatus | ""; key: string; label: 
     StatusAlertComponent, CountUpDirective, NearViewportDirective, RevealOnEnterDirective,
     CitizenIssueDetailDialogComponent, CreateIssueDialogComponent
   ],
-  templateUrl: "./my-issues-page.component.html"
+  templateUrl: "./my-issues-page.component.html",
+  styleUrl: "./my-issues-page.component.css"
 })
 export class MyIssuesPageComponent implements OnInit, OnDestroy {
   private readonly service = inject(CitizenIssuesService);

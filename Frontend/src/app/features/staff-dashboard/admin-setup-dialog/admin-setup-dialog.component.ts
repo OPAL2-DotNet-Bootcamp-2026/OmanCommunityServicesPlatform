@@ -29,7 +29,8 @@ const GOVERNORATES: { value: Governorate; label: string }[] = [
 @Component({
   selector: "ocsp-admin-setup-dialog",
   imports: [ReactiveFormsModule, BusyButtonComponent, StatusAlertComponent],
-  templateUrl: "./admin-setup-dialog.component.html"
+  templateUrl: "./admin-setup-dialog.component.html",
+  styleUrl: "./admin-setup-dialog.component.css"
 })
 export class AdminSetupDialogComponent {
   readonly regions = input.required<Region[]>();

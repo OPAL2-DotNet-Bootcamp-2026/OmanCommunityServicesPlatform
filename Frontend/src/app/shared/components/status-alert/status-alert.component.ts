@@ -22,7 +22,8 @@ export interface StatusMessage {
     "[attr.role]": "role()",
     "[attr.aria-live]": "role() === 'alert' ? 'assertive' : 'polite'"
   },
-  template: "{{ status()?.text }}"
+  templateUrl: "./status-alert.component.html",
+  styleUrl: "./status-alert.component.css"
 })
 export class StatusAlertComponent {
   readonly status = input<StatusMessage | null>(null);

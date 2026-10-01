@@ -9,7 +9,8 @@ import { RevealOnEnterDirective } from "../../../shared/directives/reveal-on-ent
 @Component({
   selector: "ocsp-home-page",
   imports: [RouterLink, CountUpDirective, RevealOnEnterDirective],
-  templateUrl: "./home-page.component.html"
+  templateUrl: "./home-page.component.html",
+  styleUrl: "./home-page.component.css"
 })
 export class HomePageComponent {
   private readonly session = inject(SessionService);

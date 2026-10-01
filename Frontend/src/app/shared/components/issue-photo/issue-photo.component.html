@@ -1,0 +1,6 @@
+@if (image(); as image) {
+  <img class="issue-card-media__image" [src]="image.url" alt="" width="720" height="480"
+    loading="lazy" decoding="async" referrerpolicy="no-referrer" (error)="failedUrl.set(image.url)">
+} @else {
+  <i class="bi bi-image"></i>
+}

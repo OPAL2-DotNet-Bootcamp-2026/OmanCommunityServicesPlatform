@@ -6,11 +6,11 @@ import { type Comment } from "../../../core/models/comment.model";
 import { type IssueStatus } from "../../../core/models/enums";
 import { type StatusUpdate } from "../../../core/models/issue.model";
 import { BusyButtonComponent } from "../../../shared/components/busy-button/busy-button.component";
-import { IssueAttachmentsSectionComponent } from "../../../shared/components/issue-detail-sections/issue-attachments-section.component";
-import { IssueCommentThreadComponent } from "../../../shared/components/issue-detail-sections/issue-comment-thread.component";
-import { IssueDescriptionSectionComponent } from "../../../shared/components/issue-detail-sections/issue-description-section.component";
-import { IssueLocationSectionComponent } from "../../../shared/components/issue-detail-sections/issue-location-section.component";
-import { IssueTimelineSectionComponent } from "../../../shared/components/issue-detail-sections/issue-timeline-section.component";
+import { IssueAttachmentsSectionComponent } from "../../../shared/components/issue-detail-sections/issue-attachments-section/issue-attachments-section.component";
+import { IssueCommentThreadComponent } from "../../../shared/components/issue-detail-sections/issue-comment-thread/issue-comment-thread.component";
+import { IssueDescriptionSectionComponent } from "../../../shared/components/issue-detail-sections/issue-description-section/issue-description-section.component";
+import { IssueLocationSectionComponent } from "../../../shared/components/issue-detail-sections/issue-location-section/issue-location-section.component";
+import { IssueTimelineSectionComponent } from "../../../shared/components/issue-detail-sections/issue-timeline-section/issue-timeline-section.component";
 import { BootstrapModalDirective } from "../../../shared/directives/bootstrap-modal.directive";
 import { ToastService } from "../../../shared/services/toast.service";
 import { type StaffIssueDetail, StaffDashboardService } from "../staff-dashboard.service";
@@ -26,7 +26,8 @@ import { type StaffIssueDetail, StaffDashboardService } from "../staff-dashboard
     ReactiveFormsModule, BootstrapModalDirective, BusyButtonComponent, IssueAttachmentsSectionComponent,
     IssueCommentThreadComponent, IssueDescriptionSectionComponent, IssueLocationSectionComponent, IssueTimelineSectionComponent
   ],
-  templateUrl: "./staff-issue-detail-dialog.component.html"
+  templateUrl: "./staff-issue-detail-dialog.component.html",
+  styleUrl: "./staff-issue-detail-dialog.component.css"
 })
 export class StaffIssueDetailDialogComponent {
   readonly issue = input.required<StaffIssueDetail>();

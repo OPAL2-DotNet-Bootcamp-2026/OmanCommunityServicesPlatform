@@ -1,7 +1,7 @@
 import { DecimalPipe } from "@angular/common";
 import { Component, computed, input } from "@angular/core";
-import { type Issue } from "../../../core/models/issue.model";
-import { IssueLocationMapComponent } from "../issue-location-map/issue-location-map.component";
+import { type Issue } from "../../../../core/models/issue.model";
+import { IssueLocationMapComponent } from "../../issue-location-map/issue-location-map.component";
 
 /** The written location and its map. Staff also see the coordinates, which crews dispatch from. */
 @Component({
@@ -9,19 +9,8 @@ import { IssueLocationMapComponent } from "../issue-location-map/issue-location-
   selector: "div[ocspIssueLocationSection]",
   imports: [DecimalPipe, IssueLocationMapComponent],
   host: { class: "mt-4" },
-  template: `
-    <span class="content-label">Location</span>
-    <div class="location-value">
-      <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
-      <span>{{ issue().location }}</span>
-    </div>
-    <div ocspIssueLocationMap [latitude]="latitude()" [longitude]="longitude()" [label]="areaName()" [height]="mapHeight()"></div>
-    @if (showCoordinates() && latitude() !== null && longitude() !== null) {
-      <p class="text-muted small mt-2 mb-0">
-        <i class="bi bi-pin-map me-1" aria-hidden="true"></i>Lat: {{ latitude() | number: "1.4-4" }}, Lng: {{ longitude() | number: "1.4-4" }}
-      </p>
-    }
-  `
+  templateUrl: "./issue-location-section.component.html",
+  styleUrl: "./issue-location-section.component.css"
 })
 export class IssueLocationSectionComponent {
   readonly issue = input.required<Issue>();

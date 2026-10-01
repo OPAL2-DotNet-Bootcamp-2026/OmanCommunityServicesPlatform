@@ -13,13 +13,8 @@ import { Component, input } from "@angular/core";
     "[attr.aria-busy]": "busy() ? 'true' : null",
     "[class.ocsp-button-busy]": "busy()"
   },
-  template: `
-    @if (busy()) {
-      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span>{{ busyLabel() }}</span>
-    } @else {
-      <ng-content />
-    }
-  `
+  templateUrl: "./busy-button.component.html",
+  styleUrl: "./busy-button.component.css"
 })
 export class BusyButtonComponent {
   readonly busy = input(false);

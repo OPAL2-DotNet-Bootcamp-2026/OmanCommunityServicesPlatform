@@ -1,0 +1,6 @@
+/*
+ * Issue Description Section - styles that belong to this component only.
+ * Today it is styled by global files in src/styles/: 13-portal-foundations.css, 22-issue-detail-dialog.css.
+ * They stay global for now because their order matters (later files refine
+ * earlier ones); move rules here one at a time when you change them.
+ */

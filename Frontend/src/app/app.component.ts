@@ -14,7 +14,8 @@ import { ToastService, toToastTone } from "./shared/services/toast.service";
 @Component({
   selector: "ocsp-root",
   imports: [RouterOutlet, SiteHeaderComponent, HelpStripComponent, SiteFooterComponent, ToastContainerComponent],
-  templateUrl: "./app.component.html"
+  templateUrl: "./app.component.html",
+  styleUrl: "./app.component.css"
 })
 export class AppComponent {
   protected readonly page = inject(CurrentPageService);
