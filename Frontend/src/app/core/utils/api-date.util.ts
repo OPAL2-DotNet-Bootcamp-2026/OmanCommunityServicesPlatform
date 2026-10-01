@@ -1,19 +1,11 @@
 /**
- * Parsing for timestamps that come back from the API.
- *
- * SQL Server stores these as UTC, but ASP.NET may serialise them with no zone
- * suffix - "2026-09-13T09:44:00" rather than "...Z". A browser reads a bare
- * timestamp as LOCAL time, so every date in the app was silently shifted by the
- * viewer's offset. In Muscat that is four hours, which is enough to show an
- * issue as reported "tomorrow".
- *
- * Ported from the parseApiDate added to config.js on main. It lives in its own
- * module here rather than hanging off the config object, so callers import it
- * instead of testing whether it happens to exist at runtime.
+ * Parsing for timestamps from the API. SQL Server stores UTC, but ASP.NET may
+ * send no zone suffix ("2026-09-13T09:44:00"), which a browser reads as LOCAL
+ * time - four hours off in Muscat. A bare timestamp is treated as UTC here.
  */
 
-/** Milliseconds are truncated to three digits; anything longer breaks Date. */
 const ISO_DATE_START = /^\d{4}-\d{2}-\d{2}T/;
+/** Milliseconds are cut to three digits; anything longer breaks Date. */
 const OVERLONG_MILLISECONDS = /(\.\d{3})\d+(?=(?:Z|[+-]\d{2}:?\d{2})?$)/i;
 const HAS_ZONE = /(?:Z|[+-]\d{2}:?\d{2})$/i;
 

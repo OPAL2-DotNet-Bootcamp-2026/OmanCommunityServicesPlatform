@@ -1,9 +1,22 @@
-import type { Issue } from "./models";
-import { normalizedSearch } from "./text";
+/** Search, filter and sort for the citizen and staff issue lists. */
+import { type Issue } from "../models/issue.model";
+import { normalizedSearch } from "./text-coercion.util";
 
-type IssueFilters = Record<"search" | "status" | "priority" | "department" | "category" | "sort", string>;
+export interface IssueFilters {
+  search: string;
+  status: string;
+  priority: string;
+  department: string;
+  category: string;
+  /** "newest" (default) or "oldest". */
+  sort: string;
+}
 
-/** Filter a copy of the list; staff searches also include issue and reporter IDs. */
+export function emptyIssueFilters(): IssueFilters {
+  return { search: "", status: "", priority: "", department: "", category: "", sort: "newest" };
+}
+
+/** A filtered, sorted copy; staff searches also match issue and reporter ids. */
 export function filterIssues(issues: Issue[], filters: IssueFilters, includeIdentifiers = false): Issue[] {
   const search = normalizedSearch(filters.search);
   const visible = issues.filter((issue) => {

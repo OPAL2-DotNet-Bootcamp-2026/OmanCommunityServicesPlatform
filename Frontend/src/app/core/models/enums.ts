@@ -1,13 +1,8 @@
 /**
- * Mirrors the enums in OmanCommunityServicesPlatform/Enums/.
+ * Mirrors OmanCommunityServicesPlatform/Enums/*.cs.
  *
- * These are written out for you because every other model depends on them and
- * there is nothing to learn from transcribing them a second time.
- *
- * Note they are string unions, not numeric enums. The backend stores and
- * serialises these as strings (see the StoreEnumsAsStrings migration), so the
- * JSON on the wire carries "Open", never 0. A numeric enum here would compile
- * happily and then never match anything at runtime.
+ * String unions, not numeric enums: the backend stores and serialises these as
+ * strings (StoreEnumsAsStrings migration), so the JSON carries "Open", never 0.
  */
 
 /** Enums/IssueStatus.cs */
@@ -42,8 +37,5 @@ export type Governorate =
   | "AdhDhahirah"
   | "AlWusta";
 
-/**
- * The session layer widens UserRole with "" for "signed out or unrecognised".
- * normalizeRole() in session.service.ts returns this, not UserRole.
- */
+/** UserRole widened with "" for "signed out or unrecognised". */
 export type SessionRole = UserRole | "";

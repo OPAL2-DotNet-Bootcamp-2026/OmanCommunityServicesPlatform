@@ -1,5 +1,8 @@
-/** Backend routes used by the frontend. Preserve the backend route casing. */
-export const endpoints = Object.freeze({
+/**
+ * Every backend route the frontend calls, relative to the API origin (the
+ * api-base-url interceptor adds it). Casing matches the controllers exactly.
+ */
+export const apiEndpoints = Object.freeze({
   login: "/user/login",
   register: "/user/register",
   myIssues: "/issue/GetMyIssues",
