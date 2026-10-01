@@ -15,14 +15,14 @@ interface FilterChip {
   imports: [RevealOnEnterDirective],
   template: `
     @if (chips().length) {
-      <div class="ocsp-card active-filters-panel p-3 mb-4">
+      <div [class]="variant() === 'staff' ? 'card border-0 bg-light p-3 mb-4 rounded-3 shadow-sm active-filters-panel' : 'ocsp-card active-filters-panel p-3 mb-4'">
         <div class="d-flex flex-wrap align-items-center gap-2">
           <span class="fw-bold text-dark me-2 d-flex align-items-center gap-1 active-filters__label">
             <i class="bi bi-sliders text-secondary" aria-hidden="true"></i>Active Filters:
           </span>
           <div class="d-flex flex-wrap gap-2" id="activeFilterChips">
             @for (chip of chips(); track chip.key) {
-              <span class="badge bg-white text-dark border shadow-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold"
+              <span class="badge bg-white text-dark border shadow-sm rounded-pill d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold" [class.fs-6]="variant() === 'staff'"
                 ocspReveal [revealIndex]="$index">
                 <span class="text-muted fw-normal">{{ chip.label }}:</span>
                 {{ chip.value }}
@@ -31,7 +31,8 @@ interface FilterChip {
               </span>
             }
           </div>
-          <button type="button" class="ocsp-button ocsp-button--cancel ms-auto" (click)="clearAll.emit()">
+          <button type="button" (click)="clearAll.emit()"
+            [class]="variant() === 'staff' ? 'btn btn-link text-danger text-decoration-none p-0 ms-auto fw-bold d-inline-flex align-items-center gap-1 fs-6' : 'ocsp-button ocsp-button--cancel ms-auto'">
             <i class="bi bi-trash3" aria-hidden="true"></i>Clear all
           </button>
         </div>
@@ -41,6 +42,8 @@ interface FilterChip {
 })
 export class ActiveFiltersPanelComponent {
   readonly filters = input.required<IssueFilters>();
+  /** The staff dashboard styles the panel slightly differently. */
+  readonly variant = input<"citizen" | "staff">("citizen");
   readonly remove = output<keyof IssueFilters>();
   readonly clearAll = output<void>();
 

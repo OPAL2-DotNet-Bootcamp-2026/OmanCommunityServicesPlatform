@@ -1,0 +1,93 @@
+<div class="modal fade issue-detail-modal" tabindex="-1" ocspBootstrapModal (modalHidden)="closed.emit()"
+  [id]="'issueModal-' + issue().issueId" [attr.aria-labelledby]="'issueModalLabel-' + issue().issueId" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down issue-detail-dialog">
+    <div class="modal-content issue-detail-modal__content">
+      <div class="modal-header issue-dialog__header issue-detail-modal__header">
+        <div>
+          <span class="content-label">STAFF ISSUE &middot; REQ-{{ issue().issueId }}</span>
+          <h2 class="modal-title" [id]="'issueModalLabel-' + issue().issueId">{{ issue().title }}</h2>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close issue details"></button>
+      </div>
+
+      <div class="modal-body issue-body issue-detail-modal__body">
+        @if (issue().warnings.length) {
+          <div class="alert alert-warning small mb-4" role="alert">
+            <strong>Some supporting details are unavailable:</strong> {{ issue().warnings.join(", ") }}.
+          </div>
+        }
+        <div class="row g-4">
+          <div class="col-lg-7 pe-lg-4 issue-detail-divider">
+            <div ocspIssueDescriptionSection [description]="issue().description"></div>
+            <div ocspIssueLocationSection [issue]="issue()" [showCoordinates]="true" mapHeight="240px"></div>
+            <div ocspIssueAttachmentsSection [attachments]="issue().attachments" label="Citizen attachments"></div>
+            <div ocspIssueTimelineSection [issue]="issue()" [compact]="true"></div>
+            <hr class="my-4">
+
+            <span class="content-label">Staff Action Panel</span>
+            @if (issue().currentStatus === "Resolved") {
+              <div class="alert alert-success bg-opacity-10 border-success-subtle text-success small mb-3">
+                <i class="bi bi-check-circle-fill me-2" aria-hidden="true"></i>This issue has been successfully resolved and closed.
+              </div>
+              <div class="rating-panel">
+                @if (issue().rating; as rating) {
+                  <div class="d-flex align-items-center justify-content-between gap-3 mb-2">
+                    <span class="fw-bold small text-dark">Citizen Feedback &amp; Rating</span>
+                    <span class="text-warning small" [attr.aria-label]="ratingStars().score + ' out of 5 stars'">
+                      @for (filled of ratingStars().stars; track $index) {
+                        <i class="bi {{ filled ? 'bi-star-fill' : 'bi-star' }}" aria-hidden="true"></i>
+                      }
+                      <span class="fw-bold text-dark ms-1">{{ ratingStars().score }}.0 / 5</span>
+                    </span>
+                  </div>
+                  <p class="mb-0 small text-muted">
+                    @if (rating.feedback) { &ldquo;{{ rating.feedback }}&rdquo; } @else { No written feedback was provided. }
+                  </p>
+                } @else {
+                  <span class="fw-bold small text-dark">Citizen Feedback &amp; Rating</span>
+                  <p class="mb-0 mt-2 small text-muted">The citizen has not submitted feedback yet.</p>
+                }
+              </div>
+            } @else {
+              <form ngNativeValidate [formGroup]="statusForm" (ngSubmit)="changeStatus()" [attr.aria-busy]="statusSaving()">
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold text-dark" [for]="'nextStatus-' + issue().issueId">Next Status</label>
+                    <select class="form-select bg-light" [id]="'nextStatus-' + issue().issueId" formControlName="newStatus" required>
+                      @for (option of nextStatuses(); track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold text-dark" [for]="'internalNotes-' + issue().issueId">Internal Notes</label>
+                  <textarea class="form-control bg-light" [id]="'internalNotes-' + issue().issueId" formControlName="notes"
+                    maxlength="500" rows="3" placeholder="Add resolution steps..."></textarea>
+                </div>
+                <div class="d-flex justify-content-end">
+                  <button ocspBusyButton type="submit" class="ocsp-button ocsp-button--submit staff-status-update"
+                    [busy]="statusSaving()" busyLabel="Updating status...">Update Status</button>
+                </div>
+                <p class="small mt-2 mb-0 text-end" aria-live="polite">{{ statusMessage() }}</p>
+              </form>
+            }
+          </div>
+
+          <div class="col-lg-5 ps-lg-4 comments-column">
+            <span class="content-label"><i class="bi bi-chat-text me-2" aria-hidden="true"></i>Comments</span>
+            <div ocspIssueCommentThread class="mb-3" [comments]="comments()"></div>
+            <form class="comment-composer" (submit)="$event.preventDefault(); addComment()">
+              <label class="visually-hidden" [for]="'staffComment-' + issue().issueId">Add a public comment</label>
+              <input class="form-control" [id]="'staffComment-' + issue().issueId" maxlength="1000" placeholder="Add a public comment..."
+                type="text" [formControl]="commentInput">
+              <button class="ocsp-button ocsp-button--submit ocsp-button--icon" type="submit" aria-label="Send comment"
+                [disabled]="commentSending()"><i class="bi bi-send" aria-hidden="true"></i></button>
+            </form>
+            <p class="small mt-2 mb-0" aria-live="polite">{{ commentStatus() }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

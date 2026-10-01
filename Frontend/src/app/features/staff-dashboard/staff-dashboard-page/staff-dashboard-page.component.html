@@ -1,0 +1,150 @@
+<header class="page-hero page-hero--compact">
+  <div class="container-xxl px-3 px-md-4 py-5">
+    <div class="page-hero__grid">
+      <div ocspReveal="static">
+        <nav class="breadcrumb-ocsp" aria-label="Breadcrumb">
+          <a [routerLink]="paths.home">Home</a>
+          <i class="bi bi-chevron-right" aria-hidden="true"></i>
+          <span aria-current="page">Dashboard</span>
+        </nav>
+        <span class="page-kicker"><i class="bi bi-shield-check"></i> {{ isAdmin() ? "Admin" : "Staff" }} dashboard</span>
+        <h1>Turn reports into results.</h1>
+        <p class="page-hero__copy">
+          {{ isAdmin()
+            ? "Manage service structure, review civic issues and keep citizens informed from first assessment to resolution."
+            : "Review civic issues, document municipal action and keep citizens informed from first assessment to resolution." }}
+        </p>
+        <div class="page-hero__actions">
+          <a class="btn-ocsp-primary" [routerLink]="[]" fragment="issuesAccordion"><i class="bi bi-inboxes"></i>Review civic issues</a>
+          <a class="btn-ocsp-light" [routerLink]="paths.notifications"><i class="bi bi-bell"></i>View notifications</a>
+        </div>
+      </div>
+      <aside class="hero-panel" aria-label="Issue workload summary" ocspReveal="static" [revealIndex]="1">
+        <span class="hero-panel__label">Current workload</span>
+        @if (data()) {
+          <p class="hero-panel__value" ocspCountUp [countTo]="counts()['total'] ?? 0" [countSuffix]="counts()['total'] === 1 ? ' issue' : ' issues'"></p>
+          <p class="hero-panel__copy">{{ workload() }}</p>
+        } @else {
+          <p class="hero-panel__value">Loading issues...</p>
+          <p class="hero-panel__copy">Loading current workload...</p>
+        }
+        <div class="hero-panel__divider"></div>
+        <div class="d-flex align-items-center justify-content-between gap-3">
+          <div>
+            <span class="hero-panel__label">Completed today</span>
+            <p class="hero-panel__value mb-0" ocspCountUp [countTo]="resolvedToday()" countSuffix=" resolved"></p>
+          </div>
+          <i class="bi bi-check2-circle fs-2 text-success" aria-hidden="true"></i>
+        </div>
+      </aside>
+    </div>
+  </div>
+</header>
+
+<main class="container-xxl py-4 py-lg-5 ocsp-page ocsp-page--staff ocsp-page-container" id="mainContent">
+  <div class="issues-toolbar">
+    <div class="issues-heading">
+      <span class="page-kicker"><i class="bi bi-shield-check"></i> {{ isAdmin() ? "Admin" : "Staff" }} Workspace</span>
+      <h2>Dashboard</h2>
+      <p>
+        {{ isAdmin()
+          ? "Manage platform setup, review civic issues, update their status, and respond to citizen comments."
+          : "Review civic issues, update their status, and respond to citizen comments." }}
+      </p>
+    </div>
+    @if (isAdmin()) {
+      <button #adminTrigger type="button" class="btn-ocsp-primary reference-admin-jump border-0" aria-haspopup="dialog"
+        aria-controls="adminManagement" (click)="adminSetup.open(adminTrigger)">
+        <i class="bi bi-diagram-3" aria-hidden="true"></i>Manage platform setup
+      </button>
+    }
+  </div>
+
+  <!-- The stat tiles are labels for these radios, so a tile also filters by its status. -->
+  @for (tile of statusTiles; track tile.id) {
+    <input class="issue-summary-filter-input visually-hidden" type="radio" name="staff-issue-summary-filter"
+      [id]="tile.id" aria-controls="issuesAccordion" [checked]="filters().status === tile.status" (change)="setStatusFilter(tile.status)" />
+  }
+  <section class="issue-stats" aria-label="Issue statistics and status filters">
+    @for (tile of statusTiles; track tile.id) {
+      <label class="issue-stat issue-stat--{{ tile.key }} issue-summary-filter-label" [for]="tile.id" ocspReveal="static" [revealIndex]="$index">
+        <span class="issue-stat__icon"><i class="bi {{ tile.icon }}"></i></span>
+        <span class="issue-stat__copy">
+          <strong class="issue-stat__value" ocspCountUp [countTo]="counts()[tile.key] ?? 0"></strong>
+          <span class="issue-stat__label">{{ tile.label }}</span>
+        </span>
+      </label>
+    }
+  </section>
+
+  <div class="row g-2 mb-4 align-items-center ocsp-control-row">
+    <div class="col">
+      <label class="visually-hidden" for="searchInput">Search issues by title</label>
+      <div class="input-group shadow-sm ocsp-search">
+        <span class="input-group-text bg-white border-end-0 px-3"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" class="form-control border-start-0 py-2" placeholder="Search by issue title..." id="searchInput" maxlength="150"
+          [value]="searchText()" (input)="onSearch($any($event.target).value)">
+      </div>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-white border shadow-sm position-relative d-flex align-items-center gap-2 bg-white px-3 py-2 ocsp-filter-trigger"
+        aria-controls="filterDrawer" aria-haspopup="dialog" (click)="filterDrawer.open()">
+        <i class="bi bi-funnel-fill text-primary"></i>
+        <span class="fw-semibold">Filters & Sort</span>
+        @if (activeFilterCount()) {
+          <span class="badge bg-primary rounded-pill ms-1">{{ activeFilterCount() }}</span>
+        }
+      </button>
+    </div>
+  </div>
+
+  <ocsp-active-filters-panel variant="staff" [filters]="filters()" (remove)="removeFilter($event)" (clearAll)="clearFilters()" />
+
+  <div ocspStatusAlert [status]="pageStatus()" spacing="mb-4" tabindex="-1"></div>
+  <p class="small text-secondary mb-3" aria-live="polite">
+    @if (data()) {
+      {{ issues().length ? "Showing " + visibleIssues().length + " of " + issues().length + " issue" + (issues().length === 1 ? "" : "s") + "." : "No issues are available." }}
+    }
+  </p>
+
+  <div class="accordion d-flex flex-column gap-3" id="issuesAccordion" [attr.aria-busy]="!data() && !loadError()">
+    @if (loadError()) {
+      <div class="alert alert-danger" role="alert">
+        <p class="mb-3">{{ loadError() }}</p>
+        <button class="ocsp-button ocsp-button--submit" type="button" (click)="load()">Try again</button>
+      </div>
+    } @else if (!data()) {
+      <ocsp-loading-skeleton [count]="3" variant="issue" label="Loading issues..." />
+    } @else if (issues().length === 0) {
+      <div class="ocsp-card p-4 text-center" role="status">
+        <i class="bi bi-inboxes fs-2 text-primary" aria-hidden="true"></i>
+        <h3 class="h5 mt-3">No issues</h3>
+        <p class="text-muted mb-0">New civic reports will appear here when they are available.</p>
+      </div>
+    } @else if (visibleIssues().length === 0) {
+      <div class="ocsp-card p-4 text-center" role="status">
+        <i class="bi bi-search fs-2 text-primary" aria-hidden="true"></i>
+        <h3 class="h5 mt-3">No matching issues</h3>
+        <p class="text-muted mb-3">Try changing your search or filters.</p>
+        <button class="ocsp-button ocsp-button--cancel" type="button" (click)="clearFilters()">Clear filters</button>
+      </div>
+    } @else {
+      @for (issue of visibleIssues(); track issue.issueId) {
+        <div ocspStaffIssueCard [issue]="issue" ocspReveal [revealIndex]="$index"
+          ocspNearViewport (nearViewport)="loadPhoto(issue)" (open)="openIssue(issue.issueId)"></div>
+      }
+    }
+  </div>
+</main>
+
+<ocsp-issue-filters-drawer #filterDrawer [filters]="filters()" [departments]="departmentNames()" [categories]="categoryNames()"
+  (filtersChange)="filters.set($event)" (resetFilters)="clearFilters()" />
+
+<ocsp-admin-setup-dialog #adminSetup [regions]="regions()" [departments]="departments()"
+  (regionCreated)="regions.set([...regions(), $event])"
+  (departmentCreated)="departments.set([...departments(), $event])"
+  (categoryCreated)="categories.set([...categories(), $event])" />
+
+@if (detailIssue(); as issue) {
+  <ocsp-staff-issue-detail-dialog [issue]="issue" (closed)="onDetailClosed()" (statusChanged)="onStatusChanged($event)" />
+}

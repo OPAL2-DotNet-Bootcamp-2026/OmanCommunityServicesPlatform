@@ -5,8 +5,7 @@ import angular from "angular-eslint";
 
 export default tseslint.config(
   {
-    // legacy/ is the pre-Angular app, kept only until every page is ported.
-    ignores: ["dist/**", "node_modules/**", ".angular/**", "out-tsc/**", "legacy/**"]
+    ignores: ["dist/**", "node_modules/**", ".angular/**", "out-tsc/**"]
   },
 
   js.configs.recommended,

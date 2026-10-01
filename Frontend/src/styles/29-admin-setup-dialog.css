@@ -626,3 +626,51 @@ body.ocsp-portal--staff:has(.reference-admin-modal .reference-admin__panel:targe
     transition: none;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Class-driven state. The Angular dashboard opens this dialog and picks a
+   panel with classes (.is-open, .has-panel, .is-active) rather than :target,
+   because a #hash link would leave the routed page. These mirror the :target
+   rules above one for one.
+   -------------------------------------------------------------------------- */
+body.ocsp-portal--staff .reference-admin-modal.is-open {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: grid !important;
+  padding: 1rem;
+  place-items: center;
+  visibility: visible !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  opacity: 1 !important;
+  pointer-events: auto;
+}
+
+body.ocsp-portal--staff .reference-admin-modal .reference-admin__label.is-active {
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--ocsp-primary-dark), var(--ocsp-primary));
+  border-color: var(--ocsp-primary-dark);
+  box-shadow: 0 7px 16px rgba(11, 66, 109, 0.2);
+}
+
+body.ocsp-portal--staff .reference-admin-modal.has-panel .reference-admin__selection-prompt {
+  display: none;
+}
+
+body.ocsp-portal--staff .reference-admin__panel.is-active {
+  display: grid;
+}
+
+html:has(body.ocsp-portal--staff .reference-admin-modal.is-open),
+body.ocsp-portal--staff:has(.reference-admin-modal.is-open) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+@media (max-width: 575.98px) {
+  body.ocsp-portal--staff .reference-admin-modal.is-open {
+    padding: 0;
+    place-items: stretch;
+  }
+}
