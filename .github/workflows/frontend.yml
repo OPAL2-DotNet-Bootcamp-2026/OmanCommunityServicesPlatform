@@ -1,8 +1,7 @@
 name: Frontend
 
-# Sixteen JavaScript files are being converted to TypeScript across four
-# parallel branches. This gate is what stops a conversion that does not
-# compile, or one that reaches for `any`, from reaching main.
+# The Angular frontend: nothing reaches main unless it type-checks, lints,
+# passes its unit tests and builds.
 
 on:
   push:
@@ -41,6 +40,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Unit tests
+        run: npm test
 
       - name: Build
         run: npm run build
