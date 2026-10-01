@@ -107,14 +107,5 @@ namespace OmanCommunityServicesPlatform.Controllers
             await paymentService.HandleWebhookAsync(dto);
             return Ok();
         }
-
-        private IActionResult NotBuiltYet(string step)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status501NotImplemented,
-                title: "Not built yet",
-                detail: step
-            );
-        }
     }
 }
